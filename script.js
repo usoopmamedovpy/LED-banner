@@ -1,3 +1,15 @@
+// Игнорируем тему Telegram - всегда темная тема
+if (window.Telegram && window.Telegram.WebApp) {
+    window.Telegram.WebApp.setHeaderColor('#000000');
+    window.Telegram.WebApp.setBackgroundColor('#000000');
+    window.Telegram.WebApp.expand();
+}
+
+// Принудительно устанавливаем черный фон
+document.documentElement.style.backgroundColor = '#000000';
+document.body.style.backgroundColor = '#000000';
+document.body.style.color = '#ffffff';
+
 // Инициализация Telegram Mini App
 let tg = window.Telegram.WebApp;
 
@@ -6,11 +18,6 @@ tg.ready();
 
 // Растягиваем на весь экран
 tg.expand();
-tg.setHeaderColor('#000000');
-tg.setBackgroundColor('#000000');
-
-// Настройка цветов под тему Telegram
-document.body.style.background = tg.themeParams.bg_color || '#000000';
 
 // Получаем элементы
 const scrollingText = document.getElementById('scrollingText');
@@ -19,7 +26,6 @@ const runBtn = document.getElementById('runBtn');
 const resetBtn = document.getElementById('resetBtn');
 const settingsBtn = document.getElementById('settingsBtn');
 const settingsPanel = document.getElementById('settingsPanel');
-const bannerArea = document.getElementById('bannerArea');
 
 // Элементы настроек
 const sizeSlider = document.getElementById('sizeSlider');
@@ -42,7 +48,15 @@ function updateText(newText) {
     
     restartAnimation();
     
-    if (tg.HapticFeedback) {
+    // Отправляем данные боту для сохранения
+    if (tg) {
+        tg.sendData(JSON.stringify({
+            action: 'new_text',
+            text: newText
+        }));
+    }
+    
+    if (tg && tg.HapticFeedback) {
         tg.HapticFeedback.impactOccurred('light');
     }
 }
@@ -61,7 +75,7 @@ function resetAll() {
     applySettings();
     restartAnimation();
     
-    if (tg.HapticFeedback) {
+    if (tg && tg.HapticFeedback) {
         tg.HapticFeedback.impactOccurred('medium');
     }
 }
@@ -96,6 +110,16 @@ function applySettings() {
             btn.classList.add('active');
         }
     });
+    
+    // Отправляем настройки боту
+    if (tg) {
+        tg.sendData(JSON.stringify({
+            action: 'save_settings',
+            color: currentColor,
+            speed: animationSpeed,
+            size: size
+        }));
+    }
 }
 
 // Функция открытия/закрытия настроек
@@ -149,10 +173,10 @@ speedSlider.addEventListener('input', applySettings);
 // Обработчики цветов
 colorButtons.forEach(btn => {
     btn.addEventListener('click', () => {
-        currentColor = btn.classList[1]; // white, red, blue, etc.
+        currentColor = btn.classList[1];
         applySettings();
         
-        if (tg.HapticFeedback) {
+        if (tg && tg.HapticFeedback) {
             tg.HapticFeedback.impactOccurred('light');
         }
     });
@@ -171,8 +195,10 @@ window.addEventListener('load', () => {
     tg.expand();
     textInput.focus();
     
-    // Добавляем поддержку цветов
     scrollingText.style.transition = 'color 0.3s, text-shadow 0.3s';
+    
+    // Еще раз принудительно ставим черный фон
+    document.body.style.backgroundColor = '#000000';
 });
 
 // Обработка изменения размера окна
@@ -181,54 +207,34 @@ window.addEventListener('resize', () => {
 });
 
 // Обработка кнопки назад в Telegram
-tg.BackButton.onClick(() => {
-    if (settingsVisible) {
-        closeSettings();
-    } else {
-        tg.close();
-    }
-});
-
-// Показываем кнопку назад
-tg.BackButton.show();
+if (tg) {
+    tg.BackButton.onClick(() => {
+        if (settingsVisible) {
+            closeSettings();
+        } else {
+            tg.close();
+        }
+    });
+    tg.BackButton.show();
+}
 
 // Функция для полного экрана
 function setFullScreen() {
     document.documentElement.style.height = '100%';
     document.body.style.height = '100%';
     document.body.style.overflow = 'hidden';
-    tg.expand();
+    if (tg) tg.expand();
 }
 
 setFullScreen();
-tg.onEvent('viewportChanged', setFullScreen);
+if (tg) tg.onEvent('viewportChanged', setFullScreen);
 
 // Убираем промпт
 window.alert = function() {};
 window.confirm = function() {};
 window.prompt = function() { return ''; };
 
-// Экспортируем функции
-window.ledBanner = {
-    updateText: updateText,
-    reset: resetAll,
-    setSpeed: (speed) => {
-        speedSlider.value = speed;
-        applySettings();
-    },
-    setSize: (size) => {
-        sizeSlider.value = size;
-        applySettings();
-    },
-    setColor: (color) => {
-        if (['white', 'red', 'blue', 'green', 'yellow'].includes(color)) {
-            currentColor = color;
-            applySettings();
-        }
-    }
-};
-
-// Закрытие по свайпу вниз (для мобилок)
+// Закрытие по свайпу вниз
 let touchStartY = 0;
 settingsPanel.addEventListener('touchstart', (e) => {
     touchStartY = e.touches[0].clientY;
@@ -240,7 +246,7 @@ settingsPanel.addEventListener('touchmove', (e) => {
     const touchY = e.touches[0].clientY;
     const diff = touchY - touchStartY;
     
-    if (diff > 50) { // Свайп вниз
+    if (diff > 50) {
         closeSettings();
     }
 });
