@@ -1,19 +1,21 @@
 // ============================================
-// LED BANNER - УПРОЩЕННАЯ РАБОЧАЯ ВЕРСИЯ
+// LED BANNER - РАБОЧАЯ ВЕРСИЯ С ЦВЕТАМИ
 // ============================================
-
-// Принудительно черный фон
-document.documentElement.style.backgroundColor = '#000000';
-document.body.style.backgroundColor = '#000000';
-document.body.style.color = '#ffffff';
 
 // Telegram
 let tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
+tg.setHeaderColor('#000000');
+tg.setBackgroundColor('#000000');
+
+// Черный фон принудительно
+document.documentElement.style.backgroundColor = '#000000';
+document.body.style.backgroundColor = '#000000';
+document.body.style.color = '#ffffff';
 
 // ============================================
-// ПОЛУЧАЕМ ВСЕ ЭЛЕМЕНТЫ
+// ПОЛУЧАЕМ ЭЛЕМЕНТЫ
 // ============================================
 const scrollingText = document.getElementById('scrollingText');
 const textInput = document.getElementById('textInput');
@@ -38,159 +40,157 @@ let currentColor = 'white';
 let isRunning = false;
 
 // ============================================
-// ФУНКЦИЯ ПРИМЕНЕНИЯ ВСЕХ НАСТРОЕК (САМАЯ ВАЖНАЯ)
+// ФУНКЦИЯ СМЕНЫ ЦВЕТА (САМАЯ ВАЖНАЯ)
 // ============================================
-function applyAllSettings() {
-    console.log('Применяем настройки...');
+function setTextColor(color) {
+    console.log('Меняем цвет на:', color);
     
-    // 1. РАЗМЕР
+    // Убираем все классы цвета
+    scrollingText.classList.remove('white', 'red', 'blue', 'green', 'yellow');
+    
+    // Добавляем новый класс
+    scrollingText.classList.add(color);
+    
+    // Также применяем через style (на всякий случай)
+    if (color === 'white') scrollingText.style.color = '#ffffff';
+    if (color === 'red') scrollingText.style.color = '#ff3b30';
+    if (color === 'blue') scrollingText.style.color = '#007aff';
+    if (color === 'green') scrollingText.style.color = '#34c759';
+    if (color === 'yellow') scrollingText.style.color = '#ffcc00';
+    
+    // Убираем подсветку
+    scrollingText.style.textShadow = 'none';
+    
+    // Обновляем активную кнопку
+    colorButtons.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.classList.contains(color)) {
+            btn.classList.add('active');
+        }
+    });
+    
+    currentColor = color;
+}
+
+// ============================================
+// ФУНКЦИЯ ПРИМЕНЕНИЯ НАСТРОЕК
+// ============================================
+function applySettings() {
+    console.log('Применяем настройки');
+    
+    // Размер
     let size = sizeSlider.value;
     scrollingText.style.fontSize = size + 'vw';
     sizeValue.textContent = size + 'vw';
     
-    // 2. СКОРОСТЬ
+    // Скорость
     currentSpeed = speedSlider.value;
     speedValue.textContent = currentSpeed + ' сек';
-    
-    // 3. ЦВЕТ
-    scrollingText.style.color = currentColor;
-    scrollingText.style.textShadow = 'none';
-    
-    // 4. ПЕРЕЗАПУСК АНИМАЦИИ
     restartAnimation();
     
-    console.log('Текущие настройки:', {
-        размер: size + 'vw',
-        скорость: currentSpeed + ' сек',
-        цвет: currentColor
-    });
+    // Цвет (через функцию)
+    setTextColor(currentColor);
 }
 
 // ============================================
-// ФУНКЦИЯ ПЕРЕЗАПУСКА АНИМАЦИИ
+// ПЕРЕЗАПУСК АНИМАЦИИ
 // ============================================
 function restartAnimation() {
-    // Убираем анимацию
     scrollingText.style.animation = 'none';
-    
-    // Принудительный перерасчет
     scrollingText.offsetHeight;
-    
-    // Запускаем заново с новой скоростью
     scrollingText.style.animation = `scrollText ${currentSpeed}s linear infinite`;
 }
 
 // ============================================
-// ФУНКЦИЯ ОБНОВЛЕНИЯ ТЕКСТА
-// ============================================
-function updateDisplayText(newText) {
-    if (!newText || newText.trim() === '') return;
-    
-    // Меняем текст
-    scrollingText.textContent = newText;
-    textInput.value = newText;
-    
-    // Применяем настройки к новому тексту
-    applyAllSettings();
-}
-
-// ============================================
-// ОБРАБОТЧИКИ НАСТРОЕК (ПРЯМОЕ ПРИМЕНЕНИЕ)
+// ОБРАБОТЧИКИ
 // ============================================
 
-// Размер - применяем сразу при движении
+// Цвет - клик по кнопкам
+colorButtons.forEach(btn => {
+    btn.addEventListener('click', function() {
+        let color = this.classList[1]; // white, red, blue, green, yellow
+        setTextColor(color);
+        
+        // Отправляем в бота
+        if (tg) {
+            tg.sendData(JSON.stringify({
+                action: 'save_settings',
+                color: color,
+                speed: currentSpeed,
+                size: sizeSlider.value
+            }));
+        }
+    });
+});
+
+// Размер
 sizeSlider.addEventListener('input', function() {
     scrollingText.style.fontSize = this.value + 'vw';
     sizeValue.textContent = this.value + 'vw';
-    console.log('Размер изменен:', this.value + 'vw');
 });
 
-// Скорость - применяем сразу
+// Скорость
 speedSlider.addEventListener('input', function() {
     currentSpeed = this.value;
     speedValue.textContent = this.value + ' сек';
     restartAnimation();
-    console.log('Скорость изменена:', this.value + ' сек');
 });
 
-// Цвет - применяем сразу
-colorButtons.forEach(btn => {
-    btn.addEventListener('click', function() {
-        // Убираем активный класс у всех
-        colorButtons.forEach(b => b.classList.remove('active'));
-        
-        // Добавляем активный класс текущей кнопке
-        this.classList.add('active');
-        
-        // Получаем цвет из класса
-        let color = this.classList[1]; // white, red, blue, green, yellow
-        currentColor = color;
-        
-        // Применяем цвет
-        scrollingText.style.color = color;
-        
-        console.log('Цвет изменен:', color);
-    });
-});
-
-// ============================================
-// КНОПКА RUN
-// ============================================
+// RUN
 runBtn.addEventListener('click', function() {
     let text = textInput.value.trim();
-    if (text === '') {
-        text = 'LED бегущая строка';
-        textInput.value = text;
-    }
+    if (text === '') text = 'LED бегущая строка';
     
-    // Обновляем текст
     scrollingText.textContent = text;
-    
-    // Применяем настройки
-    applyAllSettings();
+    applySettings();
     
     // Прячем элементы
     inputArea.style.display = 'none';
     settingsBtn.style.display = 'none';
     isRunning = true;
     
-    // Закрываем настройки если открыты
-    if (settingsPanel.classList.contains('show')) {
-        settingsPanel.classList.remove('show');
-        settingsBtn.classList.remove('active');
+    // Закрываем настройки
+    settingsPanel.classList.remove('show');
+    settingsBtn.classList.remove('active');
+    
+    // Отправляем в бота
+    if (tg) {
+        tg.sendData(JSON.stringify({
+            action: 'new_text',
+            text: text
+        }));
     }
 });
 
-// ============================================
-// КНОПКА RESET (КРЕСТИК)
-// ============================================
+// RESET (крестик)
 resetBtn.addEventListener('click', function() {
-    // Возвращаем текст по умолчанию
-    let defaultText = 'LED бегущая строка';
-    scrollingText.textContent = defaultText;
-    textInput.value = defaultText;
+    // Текст по умолчанию
+    scrollingText.textContent = 'LED бегущая строка';
+    textInput.value = 'LED бегущая строка';
     
-    // Сбрасываем настройки
+    // Сброс настроек
     sizeSlider.value = 15;
     speedSlider.value = 15;
-    currentColor = 'white';
+    setTextColor('white');
     
-    // Убираем активные классы у цветов
-    colorButtons.forEach(btn => btn.classList.remove('active'));
-    document.querySelector('.color-btn.white').classList.add('active');
+    // Применяем
+    applySettings();
     
-    // Применяем сброшенные настройки
-    applyAllSettings();
-    
-    // Показываем элементы обратно
+    // Показываем элементы
     inputArea.style.display = 'flex';
     settingsBtn.style.display = 'flex';
     isRunning = false;
+    
+    // Отправляем в бота
+    if (tg) {
+        tg.sendData(JSON.stringify({
+            action: 'reset',
+            text: 'LED бегущая строка'
+        }));
+    }
 });
 
-// ============================================
-// КНОПКА НАСТРОЕК (ШЕСТЕРЕНКА)
-// ============================================
+// Шестеренка
 settingsBtn.addEventListener('click', function() {
     if (isRunning) return;
     
@@ -203,9 +203,7 @@ settingsBtn.addEventListener('click', function() {
     }
 });
 
-// ============================================
-// ЗАКРЫТИЕ НАСТРОЕК ПО КЛИКУ ВНЕ
-// ============================================
+// Закрытие настроек
 settingsPanel.addEventListener('click', function(e) {
     if (e.target === settingsPanel) {
         settingsPanel.classList.remove('show');
@@ -213,9 +211,7 @@ settingsPanel.addEventListener('click', function(e) {
     }
 });
 
-// ============================================
-// ENTER В ПОЛЕ ВВОДА
-// ============================================
+// Enter
 textInput.addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
         runBtn.click();
@@ -223,27 +219,24 @@ textInput.addEventListener('keypress', function(e) {
 });
 
 // ============================================
-// ЗАГРУЗКА СТРАНИЦЫ
+// ЗАГРУЗКА
 // ============================================
 window.addEventListener('load', function() {
     console.log('LED Banner загружен');
     
-    // Устанавливаем начальные значения
+    // Начальные значения
     scrollingText.textContent = 'LED бегущая строка';
     textInput.value = 'LED бегущая строка';
     
-    // Применяем настройки по умолчанию
-    applyAllSettings();
+    // Применяем настройки
+    applySettings();
     
     // Убираем подсветку
     scrollingText.style.textShadow = 'none';
-    
-    // Черный фон
-    document.body.style.backgroundColor = '#000000';
 });
 
 // ============================================
-// КНОПКА НАЗАД В TELEGRAM
+// TELEGRAM BACK BUTTON
 // ============================================
 tg.BackButton.onClick(function() {
     if (settingsPanel.classList.contains('show')) {
@@ -259,13 +252,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-// ============================================
-// ЗАЩИТА ОТ ПОДСВЕТКИ
-// ============================================
-setInterval(function() {
-    if (scrollingText.style.textShadow !== 'none') {
-        scrollingText.style.textShadow = 'none';
-    }
-}, 500);
-
-console.log('✅ LED Banner готов к работе!');
+console.log('✅ LED Banner готов!');
