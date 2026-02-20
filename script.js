@@ -17,22 +17,31 @@ const scrollingText = document.getElementById('scrollingText');
 const textInput = document.getElementById('textInput');
 const runBtn = document.getElementById('runBtn');
 const resetBtn = document.getElementById('resetBtn');
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsPanel = document.getElementById('settingsPanel');
 const bannerArea = document.getElementById('bannerArea');
 
-// Переменная для скорости анимации
+// Элементы настроек
+const sizeSlider = document.getElementById('sizeSlider');
+const sizeValue = document.getElementById('sizeValue');
+const speedSlider = document.getElementById('speedSlider');
+const speedValue = document.getElementById('speedValue');
+const colorButtons = document.querySelectorAll('.color-btn');
+
+// Переменные
 let animationSpeed = 15;
+let currentColor = 'white';
+let settingsVisible = false;
 
 // Функция обновления текста
 function updateText(newText) {
     if (!newText || newText.trim() === '') return;
     
     scrollingText.textContent = newText;
-    textInput.value = newText; // Синхронизируем поле ввода
+    textInput.value = newText;
     
-    // Перезапускаем анимацию
     restartAnimation();
     
-    // Вибрация при обновлении
     if (tg.HapticFeedback) {
         tg.HapticFeedback.impactOccurred('light');
     }
@@ -40,15 +49,18 @@ function updateText(newText) {
 
 // Функция сброса всего
 function resetAll() {
-    // Возвращаем текст по умолчанию
     const defaultText = 'LED бегущая строка';
     scrollingText.textContent = defaultText;
     textInput.value = defaultText;
     
-    // Перезапускаем анимацию
+    // Сбрасываем настройки
+    sizeSlider.value = 15;
+    speedSlider.value = 15;
+    currentColor = 'white';
+    
+    applySettings();
     restartAnimation();
     
-    // Вибрация при сбросе
     if (tg.HapticFeedback) {
         tg.HapticFeedback.impactOccurred('medium');
     }
@@ -56,14 +68,54 @@ function resetAll() {
 
 // Функция перезапуска анимации
 function restartAnimation() {
-    // Сбрасываем анимацию
     scrollingText.style.animation = 'none';
-    
-    // Форсируем перерасчет
     void scrollingText.offsetWidth;
-    
-    // Запускаем заново
     scrollingText.style.animation = `scrollText ${animationSpeed}s linear infinite`;
+}
+
+// Функция применения настроек
+function applySettings() {
+    // Размер текста
+    const size = sizeSlider.value;
+    scrollingText.style.fontSize = size + 'vw';
+    sizeValue.textContent = size + 'vw';
+    
+    // Скорость
+    animationSpeed = parseInt(speedSlider.value);
+    speedValue.textContent = animationSpeed + ' сек';
+    restartAnimation();
+    
+    // Цвет
+    scrollingText.style.color = currentColor;
+    scrollingText.style.textShadow = `0 0 20px ${currentColor}`;
+    
+    // Обновляем активный цвет в кнопках
+    colorButtons.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.classList.contains(currentColor)) {
+            btn.classList.add('active');
+        }
+    });
+}
+
+// Функция открытия/закрытия настроек
+function toggleSettings() {
+    settingsVisible = !settingsVisible;
+    
+    if (settingsVisible) {
+        settingsPanel.classList.add('show');
+        settingsBtn.classList.add('active');
+    } else {
+        settingsPanel.classList.remove('show');
+        settingsBtn.classList.remove('active');
+    }
+}
+
+// Функция закрытия настроек
+function closeSettings() {
+    settingsVisible = false;
+    settingsPanel.classList.remove('show');
+    settingsBtn.classList.remove('active');
 }
 
 // Обработчик кнопки RUN
@@ -77,6 +129,35 @@ runBtn.addEventListener('click', () => {
 // Обработчик крестика
 resetBtn.addEventListener('click', resetAll);
 
+// Обработчик шестеренки
+settingsBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleSettings();
+});
+
+// Закрытие по клику вне настроек
+settingsPanel.addEventListener('click', (e) => {
+    if (e.target === settingsPanel) {
+        closeSettings();
+    }
+});
+
+// Обработчики слайдеров
+sizeSlider.addEventListener('input', applySettings);
+speedSlider.addEventListener('input', applySettings);
+
+// Обработчики цветов
+colorButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        currentColor = btn.classList[1]; // white, red, blue, etc.
+        applySettings();
+        
+        if (tg.HapticFeedback) {
+            tg.HapticFeedback.impactOccurred('light');
+        }
+    });
+});
+
 // Обработка ввода с клавиатуры
 textInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
@@ -86,32 +167,13 @@ textInput.addEventListener('keypress', (e) => {
 
 // Автоматический запуск при загрузке
 window.addEventListener('load', () => {
-    updateSpeedByTextLength();
+    applySettings();
     tg.expand();
-    
-    // Убеждаемся, что поле ввода активно
     textInput.focus();
+    
+    // Добавляем поддержку цветов
+    scrollingText.style.transition = 'color 0.3s, text-shadow 0.3s';
 });
-
-// Адаптация скорости под длину текста
-function updateSpeedByTextLength() {
-    const text = scrollingText.textContent;
-    const length = text.length;
-    
-    if (length > 50) {
-        animationSpeed = 20;
-    } else if (length > 30) {
-        animationSpeed = 15;
-    } else {
-        animationSpeed = 10;
-    }
-    
-    restartAnimation();
-}
-
-// Обновляем скорость при изменении текста
-runBtn.addEventListener('click', updateSpeedByTextLength);
-resetBtn.addEventListener('click', updateSpeedByTextLength);
 
 // Обработка изменения размера окна
 window.addEventListener('resize', () => {
@@ -120,7 +182,11 @@ window.addEventListener('resize', () => {
 
 // Обработка кнопки назад в Telegram
 tg.BackButton.onClick(() => {
-    tg.close();
+    if (settingsVisible) {
+        closeSettings();
+    } else {
+        tg.close();
+    }
 });
 
 // Показываем кнопку назад
@@ -137,8 +203,7 @@ function setFullScreen() {
 setFullScreen();
 tg.onEvent('viewportChanged', setFullScreen);
 
-// Убираем промпт полностью - он больше не появится
-// Запрещаем любые стандартные диалоги
+// Убираем промпт
 window.alert = function() {};
 window.confirm = function() {};
 window.prompt = function() { return ''; };
@@ -147,8 +212,35 @@ window.prompt = function() { return ''; };
 window.ledBanner = {
     updateText: updateText,
     reset: resetAll,
-    setSpeed: (seconds) => {
-        animationSpeed = seconds;
-        restartAnimation();
+    setSpeed: (speed) => {
+        speedSlider.value = speed;
+        applySettings();
+    },
+    setSize: (size) => {
+        sizeSlider.value = size;
+        applySettings();
+    },
+    setColor: (color) => {
+        if (['white', 'red', 'blue', 'green', 'yellow'].includes(color)) {
+            currentColor = color;
+            applySettings();
+        }
     }
 };
+
+// Закрытие по свайпу вниз (для мобилок)
+let touchStartY = 0;
+settingsPanel.addEventListener('touchstart', (e) => {
+    touchStartY = e.touches[0].clientY;
+});
+
+settingsPanel.addEventListener('touchmove', (e) => {
+    if (!settingsVisible) return;
+    
+    const touchY = e.touches[0].clientY;
+    const diff = touchY - touchStartY;
+    
+    if (diff > 50) { // Свайп вниз
+        closeSettings();
+    }
+});
