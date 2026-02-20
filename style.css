@@ -217,3 +217,207 @@ body {
 .reset-btn:active svg {
     stroke: var(--tg-theme-bg-color, #000);
 }
+/* Кнопка настроек */
+.settings-btn {
+    position: fixed;
+    top: 16px;
+    right: 80px; /* Сдвигаем левее крестика */
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #000;
+    border: 2px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    padding: 0;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.settings-btn svg {
+    width: 24px;
+    height: 24px;
+    stroke: white;
+    transition: transform 0.3s;
+}
+
+.settings-btn.active svg {
+    transform: rotate(90deg);
+}
+
+.settings-btn:active {
+    background: white;
+}
+
+.settings-btn:active svg {
+    stroke: black;
+}
+
+@supports (padding-top: env(safe-area-inset-top)) {
+    .settings-btn {
+        top: calc(16px + env(safe-area-inset-top));
+        right: calc(80px + env(safe-area-inset-right));
+    }
+}
+
+/* Панель настроек */
+.settings-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.settings-panel.show {
+    display: flex;
+    opacity: 1;
+}
+
+.settings-content {
+    background: #000;
+    border: 2px solid white;
+    border-radius: 30px;
+    padding: 30px;
+    width: 90%;
+    max-width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.settings-content h3 {
+    color: white;
+    font-size: 24px;
+    margin-bottom: 25px;
+    text-align: center;
+    font-weight: normal;
+}
+
+.setting-item {
+    margin-bottom: 25px;
+}
+
+.setting-item label {
+    display: block;
+    color: white;
+    font-size: 16px;
+    margin-bottom: 10px;
+    opacity: 0.8;
+}
+
+.slider-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.slider {
+    flex: 1;
+    height: 6px;
+    -webkit-appearance: none;
+    background: #333;
+    border-radius: 3px;
+    outline: none;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+    background: white;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #000;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.value-display {
+    color: white;
+    font-size: 16px;
+    min-width: 60px;
+    text-align: right;
+    font-weight: bold;
+}
+
+/* Кнопки выбора цвета */
+.color-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.color-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid white;
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 0;
+}
+
+.color-btn:hover {
+    transform: scale(1.1);
+}
+
+.color-btn.active {
+    box-shadow: 0 0 20px currentColor;
+    border-width: 3px;
+}
+
+.color-btn.white {
+    background: white;
+}
+.color-btn.red {
+    background: #ff3b30;
+}
+.color-btn.blue {
+    background: #007aff;
+}
+.color-btn.green {
+    background: #34c759;
+}
+.color-btn.yellow {
+    background: #ffcc00;
+}
+
+/* Адаптация под мобилки */
+@media (max-width: 480px) {
+    .settings-btn {
+        width: 40px;
+        height: 40px;
+        right: 70px;
+    }
+    
+    .settings-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .settings-content {
+        padding: 20px;
+        width: 85%;
+    }
+    
+    .settings-content h3 {
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .color-btn {
+        width: 35px;
+        height: 35px;
+    }
+}
