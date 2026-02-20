@@ -2,28 +2,21 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>LED Banner</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <!-- Основной баннер для ПК -->
-        <div class="banner-wrapper desktop-only">
-            <div class="led-banner" id="ledBanner">
-                <span class="banner-text" id="bannerText">Введите ваш текст...</span>
-            </div>
-            <button class="run-button" id="runButton">RUN</button>
-        </div>
-
-        <!-- Мобильная версия -->
-        <div class="mobile-only">
-            <div class="mobile-input-area">
-                <input type="text" class="mobile-input" id="mobileInput" placeholder="Введите текст..." value="LED бегущая строка">
-                <button class="mobile-run" id="mobileRunButton">RUN</button>
-            </div>
-            <div class="mobile-banner" id="mobileBanner">
+        <!-- Мобильная версия (всегда видна) -->
+        <div class="mobile-view">
+            <div class="banner-area" id="bannerArea">
                 <div class="scrolling-text" id="scrollingText">LED бегущая строка</div>
+            </div>
+            
+            <div class="input-area">
+                <input type="text" class="text-input" id="textInput" placeholder="Введите текст..." value="LED бегущая строка" autofocus>
+                <button class="run-btn" id="runBtn">RUN</button>
             </div>
         </div>
     </div>
