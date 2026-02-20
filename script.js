@@ -26,6 +26,7 @@ const runBtn = document.getElementById('runBtn');
 const resetBtn = document.getElementById('resetBtn');
 const settingsBtn = document.getElementById('settingsBtn');
 const settingsPanel = document.getElementById('settingsPanel');
+const bannerArea = document.getElementById('bannerArea');
 
 // Элементы настроек
 const sizeSlider = document.getElementById('sizeSlider');
@@ -41,21 +42,32 @@ let settingsVisible = false;
 
 // Функция обновления текста
 function updateText(newText) {
-    if (!newText || newText.trim() === '') return;
+    if (!newText || newText.trim() === '') {
+        // Если текст пустой, возвращаем предыдущий
+        textInput.value = scrollingText.textContent;
+        return;
+    }
     
     scrollingText.textContent = newText;
     textInput.value = newText;
     
+    // Обновляем скорость в зависимости от длины текста
+    updateSpeedByTextLength();
     restartAnimation();
     
     // Отправляем данные боту для сохранения
     if (tg) {
-        tg.sendData(JSON.stringify({
-            action: 'new_text',
-            text: newText
-        }));
+        try {
+            tg.sendData(JSON.stringify({
+                action: 'new_text',
+                text: newText
+            }));
+        } catch (e) {
+            console.log('Error sending data:', e);
+        }
     }
     
+    // Вибрация при обновлении
     if (tg && tg.HapticFeedback) {
         tg.HapticFeedback.impactOccurred('light');
     }
@@ -73,8 +85,10 @@ function resetAll() {
     currentColor = 'white';
     
     applySettings();
+    updateSpeedByTextLength();
     restartAnimation();
     
+    // Вибрация при сбросе
     if (tg && tg.HapticFeedback) {
         tg.HapticFeedback.impactOccurred('medium');
     }
@@ -82,8 +96,13 @@ function resetAll() {
 
 // Функция перезапуска анимации
 function restartAnimation() {
+    // Сбрасываем анимацию
     scrollingText.style.animation = 'none';
+    
+    // Форсируем перерасчет (reflow)
     void scrollingText.offsetWidth;
+    
+    // Запускаем заново
     scrollingText.style.animation = `scrollText ${animationSpeed}s linear infinite`;
 }
 
@@ -97,11 +116,10 @@ function applySettings() {
     // Скорость
     animationSpeed = parseInt(speedSlider.value);
     speedValue.textContent = animationSpeed + ' сек';
-    restartAnimation();
     
-    // Цвет
+    // Цвет - БЕЗ ПОДСВЕТКИ (просто цвет)
     scrollingText.style.color = currentColor;
-    scrollingText.style.textShadow = `0 0 20px ${currentColor}`;
+    scrollingText.style.textShadow = 'none'; // Полностью убираем подсветку
     
     // Обновляем активный цвет в кнопках
     colorButtons.forEach(btn => {
@@ -111,15 +129,41 @@ function applySettings() {
         }
     });
     
+    // Перезапускаем анимацию с новой скоростью
+    restartAnimation();
+    
     // Отправляем настройки боту
     if (tg) {
-        tg.sendData(JSON.stringify({
-            action: 'save_settings',
-            color: currentColor,
-            speed: animationSpeed,
-            size: size
-        }));
+        try {
+            tg.sendData(JSON.stringify({
+                action: 'save_settings',
+                color: currentColor,
+                speed: animationSpeed,
+                size: size
+            }));
+        } catch (e) {
+            console.log('Error sending settings:', e);
+        }
     }
+}
+
+// Функция обновления скорости в зависимости от длины текста
+function updateSpeedByTextLength() {
+    const text = scrollingText.textContent;
+    const length = text.length;
+    
+    // Чем длиннее текст, тем медленнее (чтобы можно было прочитать)
+    if (length > 50) {
+        speedSlider.value = 20;
+    } else if (length > 30) {
+        speedSlider.value = 15;
+    } else {
+        speedSlider.value = 10;
+    }
+    
+    // Обновляем отображение скорости
+    animationSpeed = parseInt(speedSlider.value);
+    speedValue.textContent = animationSpeed + ' сек';
 }
 
 // Функция открытия/закрытия настроек
@@ -145,9 +189,7 @@ function closeSettings() {
 // Обработчик кнопки RUN
 runBtn.addEventListener('click', () => {
     const text = textInput.value.trim();
-    if (text) {
-        updateText(text);
-    }
+    updateText(text);
 });
 
 // Обработчик крестика
@@ -173,9 +215,12 @@ speedSlider.addEventListener('input', applySettings);
 // Обработчики цветов
 colorButtons.forEach(btn => {
     btn.addEventListener('click', () => {
-        currentColor = btn.classList[1];
+        // Получаем цвет из класса кнопки
+        const colorClass = btn.classList[1]; // white, red, blue, green, yellow
+        currentColor = colorClass;
         applySettings();
         
+        // Вибрация при выборе цвета
         if (tg && tg.HapticFeedback) {
             tg.HapticFeedback.impactOccurred('light');
         }
@@ -189,16 +234,32 @@ textInput.addEventListener('keypress', (e) => {
     }
 });
 
+// Обработка изменения текста (чтобы обновлять скорость)
+textInput.addEventListener('input', () => {
+    // Не обновляем бегущую строку, только сохраняем ввод
+    // Это чтобы пользователь мог печатать не запуская анимацию
+});
+
 // Автоматический запуск при загрузке
 window.addEventListener('load', () => {
+    // Применяем настройки по умолчанию
     applySettings();
+    
+    // Растягиваем на весь экран
     tg.expand();
+    
+    // Фокус на поле ввода
     textInput.focus();
     
-    scrollingText.style.transition = 'color 0.3s, text-shadow 0.3s';
+    // Плавные переходы для цвета
+    scrollingText.style.transition = 'color 0.3s';
     
     // Еще раз принудительно ставим черный фон
     document.body.style.backgroundColor = '#000000';
+    document.documentElement.style.backgroundColor = '#000000';
+    
+    // Убираем подсветку принудительно
+    scrollingText.style.textShadow = 'none';
 });
 
 // Обработка изменения размера окна
@@ -226,15 +287,20 @@ function setFullScreen() {
     if (tg) tg.expand();
 }
 
+// Устанавливаем полный экран при загрузке
 setFullScreen();
-if (tg) tg.onEvent('viewportChanged', setFullScreen);
 
-// Убираем промпт
+// Следим за изменениями в Telegram
+if (tg) {
+    tg.onEvent('viewportChanged', setFullScreen);
+}
+
+// Убираем все стандартные диалоги (промпты, алерты)
 window.alert = function() {};
-window.confirm = function() {};
+window.confirm = function() { return true; };
 window.prompt = function() { return ''; };
 
-// Закрытие по свайпу вниз
+// Закрытие по свайпу вниз (для мобилок)
 let touchStartY = 0;
 settingsPanel.addEventListener('touchstart', (e) => {
     touchStartY = e.touches[0].clientY;
@@ -246,7 +312,37 @@ settingsPanel.addEventListener('touchmove', (e) => {
     const touchY = e.touches[0].clientY;
     const diff = touchY - touchStartY;
     
-    if (diff > 50) {
+    if (diff > 50) { // Свайп вниз больше 50px
         closeSettings();
     }
 });
+
+// Экспортируем функции для глобального доступа (на всякий случай)
+window.ledBanner = {
+    updateText: updateText,
+    reset: resetAll,
+    setSpeed: (speed) => {
+        speedSlider.value = speed;
+        applySettings();
+    },
+    setSize: (size) => {
+        sizeSlider.value = size;
+        applySettings();
+    },
+    setColor: (color) => {
+        if (['white', 'red', 'blue', 'green', 'yellow'].includes(color)) {
+            currentColor = color;
+            applySettings();
+        }
+    },
+    closeSettings: closeSettings
+};
+
+// Дополнительная защита от подсветки (каждую секунду проверяем)
+setInterval(() => {
+    if (scrollingText.style.textShadow !== 'none') {
+        scrollingText.style.textShadow = 'none';
+    }
+}, 1000);
+
+console.log('LED Banner initialized with NO glow effect');
