@@ -7,8 +7,14 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <!-- Мобильная версия (всегда видна) -->
+    <div class="app-container">
+        <!-- Крестик для сброса -->
+        <button class="reset-btn" id="resetBtn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 6L6 18M6 6L18 18" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+        </button>
+
         <div class="mobile-view">
             <div class="banner-area" id="bannerArea">
                 <div class="scrolling-text" id="scrollingText">LED бегущая строка</div>
