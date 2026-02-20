@@ -4,158 +4,133 @@ let tg = window.Telegram.WebApp;
 // Говорим Telegram, что приложение готово
 tg.ready();
 
-// Растягиваем на весь экран
+// Растягиваем на весь экран (максимально)
 tg.expand();
+
+// Запрашиваем полный экран
+tg.setHeaderColor('#000000');
+tg.setBackgroundColor('#000000');
 
 // Настройка цветов под тему Telegram
 document.body.style.background = tg.themeParams.bg_color || '#000000';
 
-// Получаем данные пользователя (если нужно)
-let user = tg.initDataUnsafe?.user;
-console.log('Пользователь:', user?.first_name);
-
-// Элементы для десктопа
-const desktopBanner = document.getElementById('ledBanner');
-const bannerText = document.getElementById('bannerText');
-const runButton = document.getElementById('runButton');
-
-// Элементы для мобилки
-const mobileInput = document.getElementById('mobileInput');
-const mobileRunButton = document.getElementById('mobileRunButton');
+// Получаем элементы
 const scrollingText = document.getElementById('scrollingText');
+const textInput = document.getElementById('textInput');
+const runBtn = document.getElementById('runBtn');
+const bannerArea = document.getElementById('bannerArea');
 
-// Состояние анимации
-let isScrolling = false;
+// Переменная для скорости анимации
+let animationSpeed = 15; // секунд на полный проход
 
-// Функция для запуска анимации на десктопе
-function startDesktopScroll(text) {
-    bannerText.textContent = text;
-    bannerText.classList.add('scrolling');
-    isScrolling = true;
-}
-
-// Функция для остановки анимации на десктопе
-function stopDesktopScroll() {
-    bannerText.classList.remove('scrolling');
-    isScrolling = false;
-}
-
-// Функция для обновления текста на мобилке
-function updateMobileText(text) {
-    scrollingText.textContent = text;
+// Функция обновления текста
+function updateText(newText) {
+    if (!newText || newText.trim() === '') return;
+    
+    scrollingText.textContent = newText;
+    
     // Перезапускаем анимацию
-    scrollingText.style.animation = 'none';
-    scrollingText.offsetHeight; // Форсируем reflow
-    scrollingText.style.animation = 'scrollMobile 15s linear infinite';
+    restartAnimation();
+    
+    // Вибрация при обновлении
+    if (tg.HapticFeedback) {
+        tg.HapticFeedback.impactOccurred('light');
+    }
 }
 
-// Обработчик для десктопной кнопки
-runButton.addEventListener('click', () => {
-    // Здесь можно открыть диалог для ввода текста
-    // Но для простоты будем использовать prompt
-    const newText = prompt('Введите текст для бегущей строки:', bannerText.textContent);
+// Функция перезапуска анимации
+function restartAnimation() {
+    // Сбрасываем анимацию
+    scrollingText.style.animation = 'none';
     
-    if (newText && newText.trim() !== '') {
-        startDesktopScroll(newText);
-        
-        // Отправляем событие в Telegram (опционально)
-        tg.sendData(JSON.stringify({
-            action: 'update_text',
-            text: newText,
-            device: 'desktop'
-        }));
-    }
-});
+    // Форсируем перерасчет (reflow)
+    void scrollingText.offsetWidth;
+    
+    // Запускаем заново
+    scrollingText.style.animation = `scrollText ${animationSpeed}s linear infinite`;
+}
 
-// Обработчик для мобильной кнопки
-mobileRunButton.addEventListener('click', () => {
-    const text = mobileInput.value.trim();
-    
+// Обработчик кнопки RUN
+runBtn.addEventListener('click', () => {
+    const text = textInput.value.trim();
     if (text) {
-        updateMobileText(text);
-        
-        // Вибрация (если поддерживается)
-        if (tg.HapticFeedback) {
-            tg.HapticFeedback.impactOccurred('light');
-        }
-        
-        // Отправляем событие в Telegram
-        tg.sendData(JSON.stringify({
-            action: 'start_scroll',
-            text: text,
-            device: 'mobile'
-        }));
+        updateText(text);
     } else {
-        // Если текст пустой, показываем ошибку
-        mobileInput.style.borderColor = 'red';
-        setTimeout(() => {
-            mobileInput.style.borderColor = 'white';
-        }, 500);
+        // Если пусто - возвращаем предыдущий текст
+        textInput.value = scrollingText.textContent;
     }
 });
 
-// Обработка ввода с клавиатуры на мобилке
-mobileInput.addEventListener('keypress', (e) => {
+// Обработка ввода с клавиатуры
+textInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
-        mobileRunButton.click();
+        runBtn.click();
     }
 });
 
 // Автоматический запуск при загрузке
 window.addEventListener('load', () => {
-    // Проверяем, мобилка или десктоп
-    if (window.innerWidth <= 768) {
-        // Мобилка: запускаем с текстом по умолчанию
-        updateMobileText('LED бегущая строка');
+    // Настраиваем скорость в зависимости от длины текста
+    updateSpeedByTextLength();
+    
+    // Растягиваем на весь экран
+    tg.expand();
+});
+
+// Адаптация скорости под длину текста
+function updateSpeedByTextLength() {
+    const text = scrollingText.textContent;
+    const length = text.length;
+    
+    // Чем длиннее текст, тем быстрее анимация (чтобы не ждать вечно)
+    if (length > 50) {
+        animationSpeed = 20;
+    } else if (length > 30) {
+        animationSpeed = 15;
     } else {
-        // Десктоп: пока просто показываем статичный текст
-        bannerText.textContent = 'LED бегущая строка';
+        animationSpeed = 10;
     }
+    
+    restartAnimation();
+}
+
+// Обновляем скорость при изменении текста
+runBtn.addEventListener('click', () => {
+    updateSpeedByTextLength();
 });
 
 // Обработка изменения размера окна
 window.addEventListener('resize', () => {
-    if (window.innerWidth <= 768) {
-        // Переключаемся на мобильный режим
-        if (scrollingText.textContent !== mobileInput.value) {
-            updateMobileText(mobileInput.value || 'LED бегущая строка');
-        }
-    }
+    restartAnimation();
 });
-
-// Функция для закрытия приложения
-function closeApp() {
-    tg.close();
-}
 
 // Обработка кнопки назад в Telegram
 tg.BackButton.onClick(() => {
-    if (isScrolling) {
-        stopDesktopScroll();
-        tg.BackButton.hide();
-    } else {
-        closeApp();
-    }
+    tg.close();
 });
 
-// Показываем кнопку назад только если анимация запущена
-runButton.addEventListener('click', () => {
-    if (window.innerWidth > 768) {
-        tg.BackButton.show();
-    }
-});
+// Показываем кнопку назад
+tg.BackButton.show();
 
-// Для мобильной версии показываем кнопку назад всегда
-if (window.innerWidth <= 768) {
-    tg.BackButton.show();
-    tg.BackButton.onClick(() => {
-        closeApp();
-    });
+// Экспортируем функции для глобального доступа
+window.ledBanner = {
+    updateText: updateText,
+    setSpeed: (seconds) => {
+        animationSpeed = seconds;
+        restartAnimation();
+    }
+};
+
+// Дополнительная настройка для полного экрана
+function setFullScreen() {
+    document.documentElement.style.height = '100%';
+    document.body.style.height = '100%';
+    document.body.style.overflow = 'hidden';
+    tg.expand();
 }
 
-// Экспортируем функции для глобального доступа (если нужно)
-window.ledBanner = {
-    startScroll: startDesktopScroll,
-    stopScroll: stopDesktopScroll,
-    updateText: updateMobileText
-};
+// Вызываем при старте
+setFullScreen();
+
+// Следим за изменениями в Telegram
+tg.onEvent('viewportChanged', setFullScreen);
