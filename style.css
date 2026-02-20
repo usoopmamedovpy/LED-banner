@@ -100,7 +100,10 @@ body {
     padding-right: 50px;
     transition: color 0.1s, font-size 0.1s;
     text-shadow: none !important;
-    color: #ffffff; /* цвет по умолчанию */
+    color: #ffffff;
+    max-width: 100%;
+    /* Максимальный размер текста */
+    max-font-size: 40vw;
 }
 
 /* Цвета текста */
@@ -291,8 +294,19 @@ body {
         font-size: 18px;
     }
     
+    .settings-content {
+        padding: 20px;
+    }
+    
     .color-btn {
         width: 35px;
         height: 35px;
+    }
+}
+
+/* Для очень большого текста */
+@media (min-width: 1000px) {
+    .scrolling-text {
+        font-size: min(40vw, 400px);
     }
 }
