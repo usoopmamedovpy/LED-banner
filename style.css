@@ -1,4 +1,4 @@
-{
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -9,7 +9,7 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background: #000;
+    background: #000 !important;
     min-height: 100vh;
     min-height: 100dvh;
     display: flex;
@@ -26,6 +26,7 @@ body {
     width: 100%;
     height: 100%;
     position: relative;
+    background: #000;
 }
 
 /* Крестик в углу */
@@ -62,166 +63,11 @@ body {
     stroke: black;
 }
 
-/* Учитываем безопасную зону на iPhone */
-@supports (padding-top: env(safe-area-inset-top)) {
-    .reset-btn {
-        top: calc(16px + env(safe-area-inset-top));
-        right: calc(16px + env(safe-area-inset-right));
-    }
-}
-
-.mobile-view {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    height: 100dvh;
-    width: 100%;
-    position: relative;
-}
-
-.banner-area {
-    flex: 1;
-    width: 100%;
-    background: #000;
-    display: flex;
-    align-items: center;
-    overflow: hidden;
-    position: relative;
-    min-height: 0;
-}
-
-.scrolling-text {
-    font-size: min(15vw, 120px);
-    font-weight: bold;
-    color: white;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-    white-space: nowrap;
-    position: absolute;
-    left: 100%;
-    animation: scrollText linear infinite;
-    animation-duration: 15s;
-    padding-right: 50px;
-}
-
-.input-area {
-    display: flex;
-    gap: 10px;
-    padding: 16px;
-    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-    background: #000;
-    border-top: 2px solid rgba(255, 255, 255, 0.1);
-    width: 100%;
-}
-
-.text-input {
-    flex: 1;
-    background: transparent;
-    border: 2px solid white;
-    border-radius: 30px;
-    padding: 16px 20px;
-    font-size: 18px;
-    color: white;
-    outline: none;
-    min-width: 0;
-}
-
-.text-input::placeholder {
-    color: rgba(255, 255, 255, 0.5);
-}
-
-.text-input:focus {
-    outline: none;
-    border-color: white;
-}
-
-.run-btn {
-    background: transparent;
-    border: 2px solid white;
-    border-radius: 30px;
-    padding: 16px 30px;
-    font-size: 20px;
-    font-weight: bold;
-    color: white;
-    cursor: pointer;
-    white-space: nowrap;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: all 0.2s;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.run-btn:active {
-    background: white;
-    color: black;
-}
-
-@keyframes scrollText {
-    0% {
-        left: 100%;
-    }
-    100% {
-        left: -100%;
-    }
-}
-
-@media (max-width: 480px) {
-    .reset-btn {
-        width: 40px;
-        height: 40px;
-    }
-    
-    .reset-btn svg {
-        width: 20px;
-        height: 20px;
-    }
-    
-    .text-input {
-        padding: 14px 18px;
-        font-size: 16px;
-    }
-    
-    .run-btn {
-        padding: 14px 24px;
-        font-size: 18px;
-    }
-}
-
-/* Поддержка тем Telegram */
-body {
-    background: var(--tg-theme-bg-color, #000);
-}
-
-.text-input,
-.run-btn,
-.reset-btn {
-    border-color: var(--tg-theme-button-color, #fff);
-    color: var(--tg-theme-button-text-color, #fff);
-}
-
-.text-input {
-    color: var(--tg-theme-text-color, #fff);
-}
-
-.text-input::placeholder {
-    color: var(--tg-theme-hint-color, rgba(255,255,255,0.5));
-}
-
-.banner-area {
-    background: var(--tg-theme-bg-color, #000);
-}
-
-.reset-btn svg {
-    stroke: var(--tg-theme-button-color, #fff);
-}
-
-.reset-btn:active svg {
-    stroke: var(--tg-theme-bg-color, #000);
-}
 /* Кнопка настроек */
 .settings-btn {
     position: fixed;
     top: 16px;
-    right: 80px; /* Сдвигаем левее крестика */
+    right: 80px;
     width: 48px;
     height: 48px;
     border-radius: 50%;
@@ -256,10 +102,112 @@ body {
     stroke: black;
 }
 
+/* Учитываем безопасную зону на iPhone */
 @supports (padding-top: env(safe-area-inset-top)) {
+    .reset-btn {
+        top: calc(16px + env(safe-area-inset-top));
+        right: calc(16px + env(safe-area-inset-right));
+    }
+    
     .settings-btn {
         top: calc(16px + env(safe-area-inset-top));
         right: calc(80px + env(safe-area-inset-right));
+    }
+}
+
+.mobile-view {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    width: 100%;
+    position: relative;
+    background: #000;
+}
+
+.banner-area {
+    flex: 1;
+    width: 100%;
+    background: #000 !important;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+    min-height: 0;
+}
+
+.scrolling-text {
+    font-size: min(15vw, 120px);
+    font-weight: bold;
+    color: white !important;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
+    position: absolute;
+    left: 100%;
+    animation: scrollText linear infinite;
+    animation-duration: 15s;
+    padding-right: 50px;
+}
+
+.input-area {
+    display: flex;
+    gap: 10px;
+    padding: 16px;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    background: #000;
+    border-top: 2px solid rgba(255, 255, 255, 0.2);
+    width: 100%;
+}
+
+.text-input {
+    flex: 1;
+    background: #000;
+    border: 2px solid white;
+    border-radius: 30px;
+    padding: 16px 20px;
+    font-size: 18px;
+    color: white !important;
+    outline: none;
+    min-width: 0;
+    -webkit-text-fill-color: white;
+}
+
+.text-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.text-input:focus {
+    outline: none;
+    border-color: white;
+}
+
+.run-btn {
+    background: transparent;
+    border: 2px solid white;
+    border-radius: 30px;
+    padding: 16px 30px;
+    font-size: 20px;
+    font-weight: bold;
+    color: white !important;
+    cursor: pointer;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.run-btn:active {
+    background: white;
+    color: black !important;
+}
+
+@keyframes scrollText {
+    0% {
+        left: 100%;
+    }
+    100% {
+        left: -100%;
     }
 }
 
@@ -270,7 +218,7 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.9);
     backdrop-filter: blur(5px);
     display: none;
     justify-content: center;
@@ -302,7 +250,6 @@ body {
     font-size: 24px;
     margin-bottom: 25px;
     text-align: center;
-    font-weight: normal;
 }
 
 .setting-item {
@@ -314,7 +261,7 @@ body {
     color: white;
     font-size: 16px;
     margin-bottom: 10px;
-    opacity: 0.8;
+    opacity: 0.9;
 }
 
 .slider-container {
@@ -377,47 +324,86 @@ body {
     border-width: 3px;
 }
 
-.color-btn.white {
-    background: white;
-}
-.color-btn.red {
-    background: #ff3b30;
-}
-.color-btn.blue {
-    background: #007aff;
-}
-.color-btn.green {
-    background: #34c759;
-}
-.color-btn.yellow {
-    background: #ffcc00;
-}
+.color-btn.white { background: white; }
+.color-btn.red { background: #ff3b30; }
+.color-btn.blue { background: #007aff; }
+.color-btn.green { background: #34c759; }
+.color-btn.yellow { background: #ffcc00; }
 
 /* Адаптация под мобилки */
 @media (max-width: 480px) {
-    .settings-btn {
+    .reset-btn, .settings-btn {
         width: 40px;
         height: 40px;
+    }
+    
+    .settings-btn {
         right: 70px;
     }
     
-    .settings-btn svg {
+    .reset-btn svg, .settings-btn svg {
         width: 20px;
         height: 20px;
     }
     
-    .settings-content {
-        padding: 20px;
-        width: 85%;
+    .text-input {
+        padding: 14px 18px;
+        font-size: 16px;
     }
     
-    .settings-content h3 {
-        font-size: 20px;
-        margin-bottom: 20px;
+    .run-btn {
+        padding: 14px 24px;
+        font-size: 18px;
+    }
+    
+    .settings-content {
+        padding: 20px;
     }
     
     .color-btn {
         width: 35px;
         height: 35px;
     }
+}
+
+/* Игнорируем темы Telegram - всегда черный */
+body, .app-container, .mobile-view, .banner-area, .input-area {
+    background: #000 !important;
+}
+
+.text-input, .run-btn, .reset-btn, .settings-btn {
+    border-color: white !important;
+    color: white !important;
+}
+
+.text-input {
+    color: white !important;
+    background: #000 !important;
+}
+
+.text-input::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.scrolling-text {
+    color: white !important;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5) !important;
+}
+
+.settings-content {
+    background: #000 !important;
+    border-color: white !important;
+}
+
+.settings-content h3, .setting-item label, .value-display {
+    color: white !important;
+}
+
+.slider {
+    background: #333 !important;
+}
+
+.slider::-webkit-slider-thumb {
+    background: white !important;
+    border-color: #000 !important;
 }
