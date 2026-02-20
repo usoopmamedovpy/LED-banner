@@ -4,10 +4,8 @@ let tg = window.Telegram.WebApp;
 // Говорим Telegram, что приложение готово
 tg.ready();
 
-// Растягиваем на весь экран (максимально)
+// Растягиваем на весь экран
 tg.expand();
-
-// Запрашиваем полный экран
 tg.setHeaderColor('#000000');
 tg.setBackgroundColor('#000000');
 
@@ -18,16 +16,18 @@ document.body.style.background = tg.themeParams.bg_color || '#000000';
 const scrollingText = document.getElementById('scrollingText');
 const textInput = document.getElementById('textInput');
 const runBtn = document.getElementById('runBtn');
+const resetBtn = document.getElementById('resetBtn');
 const bannerArea = document.getElementById('bannerArea');
 
 // Переменная для скорости анимации
-let animationSpeed = 15; // секунд на полный проход
+let animationSpeed = 15;
 
 // Функция обновления текста
 function updateText(newText) {
     if (!newText || newText.trim() === '') return;
     
     scrollingText.textContent = newText;
+    textInput.value = newText; // Синхронизируем поле ввода
     
     // Перезапускаем анимацию
     restartAnimation();
@@ -38,12 +38,28 @@ function updateText(newText) {
     }
 }
 
+// Функция сброса всего
+function resetAll() {
+    // Возвращаем текст по умолчанию
+    const defaultText = 'LED бегущая строка';
+    scrollingText.textContent = defaultText;
+    textInput.value = defaultText;
+    
+    // Перезапускаем анимацию
+    restartAnimation();
+    
+    // Вибрация при сбросе
+    if (tg.HapticFeedback) {
+        tg.HapticFeedback.impactOccurred('medium');
+    }
+}
+
 // Функция перезапуска анимации
 function restartAnimation() {
     // Сбрасываем анимацию
     scrollingText.style.animation = 'none';
     
-    // Форсируем перерасчет (reflow)
+    // Форсируем перерасчет
     void scrollingText.offsetWidth;
     
     // Запускаем заново
@@ -55,11 +71,11 @@ runBtn.addEventListener('click', () => {
     const text = textInput.value.trim();
     if (text) {
         updateText(text);
-    } else {
-        // Если пусто - возвращаем предыдущий текст
-        textInput.value = scrollingText.textContent;
     }
 });
+
+// Обработчик крестика
+resetBtn.addEventListener('click', resetAll);
 
 // Обработка ввода с клавиатуры
 textInput.addEventListener('keypress', (e) => {
@@ -70,11 +86,11 @@ textInput.addEventListener('keypress', (e) => {
 
 // Автоматический запуск при загрузке
 window.addEventListener('load', () => {
-    // Настраиваем скорость в зависимости от длины текста
     updateSpeedByTextLength();
-    
-    // Растягиваем на весь экран
     tg.expand();
+    
+    // Убеждаемся, что поле ввода активно
+    textInput.focus();
 });
 
 // Адаптация скорости под длину текста
@@ -82,7 +98,6 @@ function updateSpeedByTextLength() {
     const text = scrollingText.textContent;
     const length = text.length;
     
-    // Чем длиннее текст, тем быстрее анимация (чтобы не ждать вечно)
     if (length > 50) {
         animationSpeed = 20;
     } else if (length > 30) {
@@ -95,9 +110,8 @@ function updateSpeedByTextLength() {
 }
 
 // Обновляем скорость при изменении текста
-runBtn.addEventListener('click', () => {
-    updateSpeedByTextLength();
-});
+runBtn.addEventListener('click', updateSpeedByTextLength);
+resetBtn.addEventListener('click', updateSpeedByTextLength);
 
 // Обработка изменения размера окна
 window.addEventListener('resize', () => {
@@ -112,16 +126,7 @@ tg.BackButton.onClick(() => {
 // Показываем кнопку назад
 tg.BackButton.show();
 
-// Экспортируем функции для глобального доступа
-window.ledBanner = {
-    updateText: updateText,
-    setSpeed: (seconds) => {
-        animationSpeed = seconds;
-        restartAnimation();
-    }
-};
-
-// Дополнительная настройка для полного экрана
+// Функция для полного экрана
 function setFullScreen() {
     document.documentElement.style.height = '100%';
     document.body.style.height = '100%';
@@ -129,8 +134,21 @@ function setFullScreen() {
     tg.expand();
 }
 
-// Вызываем при старте
 setFullScreen();
-
-// Следим за изменениями в Telegram
 tg.onEvent('viewportChanged', setFullScreen);
+
+// Убираем промпт полностью - он больше не появится
+// Запрещаем любые стандартные диалоги
+window.alert = function() {};
+window.confirm = function() {};
+window.prompt = function() { return ''; };
+
+// Экспортируем функции
+window.ledBanner = {
+    updateText: updateText,
+    reset: resetAll,
+    setSpeed: (seconds) => {
+        animationSpeed = seconds;
+        restartAnimation();
+    }
+};
