@@ -140,7 +140,7 @@ body {
     font-size: min(15vw, 120px);
     font-weight: bold;
     color: white !important;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);
+    /* Убрана подсветка (text-shadow удален) */
     white-space: nowrap;
     position: absolute;
     left: 100%;
@@ -320,7 +320,6 @@ body {
 }
 
 .color-btn.active {
-    box-shadow: 0 0 20px currentColor;
     border-width: 3px;
 }
 
@@ -387,7 +386,8 @@ body, .app-container, .mobile-view, .banner-area, .input-area {
 
 .scrolling-text {
     color: white !important;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5) !important;
+    /* Подсветка полностью убрана */
+    text-shadow: none !important;
 }
 
 .settings-content {
