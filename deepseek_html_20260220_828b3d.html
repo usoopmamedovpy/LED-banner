@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LED Banner</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Основной баннер для ПК -->
+        <div class="banner-wrapper desktop-only">
+            <div class="led-banner" id="ledBanner">
+                <span class="banner-text" id="bannerText">Введите ваш текст...</span>
+            </div>
+            <button class="run-button" id="runButton">RUN</button>
+        </div>
+
+        <!-- Мобильная версия -->
+        <div class="mobile-only">
+            <div class="mobile-input-area">
+                <input type="text" class="mobile-input" id="mobileInput" placeholder="Введите текст..." value="LED бегущая строка">
+                <button class="mobile-run" id="mobileRunButton">RUN</button>
+            </div>
+            <div class="mobile-banner" id="mobileBanner">
+                <div class="scrolling-text" id="scrollingText">LED бегущая строка</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Telegram Mini App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

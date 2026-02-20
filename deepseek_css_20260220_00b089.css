@@ -1,0 +1,223 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: #000;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    padding: 20px;
+}
+
+/* Десктоп версия */
+.desktop-only {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+}
+
+@media (min-width: 769px) {
+    .desktop-only {
+        display: flex;
+    }
+    .mobile-only {
+        display: none;
+    }
+}
+
+.led-banner {
+    background: #000;
+    border: 3px solid white;
+    border-radius: 30px;
+    padding: 20px 40px;
+    min-width: 600px;
+    max-width: 800px;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+.banner-text {
+    display: block;
+    font-size: 48px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 
+        0 0 10px #fff,
+        0 0 20px #fff,
+        0 0 30px #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    animation: none;
+}
+
+.banner-text.scrolling {
+    animation: scrollDesktop 10s linear infinite;
+    text-overflow: clip;
+}
+
+.run-button {
+    background: transparent;
+    border: 3px solid white;
+    border-radius: 20px;
+    padding: 15px 40px;
+    font-size: 32px;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.run-button:hover {
+    background: white;
+    color: black;
+}
+
+/* Мобильная версия */
+@media (max-width: 768px) {
+    .desktop-only {
+        display: none;
+    }
+    
+    .mobile-only {
+        display: flex;
+        flex-direction: column;
+        height: 90vh;
+        position: relative;
+    }
+    
+    .mobile-input-area {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        right: 20px;
+        display: flex;
+        gap: 10px;
+        z-index: 10;
+    }
+    
+    .mobile-input {
+        flex: 1;
+        background: transparent;
+        border: 2px solid white;
+        border-radius: 25px;
+        padding: 15px 20px;
+        font-size: 18px;
+        color: white;
+        outline: none;
+    }
+    
+    .mobile-input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .mobile-run {
+        background: transparent;
+        border: 2px solid white;
+        border-radius: 25px;
+        padding: 15px 25px;
+        font-size: 18px;
+        font-weight: bold;
+        color: white;
+        cursor: pointer;
+        white-space: nowrap;
+        text-transform: uppercase;
+    }
+    
+    .mobile-banner {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 100px;
+        background: #000;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+    }
+    
+    .scrolling-text {
+        font-size: 48px;
+        font-weight: bold;
+        color: white;
+        text-shadow: 
+            0 0 10px #fff,
+            0 0 20px #fff,
+            0 0 30px #fff;
+        white-space: nowrap;
+        position: absolute;
+        left: 100%;
+        animation: scrollMobile 15s linear infinite;
+    }
+}
+
+/* Анимации */
+@keyframes scrollDesktop {
+    0% {
+        transform: translateX(100%);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+@keyframes scrollMobile {
+    0% {
+        left: 100%;
+    }
+    100% {
+        left: -100%;
+    }
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 480px) {
+    .scrolling-text {
+        font-size: 36px;
+    }
+    
+    .mobile-input {
+        padding: 12px 15px;
+        font-size: 16px;
+    }
+    
+    .mobile-run {
+        padding: 12px 20px;
+        font-size: 16px;
+    }
+}
+
+/* Поддержка тем Telegram */
+body {
+    background: var(--tg-theme-bg-color, #000);
+    color: var(--tg-theme-text-color, #fff);
+}
+
+.mobile-input,
+.mobile-run,
+.led-banner,
+.run-button {
+    border-color: var(--tg-theme-button-color, #fff);
+    color: var(--tg-theme-button-text-color, #fff);
+}
+
+.mobile-input {
+    color: var(--tg-theme-text-color, #fff);
+}
+
+.mobile-input::placeholder {
+    color: var(--tg-theme-hint-color, rgba(255,255,255,0.5));
+}
