@@ -26,7 +26,7 @@ const runBtn = document.getElementById('runBtn');
 const resetBtn = document.getElementById('resetBtn');
 const settingsBtn = document.getElementById('settingsBtn');
 const settingsPanel = document.getElementById('settingsPanel');
-const inputArea = document.querySelector('.input-area'); // Добавляем поле ввода и RUN
+const inputArea = document.querySelector('.input-area');
 
 // Элементы настроек
 const sizeSlider = document.getElementById('sizeSlider');
@@ -39,12 +39,11 @@ const colorButtons = document.querySelectorAll('.color-btn');
 let animationSpeed = 15;
 let currentColor = 'white';
 let settingsVisible = false;
-let isRunning = false; // Состояние: запущена ли бегущая строка
+let isRunning = false;
 
 // Функция обновления текста
 function updateText(newText) {
     if (!newText || newText.trim() === '') {
-        // Если текст пустой, возвращаем предыдущий
         textInput.value = scrollingText.textContent;
         return;
     }
@@ -52,60 +51,66 @@ function updateText(newText) {
     scrollingText.textContent = newText;
     textInput.value = newText;
     
-    // Обновляем скорость в зависимости от длины текста
     updateSpeedByTextLength();
     restartAnimation();
     
-    // Отправляем данные боту для сохранения
-    if (tg) {
-        try {
-            tg.sendData(JSON.stringify({
-                action: 'new_text',
-                text: newText
-            }));
-        } catch (e) {
-            console.log('Error sending data:', e);
-        }
-    }
+    // Отправляем данные боту
+    sendToBot('new_text', { text: newText });
     
-    // Вибрация при обновлении
     if (tg && tg.HapticFeedback) {
         tg.HapticFeedback.impactOccurred('light');
     }
 }
 
-// Функция запуска бегущей строки (скрывает элементы управления)
+// Функция отправки данных в бота
+function sendToBot(action, data) {
+    if (!tg) return;
+    
+    try {
+        const payload = {
+            action: action,
+            ...data,
+            timestamp: Date.now()
+        };
+        
+        console.log('Sending to bot:', payload);
+        tg.sendData(JSON.stringify(payload));
+    } catch (e) {
+        console.log('Error sending to bot:', e);
+    }
+}
+
+// Функция запуска бегущей строки
 function startRunning() {
-    if (isRunning) return; // Уже запущено
+    if (isRunning) return;
     
     isRunning = true;
     
-    // Прячем элементы управления
-    inputArea.style.display = 'none'; // Прячем поле ввода и кнопку RUN
-    settingsBtn.style.display = 'none'; // Прячем шестеренку
+    if (inputArea) inputArea.style.display = 'none';
+    if (settingsBtn) settingsBtn.style.display = 'none';
     
-    // Если настройки открыты, закрываем их
     if (settingsVisible) {
         closeSettings();
     }
     
-    // Вибрация при запуске
+    console.log('Started running - elements hidden');
+    
     if (tg && tg.HapticFeedback) {
         tg.HapticFeedback.impactOccurred('medium');
     }
 }
 
-// Функция остановки бегущей строки (возвращает элементы управления)
+// Функция остановки бегущей строки
 function stopRunning() {
-    if (!isRunning) return; // Уже остановлено
+    if (!isRunning) return;
     
     isRunning = false;
     
-    // Показываем элементы управления
-    inputArea.style.display = 'flex'; // Показываем поле ввода и кнопку RUN
-    settingsBtn.style.display = 'flex'; // Показываем шестеренку
+    if (inputArea) inputArea.style.display = 'flex';
+    if (settingsBtn) settingsBtn.style.display = 'flex';
     
-    // Вибрация при остановке
+    console.log('Stopped running - elements shown');
+    
     if (tg && tg.HapticFeedback) {
         tg.HapticFeedback.impactOccurred('light');
     }
@@ -117,7 +122,6 @@ function resetAll() {
     scrollingText.textContent = defaultText;
     textInput.value = defaultText;
     
-    // Сбрасываем настройки
     sizeSlider.value = 15;
     speedSlider.value = 15;
     currentColor = 'white';
@@ -126,10 +130,11 @@ function resetAll() {
     updateSpeedByTextLength();
     restartAnimation();
     
-    // Останавливаем бегущую строку (возвращаем элементы)
     stopRunning();
     
-    // Вибрация при сбросе
+    // Отправляем сброс в бота
+    sendToBot('reset', { text: defaultText });
+    
     if (tg && tg.HapticFeedback) {
         tg.HapticFeedback.impactOccurred('medium');
     }
@@ -137,19 +142,14 @@ function resetAll() {
 
 // Функция перезапуска анимации
 function restartAnimation() {
-    // Сбрасываем анимацию
     scrollingText.style.animation = 'none';
-    
-    // Форсируем перерасчет (reflow)
     void scrollingText.offsetWidth;
-    
-    // Запускаем заново
     scrollingText.style.animation = `scrollText ${animationSpeed}s linear infinite`;
 }
 
 // Функция применения настроек
 function applySettings() {
-    // Размер текста
+    // Размер
     const size = sizeSlider.value;
     scrollingText.style.fontSize = size + 'vw';
     sizeValue.textContent = size + 'vw';
@@ -158,11 +158,11 @@ function applySettings() {
     animationSpeed = parseInt(speedSlider.value);
     speedValue.textContent = animationSpeed + ' сек';
     
-    // Цвет - БЕЗ ПОДСВЕТКИ (просто цвет)
+    // Цвет - БЕЗ ПОДСВЕТКИ
     scrollingText.style.color = currentColor;
-    scrollingText.style.textShadow = 'none'; // Полностью убираем подсветку
+    scrollingText.style.textShadow = 'none';
     
-    // Обновляем активный цвет в кнопках
+    // Обновляем активный цвет
     colorButtons.forEach(btn => {
         btn.classList.remove('active');
         if (btn.classList.contains(currentColor)) {
@@ -170,30 +170,24 @@ function applySettings() {
         }
     });
     
-    // Перезапускаем анимацию с новой скоростью
+    // Перезапускаем анимацию
     restartAnimation();
     
-    // Отправляем настройки боту
-    if (tg) {
-        try {
-            tg.sendData(JSON.stringify({
-                action: 'save_settings',
-                color: currentColor,
-                speed: animationSpeed,
-                size: size
-            }));
-        } catch (e) {
-            console.log('Error sending settings:', e);
-        }
-    }
+    // Отправляем настройки в бота
+    sendToBot('save_settings', {
+        color: currentColor,
+        speed: animationSpeed,
+        size: size
+    });
+    
+    console.log('Settings applied:', { color: currentColor, speed: animationSpeed, size: size });
 }
 
-// Функция обновления скорости в зависимости от длины текста
+// Функция обновления скорости по длине текста
 function updateSpeedByTextLength() {
     const text = scrollingText.textContent;
     const length = text.length;
     
-    // Чем длиннее текст, тем медленнее (чтобы можно было прочитать)
     if (length > 50) {
         speedSlider.value = 20;
     } else if (length > 30) {
@@ -202,14 +196,13 @@ function updateSpeedByTextLength() {
         speedSlider.value = 10;
     }
     
-    // Обновляем отображение скорости
     animationSpeed = parseInt(speedSlider.value);
     speedValue.textContent = animationSpeed + ' сек';
 }
 
 // Функция открытия/закрытия настроек
 function toggleSettings() {
-    if (isRunning) return; // Если бегущая строка запущена, не открываем настройки
+    if (isRunning) return;
     
     settingsVisible = !settingsVisible;
     
@@ -229,28 +222,25 @@ function closeSettings() {
     settingsBtn.classList.remove('active');
 }
 
-// Обработчик кнопки RUN
+// Обработчик RUN
 runBtn.addEventListener('click', () => {
     const text = textInput.value.trim();
     updateText(text);
-    startRunning(); // Запускаем бегущую строку и скрываем элементы
+    startRunning();
 });
 
 // Обработчик крестика
-resetBtn.addEventListener('click', () => {
-    resetAll();
-    // stopRunning() уже вызывается внутри resetAll
-});
+resetBtn.addEventListener('click', resetAll);
 
 // Обработчик шестеренки
 settingsBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (!isRunning) { // Только если не запущена бегущая строка
+    if (!isRunning) {
         toggleSettings();
     }
 });
 
-// Закрытие по клику вне настроек
+// Закрытие настроек по клику вне
 settingsPanel.addEventListener('click', (e) => {
     if (e.target === settingsPanel) {
         closeSettings();
@@ -264,64 +254,58 @@ speedSlider.addEventListener('input', applySettings);
 // Обработчики цветов
 colorButtons.forEach(btn => {
     btn.addEventListener('click', () => {
-        // Получаем цвет из класса кнопки
-        const colorClass = btn.classList[1]; // white, red, blue, green, yellow
+        const colorClass = btn.classList[1];
         currentColor = colorClass;
         applySettings();
         
-        // Вибрация при выборе цвета
         if (tg && tg.HapticFeedback) {
             tg.HapticFeedback.impactOccurred('light');
         }
     });
 });
 
-// Обработка ввода с клавиатуры
+// Обработка Enter
 textInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
         runBtn.click();
     }
 });
 
-// Автоматический запуск при загрузке
+// Загрузка
 window.addEventListener('load', () => {
-    // Применяем настройки по умолчанию
     applySettings();
-    
-    // Растягиваем на весь экран
     tg.expand();
-    
-    // Фокус на поле ввода
     textInput.focus();
     
-    // Плавные переходы для цвета
     scrollingText.style.transition = 'color 0.3s';
-    
-    // Еще раз принудительно ставим черный фон
     document.body.style.backgroundColor = '#000000';
     document.documentElement.style.backgroundColor = '#000000';
-    
-    // Убираем подсветку принудительно
     scrollingText.style.textShadow = 'none';
     
-    // Убеждаемся, что все элементы видны при старте
     inputArea.style.display = 'flex';
     settingsBtn.style.display = 'flex';
     isRunning = false;
+    
+    console.log('LED Banner loaded');
+    
+    // Отправляем сообщение о загрузке
+    setTimeout(() => {
+        sendToBot('app_loaded', {});
+    }, 1000);
 });
 
-// Обработка изменения размера окна
+// Ресайз
 window.addEventListener('resize', () => {
     restartAnimation();
 });
 
-// Обработка кнопки назад в Telegram
+// Кнопка назад
 if (tg) {
     tg.BackButton.onClick(() => {
         if (settingsVisible) {
             closeSettings();
         } else if (isRunning) {
-            stopRunning(); // Если бегущая строка запущена, останавливаем
+            stopRunning();
         } else {
             tg.close();
         }
@@ -329,7 +313,7 @@ if (tg) {
     tg.BackButton.show();
 }
 
-// Функция для полного экрана
+// Полный экран
 function setFullScreen() {
     document.documentElement.style.height = '100%';
     document.body.style.height = '100%';
@@ -337,20 +321,15 @@ function setFullScreen() {
     if (tg) tg.expand();
 }
 
-// Устанавливаем полный экран при загрузке
 setFullScreen();
+if (tg) tg.onEvent('viewportChanged', setFullScreen);
 
-// Следим за изменениями в Telegram
-if (tg) {
-    tg.onEvent('viewportChanged', setFullScreen);
-}
-
-// Убираем все стандартные диалоги (промпты, алерты)
+// Убираем диалоги
 window.alert = function() {};
 window.confirm = function() { return true; };
 window.prompt = function() { return ''; };
 
-// Закрытие по свайпу вниз (для мобилок)
+// Закрытие по свайпу
 let touchStartY = 0;
 settingsPanel.addEventListener('touchstart', (e) => {
     touchStartY = e.touches[0].clientY;
@@ -362,12 +341,19 @@ settingsPanel.addEventListener('touchmove', (e) => {
     const touchY = e.touches[0].clientY;
     const diff = touchY - touchStartY;
     
-    if (diff > 50) { // Свайп вниз больше 50px
+    if (diff > 50) {
         closeSettings();
     }
 });
 
-// Экспортируем функции для глобального доступа (на всякий случай)
+// Защита от подсветки
+setInterval(() => {
+    if (scrollingText.style.textShadow !== 'none') {
+        scrollingText.style.textShadow = 'none';
+    }
+}, 1000);
+
+// Экспорт
 window.ledBanner = {
     updateText: updateText,
     reset: resetAll,
@@ -390,11 +376,4 @@ window.ledBanner = {
     closeSettings: closeSettings
 };
 
-// Дополнительная защита от подсветки (каждую секунду проверяем)
-setInterval(() => {
-    if (scrollingText.style.textShadow !== 'none') {
-        scrollingText.style.textShadow = 'none';
-    }
-}, 1000);
-
-console.log('LED Banner initialized with HIDE-ON-RUN feature');
+console.log('LED Banner initialized with settings fix');
