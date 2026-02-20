@@ -40,7 +40,7 @@ let currentColor = 'white';
 let isRunning = false;
 
 // ============================================
-// ФУНКЦИЯ СМЕНЫ ЦВЕТА (САМАЯ ВАЖНАЯ)
+// ФУНКЦИЯ СМЕНЫ ЦВЕТА
 // ============================================
 function setTextColor(color) {
     console.log('Меняем цвет на:', color);
@@ -78,17 +78,17 @@ function setTextColor(color) {
 function applySettings() {
     console.log('Применяем настройки');
     
-    // Размер
+    // Размер (теперь до 40)
     let size = sizeSlider.value;
     scrollingText.style.fontSize = size + 'vw';
     sizeValue.textContent = size + 'vw';
     
-    // Скорость
+    // Скорость (теперь от 2)
     currentSpeed = speedSlider.value;
     speedValue.textContent = currentSpeed + ' сек';
     restartAnimation();
     
-    // Цвет (через функцию)
+    // Цвет
     setTextColor(currentColor);
 }
 
@@ -105,13 +105,12 @@ function restartAnimation() {
 // ОБРАБОТЧИКИ
 // ============================================
 
-// Цвет - клик по кнопкам
+// Цвет
 colorButtons.forEach(btn => {
     btn.addEventListener('click', function() {
-        let color = this.classList[1]; // white, red, blue, green, yellow
+        let color = this.classList[1];
         setTextColor(color);
         
-        // Отправляем в бота
         if (tg) {
             tg.sendData(JSON.stringify({
                 action: 'save_settings',
@@ -144,16 +143,13 @@ runBtn.addEventListener('click', function() {
     scrollingText.textContent = text;
     applySettings();
     
-    // Прячем элементы
     inputArea.style.display = 'none';
     settingsBtn.style.display = 'none';
     isRunning = true;
     
-    // Закрываем настройки
     settingsPanel.classList.remove('show');
     settingsBtn.classList.remove('active');
     
-    // Отправляем в бота
     if (tg) {
         tg.sendData(JSON.stringify({
             action: 'new_text',
@@ -162,26 +158,21 @@ runBtn.addEventListener('click', function() {
     }
 });
 
-// RESET (крестик)
+// RESET
 resetBtn.addEventListener('click', function() {
-    // Текст по умолчанию
     scrollingText.textContent = 'LED бегущая строка';
     textInput.value = 'LED бегущая строка';
     
-    // Сброс настроек
     sizeSlider.value = 15;
     speedSlider.value = 15;
     setTextColor('white');
     
-    // Применяем
     applySettings();
     
-    // Показываем элементы
     inputArea.style.display = 'flex';
     settingsBtn.style.display = 'flex';
     isRunning = false;
     
-    // Отправляем в бота
     if (tg) {
         tg.sendData(JSON.stringify({
             action: 'reset',
@@ -224,14 +215,14 @@ textInput.addEventListener('keypress', function(e) {
 window.addEventListener('load', function() {
     console.log('LED Banner загружен');
     
-    // Начальные значения
     scrollingText.textContent = 'LED бегущая строка';
     textInput.value = 'LED бегущая строка';
     
-    // Применяем настройки
-    applySettings();
+    // Устанавливаем начальные значения слайдеров
+    sizeSlider.value = 15;
+    speedSlider.value = 15;
     
-    // Убираем подсветку
+    applySettings();
     scrollingText.style.textShadow = 'none';
 });
 
@@ -252,4 +243,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ LED Banner готов!');
+console.log('✅ LED Banner готов! Теперь размер до 40, скорость от 2 сек');
