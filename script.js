@@ -26,7 +26,7 @@ const runBtn = document.getElementById('runBtn');
 const resetBtn = document.getElementById('resetBtn');
 const settingsBtn = document.getElementById('settingsBtn');
 const settingsPanel = document.getElementById('settingsPanel');
-const bannerArea = document.getElementById('bannerArea');
+const inputArea = document.querySelector('.input-area'); // Добавляем поле ввода и RUN
 
 // Элементы настроек
 const sizeSlider = document.getElementById('sizeSlider');
@@ -39,6 +39,7 @@ const colorButtons = document.querySelectorAll('.color-btn');
 let animationSpeed = 15;
 let currentColor = 'white';
 let settingsVisible = false;
+let isRunning = false; // Состояние: запущена ли бегущая строка
 
 // Функция обновления текста
 function updateText(newText) {
@@ -73,6 +74,43 @@ function updateText(newText) {
     }
 }
 
+// Функция запуска бегущей строки (скрывает элементы управления)
+function startRunning() {
+    if (isRunning) return; // Уже запущено
+    
+    isRunning = true;
+    
+    // Прячем элементы управления
+    inputArea.style.display = 'none'; // Прячем поле ввода и кнопку RUN
+    settingsBtn.style.display = 'none'; // Прячем шестеренку
+    
+    // Если настройки открыты, закрываем их
+    if (settingsVisible) {
+        closeSettings();
+    }
+    
+    // Вибрация при запуске
+    if (tg && tg.HapticFeedback) {
+        tg.HapticFeedback.impactOccurred('medium');
+    }
+}
+
+// Функция остановки бегущей строки (возвращает элементы управления)
+function stopRunning() {
+    if (!isRunning) return; // Уже остановлено
+    
+    isRunning = false;
+    
+    // Показываем элементы управления
+    inputArea.style.display = 'flex'; // Показываем поле ввода и кнопку RUN
+    settingsBtn.style.display = 'flex'; // Показываем шестеренку
+    
+    // Вибрация при остановке
+    if (tg && tg.HapticFeedback) {
+        tg.HapticFeedback.impactOccurred('light');
+    }
+}
+
 // Функция сброса всего
 function resetAll() {
     const defaultText = 'LED бегущая строка';
@@ -87,6 +125,9 @@ function resetAll() {
     applySettings();
     updateSpeedByTextLength();
     restartAnimation();
+    
+    // Останавливаем бегущую строку (возвращаем элементы)
+    stopRunning();
     
     // Вибрация при сбросе
     if (tg && tg.HapticFeedback) {
@@ -168,6 +209,8 @@ function updateSpeedByTextLength() {
 
 // Функция открытия/закрытия настроек
 function toggleSettings() {
+    if (isRunning) return; // Если бегущая строка запущена, не открываем настройки
+    
     settingsVisible = !settingsVisible;
     
     if (settingsVisible) {
@@ -190,15 +233,21 @@ function closeSettings() {
 runBtn.addEventListener('click', () => {
     const text = textInput.value.trim();
     updateText(text);
+    startRunning(); // Запускаем бегущую строку и скрываем элементы
 });
 
 // Обработчик крестика
-resetBtn.addEventListener('click', resetAll);
+resetBtn.addEventListener('click', () => {
+    resetAll();
+    // stopRunning() уже вызывается внутри resetAll
+});
 
 // Обработчик шестеренки
 settingsBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    toggleSettings();
+    if (!isRunning) { // Только если не запущена бегущая строка
+        toggleSettings();
+    }
 });
 
 // Закрытие по клику вне настроек
@@ -234,12 +283,6 @@ textInput.addEventListener('keypress', (e) => {
     }
 });
 
-// Обработка изменения текста (чтобы обновлять скорость)
-textInput.addEventListener('input', () => {
-    // Не обновляем бегущую строку, только сохраняем ввод
-    // Это чтобы пользователь мог печатать не запуская анимацию
-});
-
 // Автоматический запуск при загрузке
 window.addEventListener('load', () => {
     // Применяем настройки по умолчанию
@@ -260,6 +303,11 @@ window.addEventListener('load', () => {
     
     // Убираем подсветку принудительно
     scrollingText.style.textShadow = 'none';
+    
+    // Убеждаемся, что все элементы видны при старте
+    inputArea.style.display = 'flex';
+    settingsBtn.style.display = 'flex';
+    isRunning = false;
 });
 
 // Обработка изменения размера окна
@@ -272,6 +320,8 @@ if (tg) {
     tg.BackButton.onClick(() => {
         if (settingsVisible) {
             closeSettings();
+        } else if (isRunning) {
+            stopRunning(); // Если бегущая строка запущена, останавливаем
         } else {
             tg.close();
         }
@@ -321,6 +371,8 @@ settingsPanel.addEventListener('touchmove', (e) => {
 window.ledBanner = {
     updateText: updateText,
     reset: resetAll,
+    start: startRunning,
+    stop: stopRunning,
     setSpeed: (speed) => {
         speedSlider.value = speed;
         applySettings();
@@ -345,4 +397,4 @@ setInterval(() => {
     }
 }, 1000);
 
-console.log('LED Banner initialized with NO glow effect');
+console.log('LED Banner initialized with HIDE-ON-RUN feature');
