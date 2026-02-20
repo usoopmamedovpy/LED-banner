@@ -2,36 +2,74 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent; /* Убирает подсветку на мобилках */
-    user-select: none; /* Запрещает выделение текста */
-    -webkit-touch-callout: none; /* Запрещает меню при долгом нажатии */
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-touch-callout: none;
 }
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     background: #000;
     min-height: 100vh;
-    min-height: 100dvh; /* Современный вариант на всю высоту */
+    min-height: 100dvh;
     display: flex;
     justify-content: center;
     align-items: center;
     color: white;
-    overflow: hidden; /* Запрещаем скролл страницы */
-    position: fixed; /* Фиксируем на месте */
+    overflow: hidden;
+    position: fixed;
     width: 100%;
     height: 100%;
 }
 
-.container {
+.app-container {
     width: 100%;
     height: 100%;
-    max-width: 100%;
-    padding: 0;
+    position: relative;
+}
+
+/* Крестик в углу */
+.reset-btn {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #000;
+    border: 2px solid white;
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    padding: 0;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
 }
 
-/* Мобильное представление (всегда активно) */
+.reset-btn svg {
+    width: 24px;
+    height: 24px;
+    stroke: white;
+}
+
+.reset-btn:active {
+    background: white;
+}
+
+.reset-btn:active svg {
+    stroke: black;
+}
+
+/* Учитываем безопасную зону на iPhone */
+@supports (padding-top: env(safe-area-inset-top)) {
+    .reset-btn {
+        top: calc(16px + env(safe-area-inset-top));
+        right: calc(16px + env(safe-area-inset-right));
+    }
+}
+
 .mobile-view {
     display: flex;
     flex-direction: column;
@@ -41,7 +79,6 @@ body {
     position: relative;
 }
 
-/* Область с бегущей строкой - занимает всё доступное место */
 .banner-area {
     flex: 1;
     width: 100%;
@@ -50,11 +87,11 @@ body {
     align-items: center;
     overflow: hidden;
     position: relative;
-    min-height: 0; /* Важно для flexbox */
+    min-height: 0;
 }
 
 .scrolling-text {
-    font-size: min(15vw, 120px); /* Адаптивный размер */
+    font-size: min(15vw, 120px);
     font-weight: bold;
     color: white;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
@@ -63,15 +100,14 @@ body {
     left: 100%;
     animation: scrollText linear infinite;
     animation-duration: 15s;
-    padding-right: 50px; /* Небольшой отступ для плавности */
+    padding-right: 50px;
 }
 
-/* Область ввода - всегда внизу */
 .input-area {
     display: flex;
     gap: 10px;
     padding: 16px;
-    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); /* Учет безопасной зоны на iPhone */
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
     background: #000;
     border-top: 2px solid rgba(255, 255, 255, 0.1);
     width: 100%;
@@ -86,14 +122,13 @@ body {
     font-size: 18px;
     color: white;
     outline: none;
-    min-width: 0; /* Чтобы мог сжиматься */
+    min-width: 0;
 }
 
 .text-input::placeholder {
     color: rgba(255, 255, 255, 0.5);
 }
 
-/* Убираем подсветку при вводе на мобилках */
 .text-input:focus {
     outline: none;
     border-color: white;
@@ -120,7 +155,6 @@ body {
     color: black;
 }
 
-/* Анимация бегущей строки */
 @keyframes scrollText {
     0% {
         left: 100%;
@@ -130,8 +164,17 @@ body {
     }
 }
 
-/* Для очень маленьких экранов */
 @media (max-width: 480px) {
+    .reset-btn {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .reset-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+    
     .text-input {
         padding: 14px 18px;
         font-size: 16px;
@@ -149,7 +192,8 @@ body {
 }
 
 .text-input,
-.run-btn {
+.run-btn,
+.reset-btn {
     border-color: var(--tg-theme-button-color, #fff);
     color: var(--tg-theme-button-text-color, #fff);
 }
@@ -164,4 +208,12 @@ body {
 
 .banner-area {
     background: var(--tg-theme-bg-color, #000);
+}
+
+.reset-btn svg {
+    stroke: var(--tg-theme-button-color, #fff);
+}
+
+.reset-btn:active svg {
+    stroke: var(--tg-theme-bg-color, #000);
 }
