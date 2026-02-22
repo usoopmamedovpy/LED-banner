@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - РАБОЧАЯ ВЕРСИЯ С ЦВЕТАМИ
+// LED BANNER - С СОХРАНЕНИЕМ НАСТРОЕК
 // ============================================
 
 // Telegram
@@ -9,7 +9,7 @@ tg.expand();
 tg.setHeaderColor('#000000');
 tg.setBackgroundColor('#000000');
 
-// Черный фон принудительно
+// Черный фон
 document.documentElement.style.backgroundColor = '#000000';
 document.body.style.backgroundColor = '#000000';
 document.body.style.color = '#ffffff';
@@ -37,7 +37,66 @@ const colorButtons = document.querySelectorAll('.color-btn');
 // ============================================
 let currentSpeed = 15;
 let currentColor = 'white';
+let currentSize = 15;
+let currentText = 'LED бегущая строка';
 let isRunning = false;
+
+// ============================================
+// ЗАГРУЗКА СОХРАНЕННЫХ ДАННЫХ
+// ============================================
+function loadSavedData() {
+    console.log('Загружаем сохраненные данные...');
+    
+    try {
+        // Пытаемся получить данные из initDataUnsafe (то, что бот прислал)
+        if (tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
+            const savedData = JSON.parse(decodeURIComponent(tg.initDataUnsafe.start_param));
+            console.log('Найдены сохраненные данные:', savedData);
+            
+            if (savedData.text) currentText = savedData.text;
+            if (savedData.color) currentColor = savedData.color;
+            if (savedData.speed) currentSpeed = savedData.speed;
+            if (savedData.size) currentSize = savedData.size;
+            
+            // Применяем к интерфейсу
+            textInput.value = currentText;
+            scrollingText.textContent = currentText;
+            
+            sizeSlider.value = currentSize;
+            speedSlider.value = currentSpeed;
+            
+            // Применяем все настройки
+            applyAllSettings();
+        }
+    } catch (e) {
+        console.log('Нет сохраненных данных или ошибка парсинга:', e);
+    }
+}
+
+// ============================================
+// ФУНКЦИЯ ОТПРАВКИ ДАННЫХ В БОТА
+// ============================================
+function saveToBot() {
+    if (!tg) return;
+    
+    const dataToSave = {
+        text: scrollingText.textContent,
+        color: currentColor,
+        speed: currentSpeed,
+        size: currentSize
+    };
+    
+    console.log('Сохраняем в бота:', dataToSave);
+    
+    try {
+        tg.sendData(JSON.stringify({
+            action: 'save_all',
+            data: dataToSave
+        }));
+    } catch (e) {
+        console.log('Ошибка отправки:', e);
+    }
+}
 
 // ============================================
 // ФУНКЦИЯ СМЕНЫ ЦВЕТА
@@ -45,23 +104,17 @@ let isRunning = false;
 function setTextColor(color) {
     console.log('Меняем цвет на:', color);
     
-    // Убираем все классы цвета
     scrollingText.classList.remove('white', 'red', 'blue', 'green', 'yellow');
-    
-    // Добавляем новый класс
     scrollingText.classList.add(color);
     
-    // Также применяем через style (на всякий случай)
     if (color === 'white') scrollingText.style.color = '#ffffff';
     if (color === 'red') scrollingText.style.color = '#ff3b30';
     if (color === 'blue') scrollingText.style.color = '#007aff';
     if (color === 'green') scrollingText.style.color = '#34c759';
     if (color === 'yellow') scrollingText.style.color = '#ffcc00';
     
-    // Убираем подсветку
     scrollingText.style.textShadow = 'none';
     
-    // Обновляем активную кнопку
     colorButtons.forEach(btn => {
         btn.classList.remove('active');
         if (btn.classList.contains(color)) {
@@ -70,26 +123,31 @@ function setTextColor(color) {
     });
     
     currentColor = color;
+    saveToBot(); // Сохраняем при изменении цвета
 }
 
 // ============================================
-// ФУНКЦИЯ ПРИМЕНЕНИЯ НАСТРОЕК
+// ФУНКЦИЯ ПРИМЕНЕНИЯ ВСЕХ НАСТРОЕК
 // ============================================
-function applySettings() {
-    console.log('Применяем настройки');
+function applyAllSettings() {
+    console.log('Применяем все настройки');
     
-    // Размер (теперь до 40)
-    let size = sizeSlider.value;
-    scrollingText.style.fontSize = size + 'vw';
-    sizeValue.textContent = size + 'vw';
+    // Размер
+    currentSize = sizeSlider.value;
+    scrollingText.style.fontSize = currentSize + 'vw';
+    sizeValue.textContent = currentSize + 'vw';
     
-    // Скорость (теперь от 2)
+    // Скорость
     currentSpeed = speedSlider.value;
     speedValue.textContent = currentSpeed + ' сек';
     restartAnimation();
     
     // Цвет
     setTextColor(currentColor);
+    
+    // Текст
+    scrollingText.textContent = currentText;
+    textInput.value = currentText;
 }
 
 // ============================================
@@ -110,29 +168,29 @@ colorButtons.forEach(btn => {
     btn.addEventListener('click', function() {
         let color = this.classList[1];
         setTextColor(color);
-        
-        if (tg) {
-            tg.sendData(JSON.stringify({
-                action: 'save_settings',
-                color: color,
-                speed: currentSpeed,
-                size: sizeSlider.value
-            }));
-        }
     });
 });
 
 // Размер
 sizeSlider.addEventListener('input', function() {
-    scrollingText.style.fontSize = this.value + 'vw';
-    sizeValue.textContent = this.value + 'vw';
+    currentSize = this.value;
+    scrollingText.style.fontSize = currentSize + 'vw';
+    sizeValue.textContent = currentSize + 'vw';
+    saveToBot(); // Сохраняем при изменении размера
 });
 
 // Скорость
 speedSlider.addEventListener('input', function() {
     currentSpeed = this.value;
-    speedValue.textContent = this.value + ' сек';
+    speedValue.textContent = currentSpeed + ' сек';
     restartAnimation();
+    saveToBot(); // Сохраняем при изменении скорости
+});
+
+// Текст
+textInput.addEventListener('input', function() {
+    currentText = this.value;
+    // Не применяем к бегущей строке, пока не нажат RUN
 });
 
 // RUN
@@ -140,8 +198,9 @@ runBtn.addEventListener('click', function() {
     let text = textInput.value.trim();
     if (text === '') text = 'LED бегущая строка';
     
+    currentText = text;
     scrollingText.textContent = text;
-    applySettings();
+    applyAllSettings();
     
     inputArea.style.display = 'none';
     settingsBtn.style.display = 'none';
@@ -150,35 +209,27 @@ runBtn.addEventListener('click', function() {
     settingsPanel.classList.remove('show');
     settingsBtn.classList.remove('active');
     
-    if (tg) {
-        tg.sendData(JSON.stringify({
-            action: 'new_text',
-            text: text
-        }));
-    }
+    saveToBot(); // Сохраняем при запуске
 });
 
 // RESET
 resetBtn.addEventListener('click', function() {
-    scrollingText.textContent = 'LED бегущая строка';
-    textInput.value = 'LED бегущая строка';
+    currentText = 'LED бегущая строка';
+    currentColor = 'white';
+    currentSize = 15;
+    currentSpeed = 15;
     
-    sizeSlider.value = 15;
-    speedSlider.value = 15;
-    setTextColor('white');
+    textInput.value = currentText;
+    sizeSlider.value = currentSize;
+    speedSlider.value = currentSpeed;
     
-    applySettings();
+    applyAllSettings();
     
     inputArea.style.display = 'flex';
     settingsBtn.style.display = 'flex';
     isRunning = false;
     
-    if (tg) {
-        tg.sendData(JSON.stringify({
-            action: 'reset',
-            text: 'LED бегущая строка'
-        }));
-    }
+    saveToBot(); // Сохраняем при сбросе
 });
 
 // Шестеренка
@@ -215,14 +266,17 @@ textInput.addEventListener('keypress', function(e) {
 window.addEventListener('load', function() {
     console.log('LED Banner загружен');
     
-    scrollingText.textContent = 'LED бегущая строка';
-    textInput.value = 'LED бегущая строка';
+    // Сначала пробуем загрузить сохраненные данные
+    loadSavedData();
     
-    // Устанавливаем начальные значения слайдеров
-    sizeSlider.value = 15;
-    speedSlider.value = 15;
+    // Если нет сохраненных, используем дефолтные
+    if (!currentText) {
+        currentText = 'LED бегущая строка';
+        textInput.value = currentText;
+        scrollingText.textContent = currentText;
+    }
     
-    applySettings();
+    applyAllSettings();
     scrollingText.style.textShadow = 'none';
 });
 
@@ -243,4 +297,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ LED Banner готов! Теперь размер до 40, скорость от 2 сек');
+console.log('✅ LED Banner с сохранением настроек!');
