@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - С СОХРАНЕНИЕМ НАСТРОЕК
+// LED BANNER - КРЕСТИК ТОЛЬКО ВОЗВРАЩАЕТ КНОПКИ
 // ============================================
 
 // Telegram
@@ -42,7 +42,7 @@ let currentText = 'LED бегущая строка';
 let isRunning = false;
 
 // ============================================
-// ЗАГРУЗКА СОХРАНЕННЫХ ДАННЫХ
+// ЗАГРУЗКА СОХРАНЕННЫХ ДАННЫХ ИЗ БОТА
 // ============================================
 function loadSavedData() {
     console.log('Загружаем сохраненные данные...');
@@ -65,8 +65,14 @@ function loadSavedData() {
             sizeSlider.value = currentSize;
             speedSlider.value = currentSpeed;
             
-            // Применяем все настройки
-            applyAllSettings();
+            // Применяем цвет
+            setTextColor(currentColor);
+            
+            // Обновляем отображение
+            sizeValue.textContent = currentSize + 'vw';
+            speedValue.textContent = currentSpeed + ' сек';
+            
+            console.log('Данные применены');
         }
     } catch (e) {
         console.log('Нет сохраненных данных или ошибка парсинга:', e);
@@ -127,19 +133,13 @@ function setTextColor(color) {
 }
 
 // ============================================
-// ФУНКЦИЯ ПРИМЕНЕНИЯ ВСЕХ НАСТРОЕК
+// ФУНКЦИЯ ПРИМЕНЕНИЯ ТЕКУЩИХ НАСТРОЕК
 // ============================================
-function applyAllSettings() {
-    console.log('Применяем все настройки');
-    
+function applyCurrentSettings() {
     // Размер
-    currentSize = sizeSlider.value;
     scrollingText.style.fontSize = currentSize + 'vw';
-    sizeValue.textContent = currentSize + 'vw';
     
     // Скорость
-    currentSpeed = speedSlider.value;
-    speedValue.textContent = currentSpeed + ' сек';
     restartAnimation();
     
     // Цвет
@@ -160,6 +160,26 @@ function restartAnimation() {
 }
 
 // ============================================
+// ФУНКЦИЯ ВОЗВРАТА КНОПОК (ТОЛЬКО ДЛЯ КРЕСТИКА)
+// ============================================
+function showControls() {
+    console.log('Показываем кнопки управления');
+    inputArea.style.display = 'flex';
+    settingsBtn.style.display = 'flex';
+    isRunning = false;
+}
+
+// ============================================
+// ФУНКЦИЯ СКРЫТИЯ КНОПОК
+// ============================================
+function hideControls() {
+    console.log('Скрываем кнопки управления');
+    inputArea.style.display = 'none';
+    settingsBtn.style.display = 'none';
+    isRunning = true;
+}
+
+// ============================================
 // ОБРАБОТЧИКИ
 // ============================================
 
@@ -176,7 +196,7 @@ sizeSlider.addEventListener('input', function() {
     currentSize = this.value;
     scrollingText.style.fontSize = currentSize + 'vw';
     sizeValue.textContent = currentSize + 'vw';
-    saveToBot(); // Сохраняем при изменении размера
+    saveToBot();
 });
 
 // Скорость
@@ -184,13 +204,12 @@ speedSlider.addEventListener('input', function() {
     currentSpeed = this.value;
     speedValue.textContent = currentSpeed + ' сек';
     restartAnimation();
-    saveToBot(); // Сохраняем при изменении скорости
+    saveToBot();
 });
 
-// Текст
+// Текст (только сохраняем в переменную, не применяем)
 textInput.addEventListener('input', function() {
     currentText = this.value;
-    // Не применяем к бегущей строке, пока не нажат RUN
 });
 
 // RUN
@@ -200,36 +219,29 @@ runBtn.addEventListener('click', function() {
     
     currentText = text;
     scrollingText.textContent = text;
-    applyAllSettings();
     
-    inputArea.style.display = 'none';
-    settingsBtn.style.display = 'none';
-    isRunning = true;
+    // Применяем текущие настройки
+    applyCurrentSettings();
     
+    // Скрываем кнопки
+    hideControls();
+    
+    // Закрываем настройки если открыты
     settingsPanel.classList.remove('show');
     settingsBtn.classList.remove('active');
     
-    saveToBot(); // Сохраняем при запуске
+    saveToBot();
 });
 
-// RESET
+// КРЕСТИК - ТОЛЬКО ВОЗВРАЩАЕТ КНОПКИ, НИЧЕГО НЕ СБРАСЫВАЕТ!
 resetBtn.addEventListener('click', function() {
-    currentText = 'LED бегущая строка';
-    currentColor = 'white';
-    currentSize = 15;
-    currentSpeed = 15;
+    console.log('Крестик нажат - возвращаем кнопки');
     
-    textInput.value = currentText;
-    sizeSlider.value = currentSize;
-    speedSlider.value = currentSpeed;
+    // Показываем кнопки управления
+    showControls();
     
-    applyAllSettings();
-    
-    inputArea.style.display = 'flex';
-    settingsBtn.style.display = 'flex';
-    isRunning = false;
-    
-    saveToBot(); // Сохраняем при сбросе
+    // НИЧЕГО НЕ МЕНЯЕМ В НАСТРОЙКАХ!
+    // Текст и настройки остаются теми же
 });
 
 // Шестеренка
@@ -266,18 +278,17 @@ textInput.addEventListener('keypress', function(e) {
 window.addEventListener('load', function() {
     console.log('LED Banner загружен');
     
-    // Сначала пробуем загрузить сохраненные данные
+    // Загружаем сохраненные данные
     loadSavedData();
     
-    // Если нет сохраненных, используем дефолтные
-    if (!currentText) {
-        currentText = 'LED бегущая строка';
-        textInput.value = currentText;
-        scrollingText.textContent = currentText;
-    }
+    // Применяем настройки
+    applyCurrentSettings();
     
-    applyAllSettings();
+    // Убираем подсветку
     scrollingText.style.textShadow = 'none';
+    
+    // Убеждаемся что кнопки видны
+    showControls();
 });
 
 // ============================================
@@ -288,13 +299,11 @@ tg.BackButton.onClick(function() {
         settingsPanel.classList.remove('show');
         settingsBtn.classList.remove('active');
     } else if (isRunning) {
-        inputArea.style.display = 'flex';
-        settingsBtn.style.display = 'flex';
-        isRunning = false;
+        showControls(); // Используем showControls вместо ручного показа
     } else {
         tg.close();
     }
 });
 tg.BackButton.show();
 
-console.log('✅ LED Banner с сохранением настроек!');
+console.log('✅ LED Banner: крестик только возвращает кнопки');
