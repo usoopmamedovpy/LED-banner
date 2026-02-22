@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - КРЕСТИК ТОЛЬКО ВОЗВРАЩАЕТ КНОПКИ
+// LED BANNER - С СОХРАНЕНИЕМ И УМНЫМ КРЕСТИКОМ
 // ============================================
 
 // Telegram
@@ -42,49 +42,64 @@ let currentText = 'LED бегущая строка';
 let isRunning = false;
 
 // ============================================
-// ЗАГРУЗКА СОХРАНЕННЫХ ДАННЫХ ИЗ БОТА
+// ЗАГРУЗКА СОХРАНЕННЫХ ДАННЫХ
 // ============================================
 function loadSavedData() {
     console.log('Загружаем сохраненные данные...');
     
     try {
-        // Пытаемся получить данные из initDataUnsafe (то, что бот прислал)
+        // Пытаемся получить данные из localStorage (для теста в браузере)
+        const localSave = localStorage.getItem('ledBannerData');
+        if (localSave) {
+            const savedData = JSON.parse(localSave);
+            console.log('Найдены локальные данные:', savedData);
+            applySavedData(savedData);
+            return;
+        }
+        
+        // Пытаемся получить данные из Telegram
         if (tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
             const savedData = JSON.parse(decodeURIComponent(tg.initDataUnsafe.start_param));
-            console.log('Найдены сохраненные данные:', savedData);
-            
-            if (savedData.text) currentText = savedData.text;
-            if (savedData.color) currentColor = savedData.color;
-            if (savedData.speed) currentSpeed = savedData.speed;
-            if (savedData.size) currentSize = savedData.size;
-            
-            // Применяем к интерфейсу
-            textInput.value = currentText;
-            scrollingText.textContent = currentText;
-            
-            sizeSlider.value = currentSize;
-            speedSlider.value = currentSpeed;
-            
-            // Применяем цвет
-            setTextColor(currentColor);
-            
-            // Обновляем отображение
-            sizeValue.textContent = currentSize + 'vw';
-            speedValue.textContent = currentSpeed + ' сек';
-            
-            console.log('Данные применены');
+            console.log('Найдены данные от бота:', savedData);
+            applySavedData(savedData);
         }
     } catch (e) {
-        console.log('Нет сохраненных данных или ошибка парсинга:', e);
+        console.log('Нет сохраненных данных:', e);
     }
+}
+
+// ============================================
+// ПРИМЕНЕНИЕ СОХРАНЕННЫХ ДАННЫХ
+// ============================================
+function applySavedData(savedData) {
+    if (savedData.text) {
+        currentText = savedData.text;
+        textInput.value = currentText;
+        scrollingText.textContent = currentText;
+    }
+    
+    if (savedData.color) {
+        currentColor = savedData.color;
+    }
+    
+    if (savedData.speed) {
+        currentSpeed = savedData.speed;
+        speedSlider.value = currentSpeed;
+    }
+    
+    if (savedData.size) {
+        currentSize = savedData.size;
+        sizeSlider.value = currentSize;
+    }
+    
+    // Применяем все настройки
+    applyAllSettings();
 }
 
 // ============================================
 // ФУНКЦИЯ ОТПРАВКИ ДАННЫХ В БОТА
 // ============================================
 function saveToBot() {
-    if (!tg) return;
-    
     const dataToSave = {
         text: scrollingText.textContent,
         color: currentColor,
@@ -92,15 +107,21 @@ function saveToBot() {
         size: currentSize
     };
     
-    console.log('Сохраняем в бота:', dataToSave);
+    console.log('Сохраняем:', dataToSave);
     
-    try {
-        tg.sendData(JSON.stringify({
-            action: 'save_all',
-            data: dataToSave
-        }));
-    } catch (e) {
-        console.log('Ошибка отправки:', e);
+    // Сохраняем в localStorage (для теста)
+    localStorage.setItem('ledBannerData', JSON.stringify(dataToSave));
+    
+    // Отправляем в бота
+    if (tg) {
+        try {
+            tg.sendData(JSON.stringify({
+                action: 'save_all',
+                data: dataToSave
+            }));
+        } catch (e) {
+            console.log('Ошибка отправки в бота:', e);
+        }
     }
 }
 
@@ -129,17 +150,21 @@ function setTextColor(color) {
     });
     
     currentColor = color;
-    saveToBot(); // Сохраняем при изменении цвета
+    saveToBot();
 }
 
 // ============================================
-// ФУНКЦИЯ ПРИМЕНЕНИЯ ТЕКУЩИХ НАСТРОЕК
+// ФУНКЦИЯ ПРИМЕНЕНИЯ ВСЕХ НАСТРОЕК
 // ============================================
-function applyCurrentSettings() {
+function applyAllSettings() {
+    console.log('Применяем настройки');
+    
     // Размер
     scrollingText.style.fontSize = currentSize + 'vw';
+    sizeValue.textContent = currentSize + 'vw';
     
     // Скорость
+    speedValue.textContent = currentSpeed + ' сек';
     restartAnimation();
     
     // Цвет
@@ -160,30 +185,40 @@ function restartAnimation() {
 }
 
 // ============================================
-// ФУНКЦИЯ ВОЗВРАТА КНОПОК (ТОЛЬКО ДЛЯ КРЕСТИКА)
+// ФУНКЦИЯ ПОКАЗА ЭЛЕМЕНТОВ (НОВЫЙ КРЕСТИК)
 // ============================================
-function showControls() {
-    console.log('Показываем кнопки управления');
-    inputArea.style.display = 'flex';
-    settingsBtn.style.display = 'flex';
-    isRunning = false;
-}
-
-// ============================================
-// ФУНКЦИЯ СКРЫТИЯ КНОПОК
-// ============================================
-function hideControls() {
-    console.log('Скрываем кнопки управления');
-    inputArea.style.display = 'none';
-    settingsBtn.style.display = 'none';
-    isRunning = true;
+function toggleControls() {
+    if (isRunning) {
+        // Если бегущая строка запущена - показываем элементы
+        inputArea.style.display = 'flex';
+        settingsBtn.style.display = 'flex';
+        isRunning = false;
+    } else {
+        // Если не запущена - прячем элементы и запускаем
+        const text = textInput.value.trim();
+        if (text !== '') {
+            currentText = text;
+            scrollingText.textContent = text;
+            applyAllSettings();
+        }
+        
+        inputArea.style.display = 'none';
+        settingsBtn.style.display = 'none';
+        isRunning = true;
+        
+        // Закрываем настройки если открыты
+        settingsPanel.classList.remove('show');
+        settingsBtn.classList.remove('active');
+        
+        saveToBot();
+    }
 }
 
 // ============================================
 // ОБРАБОТЧИКИ
 // ============================================
 
-// Цвет
+// ЦВЕТ - клик
 colorButtons.forEach(btn => {
     btn.addEventListener('click', function() {
         let color = this.classList[1];
@@ -191,7 +226,7 @@ colorButtons.forEach(btn => {
     });
 });
 
-// Размер
+// РАЗМЕР - изменение
 sizeSlider.addEventListener('input', function() {
     currentSize = this.value;
     scrollingText.style.fontSize = currentSize + 'vw';
@@ -199,7 +234,7 @@ sizeSlider.addEventListener('input', function() {
     saveToBot();
 });
 
-// Скорость
+// СКОРОСТЬ - изменение
 speedSlider.addEventListener('input', function() {
     currentSpeed = this.value;
     speedValue.textContent = currentSpeed + ' сек';
@@ -207,44 +242,35 @@ speedSlider.addEventListener('input', function() {
     saveToBot();
 });
 
-// Текст (только сохраняем в переменную, не применяем)
+// ТЕКСТ - ввод
 textInput.addEventListener('input', function() {
     currentText = this.value;
 });
 
-// RUN
+// RUN - теперь просто переключает видимость
 runBtn.addEventListener('click', function() {
-    let text = textInput.value.trim();
-    if (text === '') text = 'LED бегущая строка';
-    
-    currentText = text;
-    scrollingText.textContent = text;
-    
-    // Применяем текущие настройки
-    applyCurrentSettings();
-    
-    // Скрываем кнопки
-    hideControls();
-    
-    // Закрываем настройки если открыты
-    settingsPanel.classList.remove('show');
-    settingsBtn.classList.remove('active');
-    
-    saveToBot();
+    toggleControls();
 });
 
-// КРЕСТИК - ТОЛЬКО ВОЗВРАЩАЕТ КНОПКИ, НИЧЕГО НЕ СБРАСЫВАЕТ!
+// КРЕСТИК - показывает элементы, НО НЕ СБРАСЫВАЕТ ТЕКСТ!
 resetBtn.addEventListener('click', function() {
-    console.log('Крестик нажат - возвращаем кнопки');
-    
-    // Показываем кнопки управления
-    showControls();
-    
-    // НИЧЕГО НЕ МЕНЯЕМ В НАСТРОЙКАХ!
-    // Текст и настройки остаются теми же
+    if (isRunning) {
+        // Если текст бежит - просто показываем элементы
+        inputArea.style.display = 'flex';
+        settingsBtn.style.display = 'flex';
+        isRunning = false;
+        
+        // Закрываем настройки
+        settingsPanel.classList.remove('show');
+        settingsBtn.classList.remove('active');
+    } else {
+        // Если не бежит - просто закрываем настройки (если открыты)
+        settingsPanel.classList.remove('show');
+        settingsBtn.classList.remove('active');
+    }
 });
 
-// Шестеренка
+// ШЕСТЕРЕНКА
 settingsBtn.addEventListener('click', function() {
     if (isRunning) return;
     
@@ -257,7 +283,7 @@ settingsBtn.addEventListener('click', function() {
     }
 });
 
-// Закрытие настроек
+// Закрытие настроек по клику вне
 settingsPanel.addEventListener('click', function(e) {
     if (e.target === settingsPanel) {
         settingsPanel.classList.remove('show');
@@ -268,7 +294,7 @@ settingsPanel.addEventListener('click', function(e) {
 // Enter
 textInput.addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
-        runBtn.click();
+        toggleControls();
     }
 });
 
@@ -282,13 +308,15 @@ window.addEventListener('load', function() {
     loadSavedData();
     
     // Применяем настройки
-    applyCurrentSettings();
+    applyAllSettings();
     
     // Убираем подсветку
     scrollingText.style.textShadow = 'none';
     
-    // Убеждаемся что кнопки видны
-    showControls();
+    // Показываем элементы при старте
+    inputArea.style.display = 'flex';
+    settingsBtn.style.display = 'flex';
+    isRunning = false;
 });
 
 // ============================================
@@ -299,11 +327,14 @@ tg.BackButton.onClick(function() {
         settingsPanel.classList.remove('show');
         settingsBtn.classList.remove('active');
     } else if (isRunning) {
-        showControls(); // Используем showControls вместо ручного показа
+        // Если текст бежит - показываем элементы
+        inputArea.style.display = 'flex';
+        settingsBtn.style.display = 'flex';
+        isRunning = false;
     } else {
         tg.close();
     }
 });
 tg.BackButton.show();
 
-console.log('✅ LED Banner: крестик только возвращает кнопки');
+console.log('✅ LED Banner - Умный крестик и сохранение!');
