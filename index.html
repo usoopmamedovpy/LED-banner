@@ -5,12 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
     <meta name="color-scheme" content="dark">
-    <title>LED Banner</title>
+    <title>LED Banner Math</title>
+    
+    <!-- MathLive для редактирования формул -->
+    <link rel="stylesheet" href="https://unpkg.com/mathlive/dist/mathlive-static.css" />
+    <script src="https://unpkg.com/mathlive/dist/mathlive.min.js"></script>
+    
+    <!-- MathJax для отображения формул -->
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app-container">
-        <!-- Крестик для сброса -->
+        <!-- Крестик для показа/скрытия элементов -->
         <button class="reset-btn" id="resetBtn">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M18 6L6 18M6 6L18 18" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
@@ -62,11 +70,111 @@
         <!-- Основной экран -->
         <div class="mobile-view">
             <div class="banner-area">
-                <div class="scrolling-text" id="scrollingText">LED бегущая строка</div>
+                <div class="scrolling-text" id="scrollingText">$$\text{LED бегущая строка}$$</div>
             </div>
             
             <div class="input-area">
-                <input type="text" class="text-input" id="textInput" placeholder="Введите текст..." value="LED бегущая строка">
+                <!-- MATH кнопка -->
+                <div class="math-btn-container">
+                    <button class="math-btn" id="mathBtn">MATH</button>
+                    
+                    <!-- MATH панель -->
+                    <div class="math-panel" id="mathPanel">
+                        <div class="math-categories">
+                            <button class="math-cat-btn active" data-cat="basic">Базовые</button>
+                            <button class="math-cat-btn" data-cat="greek">Греческие</button>
+                            <button class="math-cat-btn" data-cat="operators">Операторы</button>
+                            <button class="math-cat-btn" data-cat="roots">Корни</button>
+                        </div>
+                        
+                        <div class="math-symbols" id="mathSymbols">
+                            <!-- Базовые символы -->
+                            <div class="math-category active" id="cat-basic">
+                                <button class="math-symbol" data-latex="\frac{}{}">a/b</button>
+                                <button class="math-symbol" data-latex="\sqrt{}">√</button>
+                                <button class="math-symbol" data-latex="\sqrt[3]{}">∛</button>
+                                <button class="math-symbol" data-latex="\sqrt[4]{}">∜</button>
+                                <button class="math-symbol" data-latex="\sqrt[n]{}">n√</button>
+                                <button class="math-symbol" data-latex="\vec{}">⃗</button>
+                                <button class="math-symbol" data-latex="\hat{}">^</button>
+                                <button class="math-symbol" data-latex="\bar{}">¯</button>
+                                <button class="math-symbol" data-latex="\dot{}">˙</button>
+                                <button class="math-symbol" data-latex="\ddot{}">¨</button>
+                                <button class="math-symbol" data-latex="\overrightarrow{}">→</button>
+                                <button class="math-symbol" data-latex="\overleftarrow{}">←</button>
+                            </div>
+                            
+                            <!-- Греческие буквы -->
+                            <div class="math-category" id="cat-greek">
+                                <button class="math-symbol" data-latex="\alpha">α</button>
+                                <button class="math-symbol" data-latex="\beta">β</button>
+                                <button class="math-symbol" data-latex="\gamma">γ</button>
+                                <button class="math-symbol" data-latex="\delta">δ</button>
+                                <button class="math-symbol" data-latex="\epsilon">ε</button>
+                                <button class="math-symbol" data-latex="\zeta">ζ</button>
+                                <button class="math-symbol" data-latex="\eta">η</button>
+                                <button class="math-symbol" data-latex="\theta">θ</button>
+                                <button class="math-symbol" data-latex="\iota">ι</button>
+                                <button class="math-symbol" data-latex="\kappa">κ</button>
+                                <button class="math-symbol" data-latex="\lambda">λ</button>
+                                <button class="math-symbol" data-latex="\mu">μ</button>
+                                <button class="math-symbol" data-latex="\nu">ν</button>
+                                <button class="math-symbol" data-latex="\xi">ξ</button>
+                                <button class="math-symbol" data-latex="\pi">π</button>
+                                <button class="math-symbol" data-latex="\rho">ρ</button>
+                                <button class="math-symbol" data-latex="\sigma">σ</button>
+                                <button class="math-symbol" data-latex="\tau">τ</button>
+                                <button class="math-symbol" data-latex="\upsilon">υ</button>
+                                <button class="math-symbol" data-latex="\phi">φ</button>
+                                <button class="math-symbol" data-latex="\chi">χ</button>
+                                <button class="math-symbol" data-latex="\psi">ψ</button>
+                                <button class="math-symbol" data-latex="\omega">ω</button>
+                            </div>
+                            
+                            <!-- Операторы -->
+                            <div class="math-category" id="cat-operators">
+                                <button class="math-symbol" data-latex="\sin">sin</button>
+                                <button class="math-symbol" data-latex="\cos">cos</button>
+                                <button class="math-symbol" data-latex="\tan">tan</button>
+                                <button class="math-symbol" data-latex="\cot">cot</button>
+                                <button class="math-symbol" data-latex="\sec">sec</button>
+                                <button class="math-symbol" data-latex="\csc">csc</button>
+                                <button class="math-symbol" data-latex="\arcsin">arcsin</button>
+                                <button class="math-symbol" data-latex="\arccos">arccos</button>
+                                <button class="math-symbol" data-latex="\arctan">arctan</button>
+                                <button class="math-symbol" data-latex="\log">log</button>
+                                <button class="math-symbol" data-latex="\ln">ln</button>
+                                <button class="math-symbol" data-latex="\exp">exp</button>
+                                <button class="math-symbol" data-latex="\lim">lim</button>
+                                <button class="math-symbol" data-latex="\sum">∑</button>
+                                <button class="math-symbol" data-latex="\prod">∏</button>
+                                <button class="math-symbol" data-latex="\int">∫</button>
+                                <button class="math-symbol" data-latex="\oint">∮</button>
+                                <button class="math-symbol" data-latex="\iint">∬</button>
+                            </div>
+                            
+                            <!-- Корни и степени -->
+                            <div class="math-category" id="cat-roots">
+                                <button class="math-symbol" data-latex="\sqrt{}">√(x)</button>
+                                <button class="math-symbol" data-latex="\sqrt[3]{}">∛(x)</button>
+                                <button class="math-symbol" data-latex="\sqrt[4]{}">∜(x)</button>
+                                <button class="math-symbol" data-latex="\sqrt[n]{}">n√(x)</button>
+                                <button class="math-symbol" data-latex="^{}">xⁿ</button>
+                                <button class="math-symbol" data-latex="_{}">xₙ</button>
+                                <button class="math-symbol" data-latex="\frac{}{}">a/b</button>
+                                <button class="math-symbol" data-latex="\tfrac{}{}">a/b мал.</button>
+                                <button class="math-symbol" data-latex="\dfrac{}{}">a/b бол.</button>
+                                <button class="math-symbol" data-latex="\overline{}">¯</button>
+                                <button class="math-symbol" data-latex="\underline{}">_</button>
+                                <button class="math-symbol" data-latex="\overrightarrow{}">→</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MathLive поле ввода -->
+                <math-field id="mathInput" class="math-input" virtual-keyboard-mode="off">LED бегущая строка</math-field>
+                
                 <button class="run-btn" id="runBtn">RUN</button>
             </div>
         </div>
