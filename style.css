@@ -9,6 +9,7 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     background: #000000;
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -104,7 +105,7 @@ body {
     overflow: hidden;
     position: relative;
     min-height: 0;
-    padding: 10px 0;
+    padding: 20px 0;
 }
 
 .scrolling-text {
@@ -117,26 +118,25 @@ body {
     padding-right: 50px;
     transition: color 0.1s, font-size 0.1s;
     text-shadow: none !important;
-    color: #ffffff;
     font-size: 15vw;
 }
 
 /* Цвета текста */
-.scrolling-text.white { color: #ffffff; }
-.scrolling-text.red { color: #ff3b30; }
-.scrolling-text.blue { color: #007aff; }
-.scrolling-text.green { color: #34c759; }
-.scrolling-text.yellow { color: #ffcc00; }
+.scrolling-text.white { color: #ffffff !important; }
+.scrolling-text.red { color: #ff3b30 !important; }
+.scrolling-text.blue { color: #007aff !important; }
+.scrolling-text.green { color: #34c759 !important; }
+.scrolling-text.yellow { color: #ffcc00 !important; }
 
 /* Контейнер для ввода */
-.input-wrapper {
+.input-container {
     width: 100%;
     position: relative;
-    transition: transform 0.3s ease;
     z-index: 100;
+    transition: transform 0.3s ease;
 }
 
-.input-wrapper.keyboard-open .input-area {
+.input-container.keyboard-open {
     transform: translateY(-300px);
 }
 
@@ -150,7 +150,6 @@ body {
     border-top: 2px solid rgba(255, 255, 255, 0.2);
     width: 100%;
     align-items: center;
-    transition: transform 0.3s ease;
     position: relative;
     z-index: 101;
 }
@@ -242,7 +241,7 @@ body {
     padding: 20px 10px 30px 10px;
     transition: bottom 0.3s ease;
     z-index: 2000;
-    max-height: 450px;
+    max-height: 400px;
     overflow-y: auto;
     box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.9);
 }
@@ -251,31 +250,32 @@ body {
     bottom: 0;
 }
 
-/* Переключатели разделов (слева) */
+/* Переключатели разделов */
 .keyboard-sections {
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
     display: flex;
-    flex-direction: column;
-    gap: 15px;
+    gap: 10px;
+    padding: 10px;
+    background: #000000;
     z-index: 10;
+    border-bottom: 1px solid #ffffff;
+    margin-bottom: 15px;
 }
 
 .section-btn {
-    width: 50px;
-    height: 50px;
-    border-radius: 25px;
+    flex: 1;
+    height: 45px;
     background: #000000;
     border: 2px solid #ffffff;
+    border-radius: 22px;
     color: #ffffff;
     font-size: 16px;
+    font-weight: bold;
     cursor: pointer;
     transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -289,14 +289,9 @@ body {
     color: #000000;
 }
 
-.section-icon {
-    font-weight: bold;
-}
-
 /* Разделы клавиатуры */
 .keyboard-section {
     display: none;
-    margin-left: 70px;
 }
 
 .keyboard-section.active {
@@ -306,26 +301,26 @@ body {
 /* Ряды кнопок */
 .keyboard-row {
     display: flex;
-    gap: 6px;
-    margin-bottom: 6px;
+    gap: 8px;
+    margin-bottom: 8px;
     flex-wrap: wrap;
-    justify-content: flex-start;
+    justify-content: center;
 }
 
 /* Кнопки клавиатуры */
 .math-key {
-    flex: 1 0 auto;
+    flex: 1 1 auto;
     min-width: 55px;
-    height: 45px;
+    height: 50px;
     background: #000000;
     border: 2px solid #ffffff;
-    border-radius: 22px;
+    border-radius: 25px;
     color: #ffffff;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
-    padding: 0 8px;
+    padding: 0 12px;
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -347,13 +342,10 @@ body {
     justify-content: center;
     align-items: center;
     z-index: 3000;
-    opacity: 0;
-    transition: opacity 0.3s;
 }
 
 .settings-panel.show {
     display: flex;
-    opacity: 1;
 }
 
 .settings-content {
@@ -365,7 +357,6 @@ body {
     max-width: 400px;
     max-height: 80vh;
     overflow-y: auto;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 .settings-content h3 {
@@ -410,7 +401,6 @@ body {
     border-radius: 50%;
     cursor: pointer;
     border: 2px solid #000000;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
 
 .value-display {
@@ -421,7 +411,7 @@ body {
     font-weight: bold;
 }
 
-/* Кнопки выбора цвета */
+/* Кнопки цвета */
 .color-buttons {
     display: flex;
     gap: 10px;
@@ -430,8 +420,8 @@ body {
 }
 
 .color-btn {
-    width: 40px;
-    height: 40px;
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
     border: 2px solid #ffffff;
     cursor: pointer;
@@ -442,7 +432,6 @@ body {
 .color-btn.active {
     border-width: 4px;
     transform: scale(1.1);
-    box-shadow: 0 0 15px currentColor;
 }
 
 .color-btn.white { background: #ffffff; }
@@ -483,91 +472,42 @@ body {
         font-size: 16px;
     }
     
-    .input-wrapper.keyboard-open .input-area {
+    .input-container.keyboard-open {
         transform: translateY(-250px);
     }
     
     .math-keyboard {
-        padding: 15px 5px 20px 5px;
-        max-height: 400px;
-    }
-    
-    .section-btn {
-        width: 40px;
-        height: 40px;
-    }
-    
-    .keyboard-section {
-        margin-left: 55px;
+        max-height: 350px;
+        padding: 10px 5px 20px 5px;
     }
     
     .math-key {
         min-width: 45px;
-        height: 40px;
-        font-size: 14px;
+        height: 45px;
+        font-size: 16px;
     }
     
     .keyboard-row {
-        gap: 4px;
-        margin-bottom: 4px;
+        gap: 5px;
+        margin-bottom: 5px;
     }
     
-    .settings-content {
-        padding: 20px;
-    }
-    
-    .color-btn {
-        width: 35px;
-        height: 35px;
+    .section-btn {
+        height: 40px;
+        font-size: 14px;
     }
 }
 
 /* Для очень маленьких экранов */
 @media (max-width: 360px) {
-    .math-keyboard {
-        max-height: 350px;
+    .input-container.keyboard-open {
+        transform: translateY(-220px);
     }
     
     .math-key {
         min-width: 40px;
-        height: 38px;
-        font-size: 13px;
+        height: 40px;
+        font-size: 14px;
+        padding: 0 8px;
     }
-    
-    .input-wrapper.keyboard-open .input-area {
-        transform: translateY(-220px);
-    }
-}
-
-/* Поддержка тем Telegram (игнорируем - всегда черный) */
-body, .app-container, .mobile-view, .banner-area, .input-area, .math-keyboard, .settings-content {
-    background: #000000 !important;
-}
-
-.text-input, .run-btn, .math-btn, .reset-btn, .settings-btn, .section-btn, .math-key {
-    border-color: #ffffff !important;
-    color: #ffffff !important;
-    background: #000000 !important;
-}
-
-.text-input {
-    color: #ffffff !important;
-}
-
-.text-input::placeholder {
-    color: rgba(255, 255, 255, 0.5) !important;
-}
-
-.scrolling-text {
-    color: #ffffff !important;
-    text-shadow: none !important;
-}
-
-.section-btn.active, .math-btn.active, .math-key:active, .run-btn:active {
-    background: #ffffff !important;
-    color: #000000 !important;
-}
-
-.section-btn.active .section-icon {
-    color: #000000 !important;
 }
