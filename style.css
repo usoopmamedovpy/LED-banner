@@ -42,7 +42,6 @@ body {
     z-index: 1000;
     padding: 0;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
 }
 
 .reset-btn {
@@ -63,7 +62,6 @@ body {
 
 .reset-btn:active, .settings-btn:active {
     background: #ffffff;
-    transform: scale(0.95);
 }
 
 .reset-btn:active svg, .settings-btn:active svg {
@@ -121,25 +119,14 @@ body {
     transition: color 0.1s ease, font-size 0.1s ease;
     font-size: 15vw;
     color: #ffffff;
-}
-
-/* MathJax стили */
-.scrolling-text mjx-container {
-    color: inherit !important;
-    font-size: inherit !important;
+    text-shadow: none !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 @keyframes scrollText {
     0% { left: 100%; }
     100% { left: -100%; }
 }
-
-/* Цвета текста */
-.color-btn.white { background: #ffffff; }
-.color-btn.red { background: #ff3b30; }
-.color-btn.blue { background: #007aff; }
-.color-btn.green { background: #34c759; }
-.color-btn.yellow { background: #ffcc00; }
 
 /* Контейнер для ввода */
 .input-container {
@@ -174,7 +161,6 @@ body {
     font-size: 18px;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
 }
 
 .math-btn.active {
@@ -185,43 +171,29 @@ body {
 .math-btn:active {
     background: #ffffff;
     color: #000000;
-    transform: scale(0.95);
 }
 
-/* MathQuill поле */
-.math-field {
+/* Текстовое поле - с белой обводкой */
+.text-input {
     flex: 1;
-    background: #111111;
+    background: #000000;
     border: 2px solid #ffffff;
     border-radius: 30px;
-    padding: 12px 20px;
-    min-height: 60px;
-    max-height: 150px;
-    overflow-y: auto;
+    padding: 16px 20px;
+    font-size: 18px;
     color: #ffffff;
-    font-size: 20px;
-    cursor: text;
+    outline: none;
+    min-width: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* Стили для MathQuill */
-.mq-editable-field {
-    width: 100% !important;
-    background: transparent !important;
-    color: #ffffff !important;
-    border: none !important;
-    min-height: 40px;
+.text-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
 }
 
-.mq-editable-field .mq-root-block {
-    color: #ffffff !important;
-}
-
-.mq-editable-field .mq-root-block .mq-scaled {
-    color: #ffffff !important;
-}
-
-.mq-editable-field .mq-cursor {
-    border-left-color: #ffffff !important;
+.text-input:focus {
+    outline: none;
+    border-color: #ffffff;
 }
 
 /* RUN кнопка */
@@ -238,19 +210,17 @@ body {
     text-transform: uppercase;
     letter-spacing: 2px;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
 }
 
 .run-btn:active {
     background: #ffffff;
     color: #000000;
-    transform: scale(0.95);
 }
 
 /* Математическая клавиатура */
 .math-keyboard {
     position: absolute;
-    bottom: -500px;
+    bottom: -450px;
     left: 0;
     right: 0;
     background: #111111;
@@ -258,11 +228,10 @@ body {
     border-top-left-radius: 30px;
     border-top-right-radius: 30px;
     padding: 20px 15px 30px 15px;
-    transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: bottom 0.3s ease;
     z-index: 2000;
-    max-height: 450px;
+    max-height: 400px;
     overflow-y: auto;
-    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.8);
 }
 
 .math-keyboard.show {
@@ -292,12 +261,6 @@ body {
 .tab-btn.active {
     background: #ffffff;
     color: #000000;
-}
-
-.tab-btn:active {
-    background: #ffffff;
-    color: #000000;
-    transform: scale(0.95);
 }
 
 /* Содержимое вкладок */
@@ -332,7 +295,6 @@ body {
 .math-key:active {
     background: #ffffff;
     color: #000000;
-    transform: scale(0.95);
 }
 
 /* Панель настроек */
@@ -361,7 +323,6 @@ body {
     padding: 25px;
     width: 90%;
     max-width: 400px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
 }
 
 .settings-content h3 {
@@ -386,7 +347,6 @@ body {
     color: #ffffff;
     font-size: 16px;
     margin-bottom: 10px;
-    font-weight: 600;
 }
 
 .slider-container {
@@ -414,7 +374,6 @@ body {
     border-radius: 50%;
     cursor: pointer;
     border: 2px solid #000000;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
 .value-display {
@@ -425,7 +384,6 @@ body {
     background: #333333;
     padding: 5px 12px;
     border-radius: 20px;
-    font-weight: bold;
 }
 
 /* Кнопки цвета */
@@ -437,7 +395,6 @@ body {
     background: #1a1a1a;
     padding: 15px;
     border-radius: 30px;
-    margin-top: 5px;
 }
 
 .color-btn {
@@ -447,14 +404,18 @@ body {
     border: 3px solid #ffffff;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .color-btn.active {
     border-width: 4px;
     transform: scale(1.1);
-    box-shadow: 0 0 20px currentColor;
 }
+
+.color-btn.white { background: #ffffff; }
+.color-btn.red { background: #ff3b30; }
+.color-btn.blue { background: #007aff; }
+.color-btn.green { background: #34c759; }
+.color-btn.yellow { background: #ffcc00; }
 
 /* Адаптация под мобилки */
 @media (max-width: 480px) {
@@ -467,14 +428,14 @@ body {
         right: 70px;
     }
     
-    .reset-btn svg, .settings-btn svg {
-        width: 20px;
-        height: 20px;
-    }
-    
     .math-btn {
         width: 60px;
         height: 50px;
+        font-size: 16px;
+    }
+    
+    .text-input {
+        padding: 14px 16px;
         font-size: 16px;
     }
     
@@ -483,26 +444,8 @@ body {
         font-size: 16px;
     }
     
-    .math-field {
-        padding: 10px 15px;
-        font-size: 18px;
-    }
-    
-    .math-keyboard {
-        max-height: 400px;
-    }
-    
-    .keyboard-grid {
-        gap: 5px;
-    }
-    
     .math-key {
         height: 45px;
         font-size: 14px;
-    }
-    
-    .color-btn {
-        width: 40px;
-        height: 40px;
     }
 }
