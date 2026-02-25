@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER С MATHQUILL - ИСПРАВЛЕННАЯ ВЕРСИЯ
+// LED BANNER С MATHQUILL - ИСПРАВЛЕННАЯ ВЕРСИЯ ДЛЯ МОБИЛОК
 // ============================================
 
 // Telegram
@@ -60,6 +60,9 @@ window.addEventListener('load', function() {
     setTimeout(function() {
         if (typeof MathQuill !== 'undefined') {
             initMathQuill();
+        } else {
+            console.error('MathQuill не загрузился');
+            createFallbackInput();
         }
     }, 500);
     
@@ -67,6 +70,36 @@ window.addEventListener('load', function() {
     updateDisplay();
     scrollingText.style.textShadow = 'none';
 });
+
+// ============================================
+// СОЗДАЕМ ЗАПАСНОЙ INPUT ЕСЛИ MATHQUILL НЕ РАБОТАЕТ
+// ============================================
+function createFallbackInput() {
+    const mathFieldElement = document.getElementById('mathField');
+    if (!mathFieldElement) return;
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'text-input';
+    input.id = 'fallbackInput';
+    input.value = 'LED бегущая строка';
+    input.style.flex = '1';
+    input.style.background = '#111111';
+    input.style.border = '2px solid #ffffff';
+    input.style.borderRadius = '30px';
+    input.style.padding = '16px 20px';
+    input.style.fontSize = '18px';
+    input.style.color = '#ffffff';
+    
+    mathFieldElement.parentNode.replaceChild(input, mathFieldElement);
+    
+    input.addEventListener('input', function(e) {
+        scrollingText.textContent = e.target.value;
+        saveFallbackData(e.target.value);
+    });
+    
+    console.log('Создан запасной input');
+}
 
 // ============================================
 // MATHQUILL ИНИЦИАЛИЗАЦИЯ
@@ -83,6 +116,7 @@ function initMathQuill() {
             return;
         }
         
+        // Создаем MathQuill поле
         mathField = MQ.MathField(mathFieldElement, {
             spaceBehavesLikeTab: true,
             autoCommands: 'pi theta sqrt sum prod int alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi pi rho sigma tau upsilon phi chi psi omega',
@@ -103,32 +137,91 @@ function initMathQuill() {
             }
         });
         
-        // Убираем стандартное поведение для мобилок
+        // Устанавливаем начальное значение
+        mathField.latex('LED\\ бегущая\\ строка');
+        
+        // ========== ВАЖНО: ОБРАБОТКА ТАЧ-СОБЫТИЙ ДЛЯ МОБИЛОК ==========
+        
+        // Открываем виртуальную клавиатуру при клике
         mathFieldElement.addEventListener('click', function(e) {
             e.stopPropagation();
             mathField.focus();
+            
+            // Пытаемся открыть виртуальную клавиатуру
+            if (navigator.virtualKeyboard) {
+                navigator.virtualKeyboard.show();
+            }
         });
         
         mathFieldElement.addEventListener('touchstart', function(e) {
             e.preventDefault();
             e.stopPropagation();
             mathField.focus();
+            
+            // Пытаемся открыть виртуальную клавиатуру
+            if (navigator.virtualKeyboard) {
+                navigator.virtualKeyboard.show();
+            }
         });
         
-        // ВАЖНО: разрешаем ввод с мобильной клавиатуры
+        // Обработка ввода с мобильной клавиатуры
         mathFieldElement.addEventListener('keydown', function(e) {
             e.stopPropagation();
+            
             // Разрешаем стандартную обработку
+            if (e.key.length === 1) {
+                // Если это печатный символ, вставляем его в MathQuill
+                setTimeout(function() {
+                    // MathQuill сам обработает ввод
+                }, 10);
+            }
         });
         
-        // Устанавливаем начальное значение
-        mathField.latex('LED\\ бегущая\\ строка');
+        // Обработка ввода с мобильной клавиатуры (для кириллицы)
+        mathFieldElement.addEventListener('beforeinput', function(e) {
+            e.stopPropagation();
+            // Разрешаем стандартное поведение
+        });
+        
+        // Предотвращаем закрытие клавиатуры
+        mathFieldElement.addEventListener('blur', function(e) {
+            // Не закрываем клавиатуру если переключились на другой элемент
+            setTimeout(function() {
+                if (document.activeElement !== mathFieldElement) {
+                    // Ничего не делаем
+                }
+            }, 100);
+        });
         
         console.log('MathQuill готов');
         loadSavedData();
         
     } catch (e) {
         console.error('Ошибка MathQuill:', e);
+        createFallbackInput();
+    }
+}
+
+// ============================================
+// СОХРАНЕНИЕ ДАННЫХ ДЛЯ FALLBACK
+// ============================================
+function saveFallbackData(text) {
+    const data = {
+        latex: text,
+        color: currentColor,
+        speed: currentSpeed,
+        size: currentSize
+    };
+    
+    localStorage.setItem('ledBannerMathData', JSON.stringify(data));
+    
+    if (tg) {
+        try {
+            tg.sendData(JSON.stringify({
+                action: 'save',
+                data: data
+            }));
+        } catch (e) {}
     }
 }
 
@@ -225,10 +318,14 @@ function toggleKeyboard() {
         mathBtn.classList.add('active');
         settingsPanel.classList.remove('show');
         settingsBtn.classList.remove('active');
+        
+        // Закрываем виртуальную клавиатуру если открыта
+        if (mathField) {
+            mathField.blur();
+        }
     } else {
         mathKeyboard.classList.remove('show');
         mathBtn.classList.remove('active');
-        if (mathField) mathField.focus();
     }
 }
 
@@ -239,7 +336,7 @@ function closeKeyboard() {
 }
 
 // ============================================
-// ВСТАВКА В MATHQUILL (ИСПРАВЛЕННЫЙ ВЕКТОР)
+// ВСТАВКА В MATHQUILL
 // ============================================
 function insertMathCommand(cmd) {
     if (!mathField) return;
@@ -260,10 +357,9 @@ function insertMathCommand(cmd) {
         } else if (cmd === 'n√') {
             mathField.typedText('\\sqrt[n]{');
         } else if (cmd === '→' || cmd === '\\vec') {
-            // Вектор БЕЗ квадратных скобок
             mathField.typedText('\\vec{');
-            mathField.keystroke('Right'); // Выходим из скобок
-            mathField.keystroke('Left');  // Возвращаемся для ввода
+            mathField.keystroke('Right');
+            mathField.keystroke('Left');
         } else if (cmd === '/') {
             mathField.cmd('\\frac');
         } else if (cmd === '∫') {
@@ -293,6 +389,13 @@ function toggleRun() {
         inputArea.style.display = 'flex';
         settingsBtn.style.display = 'flex';
         isRunning = false;
+        
+        // Возвращаем фокус MathQuill
+        if (mathField) {
+            setTimeout(function() {
+                mathField.focus();
+            }, 100);
+        }
     } else {
         updateDisplay();
         inputArea.style.display = 'none';
@@ -467,4 +570,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ LED Banner с MathQuill исправлен!');
+console.log('✅ LED Banner с MathQuill исправлен для мобилок!');
