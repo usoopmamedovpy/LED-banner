@@ -88,6 +88,7 @@ body {
     align-items: center;
     overflow: hidden;
     position: relative;
+    padding: 20px;
 }
 
 .scrolling-text {
@@ -101,9 +102,13 @@ body {
     transition: color 0.1s, font-size 0.1s;
     text-shadow: none !important;
     color: #ffffff;
-    max-width: 100%;
-    /* Максимальный размер текста */
-    max-font-size: 40vw;
+    font-size: 15vw;
+}
+
+/* MathJax стили для формул */
+.scrolling-text mjx-container {
+    color: inherit !important;
+    font-size: inherit !important;
 }
 
 /* Цвета текста */
@@ -113,6 +118,7 @@ body {
 .scrolling-text.green { color: #34c759; }
 .scrolling-text.yellow { color: #ffcc00; }
 
+/* Input area */
 .input-area {
     display: flex;
     gap: 10px;
@@ -120,23 +126,135 @@ body {
     background: #000000;
     border-top: 2px solid rgba(255, 255, 255, 0.2);
     width: 100%;
+    align-items: center;
 }
 
-.text-input {
+/* MATH кнопка */
+.math-btn-container {
+    position: relative;
+}
+
+.math-btn {
+    width: 70px;
+    height: 60px;
+    background: #000000;
+    border: 2px solid #ffffff;
+    border-radius: 30px;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.math-btn:active {
+    background: #ffffff;
+    color: #000000;
+}
+
+.math-btn.active {
+    background: #ffffff;
+    color: #000000;
+}
+
+/* MATH панель */
+.math-panel {
+    position: absolute;
+    bottom: 70px;
+    left: 0;
+    width: 350px;
+    background: #000000;
+    border: 2px solid #ffffff;
+    border-radius: 20px;
+    padding: 15px;
+    display: none;
+    z-index: 2000;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.math-panel.show {
+    display: block;
+}
+
+/* Категории */
+.math-categories {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.math-cat-btn {
+    background: transparent;
+    border: 1px solid #ffffff;
+    border-radius: 15px;
+    padding: 8px 12px;
+    color: #ffffff;
+    font-size: 14px;
+    cursor: pointer;
+    flex: 1;
+    min-width: 60px;
+}
+
+.math-cat-btn.active {
+    background: #ffffff;
+    color: #000000;
+}
+
+/* Символы */
+.math-symbols {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.math-category {
+    display: none;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.math-category.active {
+    display: grid;
+}
+
+.math-symbol {
+    background: transparent;
+    border: 1px solid #ffffff;
+    border-radius: 10px;
+    padding: 12px 5px;
+    color: #ffffff;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.math-symbol:active {
+    background: #ffffff;
+    color: #000000;
+}
+
+/* MathLive поле */
+.math-input {
     flex: 1;
     background: #000000;
     border: 2px solid #ffffff;
     border-radius: 30px;
-    padding: 16px 20px;
-    font-size: 18px;
+    padding: 15px 20px;
     color: #ffffff;
+    font-size: 20px;
+    min-height: 60px;
+    --selection-color: #ffffff;
+    --caret-color: #ffffff;
+}
+
+.math-input:focus {
     outline: none;
+    border-color: #ffffff;
 }
 
-.text-input::placeholder {
-    color: rgba(255, 255, 255, 0.5);
-}
-
+/* RUN кнопка */
 .run-btn {
     background: transparent;
     border: 2px solid #ffffff;
@@ -284,14 +402,23 @@ body {
         height: 20px;
     }
     
-    .text-input {
-        padding: 14px 18px;
+    .math-btn {
+        width: 60px;
+        height: 50px;
         font-size: 16px;
     }
     
     .run-btn {
-        padding: 14px 24px;
-        font-size: 18px;
+        padding: 14px 20px;
+        font-size: 16px;
+    }
+    
+    .math-panel {
+        width: 300px;
+    }
+    
+    .math-category {
+        grid-template-columns: repeat(3, 1fr);
     }
     
     .settings-content {
@@ -301,12 +428,5 @@ body {
     .color-btn {
         width: 35px;
         height: 35px;
-    }
-}
-
-/* Для очень большого текста */
-@media (min-width: 1000px) {
-    .scrolling-text {
-        font-size: min(40vw, 400px);
     }
 }
