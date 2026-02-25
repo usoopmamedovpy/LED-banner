@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER С MATHQUILL - ОБЪЕДИНЕННАЯ ВЕРСИЯ
+// LED BANNER С MATHQUILL - ФИНАЛЬНАЯ ВЕРСИЯ
 // ============================================
 
 // Telegram
@@ -70,9 +70,6 @@ window.addEventListener('load', function() {
     loadSavedData();
     updateDisplay();
     scrollingText.style.textShadow = 'none';
-    
-    // Принудительно обновляем цвет при загрузке
-    updateColor();
 });
 
 // ============================================
@@ -112,16 +109,9 @@ function initMathQuill() {
         
         mathField.latex('LED\\ бегущая\\ строка');
         
-        // Для мобилок - разрешаем ввод через системную клавиатуру
-        if (isMobile) {
-            mathFieldElement.addEventListener('click', function(e) {
-                e.stopPropagation();
-                mathField.focus();
-            });
-            
-            mathFieldElement.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
+        // На компьютере - обычный ввод
+        if (!isMobile) {
+            mathFieldElement.addEventListener('click', function() {
                 mathField.focus();
             });
         }
@@ -163,6 +153,110 @@ function createFallbackInput() {
     });
     
     console.log('Создан запасной input');
+}
+
+// ============================================
+// МОБИЛЬНАЯ КНОПКА КЛАВИАТУРЫ
+// ============================================
+function addMobileKeyboardButton() {
+    // Проверяем, есть ли уже кнопка
+    if (document.querySelector('.mobile-keyboard-btn')) return;
+    
+    const mathFieldElement = document.getElementById('mathField');
+    if (!mathFieldElement) return;
+    
+    // Создаем контейнер
+    const container = document.createElement('div');
+    container.style.display = 'flex';
+    container.style.flex = '1';
+    container.style.gap = '10px';
+    container.style.alignItems = 'center';
+    
+    // Обертываем mathField
+    mathFieldElement.parentNode.insertBefore(container, mathFieldElement);
+    container.appendChild(mathFieldElement);
+    
+    // Создаем кнопку клавиатуры
+    const keyboardBtn = document.createElement('button');
+    keyboardBtn.className = 'mobile-keyboard-btn';
+    keyboardBtn.innerHTML = '⌨️';
+    keyboardBtn.style.width = '50px';
+    keyboardBtn.style.height = '50px';
+    keyboardBtn.style.background = '#000000';
+    keyboardBtn.style.border = '2px solid #ffffff';
+    keyboardBtn.style.borderRadius = '25px';
+    keyboardBtn.style.color = '#ffffff';
+    keyboardBtn.style.fontSize = '24px';
+    keyboardBtn.style.cursor = 'pointer';
+    keyboardBtn.style.display = 'flex';
+    keyboardBtn.style.alignItems = 'center';
+    keyboardBtn.style.justifyContent = 'center';
+    keyboardBtn.style.flexShrink = '0';
+    
+    container.appendChild(keyboardBtn);
+    
+    // Обработчик для кнопки
+    keyboardBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        openMobileInput();
+    });
+}
+
+// ============================================
+// ОТКРЫТЬ МОБИЛЬНЫЙ INPUT
+// ============================================
+function openMobileInput() {
+    if (!mathField) return;
+    
+    // Получаем текущий LaTeX
+    const currentLatex = mathField.latex();
+    
+    // Создаем временный input
+    const tempInput = document.createElement('input');
+    tempInput.type = 'text';
+    tempInput.style.position = 'fixed';
+    tempInput.style.top = '50%';
+    tempInput.style.left = '50%';
+    tempInput.style.transform = 'translate(-50%, -50%)';
+    tempInput.style.width = '90%';
+    tempInput.style.maxWidth = '400px';
+    tempInput.style.height = '60px';
+    tempInput.style.background = '#111111';
+    tempInput.style.border = '2px solid #ffffff';
+    tempInput.style.borderRadius = '30px';
+    tempInput.style.padding = '16px 20px';
+    tempInput.style.fontSize = '18px';
+    tempInput.style.color = '#ffffff';
+    tempInput.style.zIndex = '10000';
+    tempInput.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5)';
+    tempInput.placeholder = 'Введите текст...';
+    tempInput.value = currentLatex.replace(/\\[a-zA-Z]+/g, '').replace(/[{}]/g, '');
+    
+    document.body.appendChild(tempInput);
+    tempInput.focus();
+    
+    // Обработчик ввода
+    tempInput.addEventListener('input', function(e) {
+        const text = e.target.value;
+        // Вставляем как обычный текст в MathQuill
+        mathField.typedText(text);
+    });
+    
+    // Обработчик Enter
+    tempInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            tempInput.remove();
+            mathField.focus();
+        }
+    });
+    
+    // Обработчик потери фокуса
+    tempInput.addEventListener('blur', function() {
+        setTimeout(function() {
+            tempInput.remove();
+            mathField.focus();
+        }, 200);
+    });
 }
 
 // ============================================
@@ -253,20 +347,16 @@ function updateDisplay() {
 function updateColor() {
     console.log('Обновление цвета на:', currentColor);
     
-    // Убираем все классы цвета
+    // Убираем старые классы
     scrollingText.classList.remove('white', 'red', 'blue', 'green', 'yellow');
     
     // Добавляем новый класс
     scrollingText.classList.add(currentColor);
     
-    // Также применяем inline style для надежности
-    if (currentColor === 'white') scrollingText.style.color = '#ffffff';
-    if (currentColor === 'red') scrollingText.style.color = '#ff3b30';
-    if (currentColor === 'blue') scrollingText.style.color = '#007aff';
-    if (currentColor === 'green') scrollingText.style.color = '#34c759';
-    if (currentColor === 'yellow') scrollingText.style.color = '#ffcc00';
+    // Убираем inline style
+    scrollingText.style.color = '';
     
-    // Обновляем активную кнопку цвета
+    // Обновляем кнопки
     colorButtons.forEach(btn => {
         btn.classList.remove('active');
         if (btn.classList.contains(currentColor)) {
@@ -294,6 +384,11 @@ function toggleKeyboard() {
         mathBtn.classList.add('active');
         settingsPanel.classList.remove('show');
         settingsBtn.classList.remove('active');
+        
+        // Если это мобилка и нет кнопки клавиатуры - добавляем
+        if (isMobile) {
+            addMobileKeyboardButton();
+        }
     } else {
         mathKeyboard.classList.remove('show');
         mathBtn.classList.remove('active');
@@ -314,9 +409,6 @@ function insertMathCommand(cmd) {
     
     try {
         console.log('Вставка символа:', cmd);
-        
-        // Сохраняем текущую позицию курсора
-        const currentLatex = mathField.latex();
         
         if (cmd === '^') {
             mathField.cmd('^');
@@ -345,11 +437,9 @@ function insertMathCommand(cmd) {
         } else if (cmd === '∞') {
             mathField.typedText('\\infty');
         } else {
-            // Для греческих букв и функций
             mathField.cmd(cmd);
         }
         
-        // Возвращаем фокус для продолжения ввода
         mathField.focus();
         
     } catch (e) {
@@ -401,6 +491,8 @@ function resetAll() {
     
     sizeSlider.value = 15;
     speedSlider.value = 15;
+    sizeValue.textContent = '15vw';
+    speedValue.textContent = '15 сек';
     
     updateDisplay();
     closeKeyboard();
@@ -471,13 +563,20 @@ mathKeys.forEach(function(btn) {
     });
 });
 
-// ЦВЕТ - ВАЖНО!
+// ЦВЕТ - ИСПРАВЛЕНО!
 colorButtons.forEach(function(btn) {
     btn.addEventListener('click', function(e) {
         e.stopPropagation();
         console.log('Клик по цвету:', this.classList);
         
-        const color = this.classList[1]; // white, red, blue, green, yellow
+        // Получаем цвет из класса
+        let color = '';
+        if (this.classList.contains('white')) color = 'white';
+        if (this.classList.contains('red')) color = 'red';
+        if (this.classList.contains('blue')) color = 'blue';
+        if (this.classList.contains('green')) color = 'green';
+        if (this.classList.contains('yellow')) color = 'yellow';
+        
         if (color) {
             currentColor = color;
             updateColor();
@@ -551,4 +650,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ LED Banner с полной поддержкой готов!');
+console.log('✅ LED Banner финальная версия готова!');
