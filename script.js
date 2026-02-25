@@ -310,4 +310,125 @@ sectionGreek.addEventListener('click', function() {
     keyboardFunctions.classList.remove('active');
 });
 
-// Кнопки математи
+// Кнопки математической клавиатуры
+mathKeys.forEach(key => {
+    key.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const value = this.dataset.value;
+        if (value && value.trim() !== '') {
+            insertMathSymbol(value);
+        }
+    });
+});
+
+// Цвет
+colorButtons.forEach(btn => {
+    btn.addEventListener('click', function() {
+        let color = this.classList[1];
+        setTextColor(color);
+        saveToBot();
+    });
+});
+
+// Размер
+sizeSlider.addEventListener('input', function() {
+    currentSize = this.value;
+    scrollingText.style.fontSize = currentSize + 'vw';
+    sizeValue.textContent = currentSize + 'vw';
+    saveToBot();
+});
+
+// Скорость
+speedSlider.addEventListener('input', function() {
+    currentSpeed = this.value;
+    speedValue.textContent = currentSpeed + ' сек';
+    restartAnimation();
+    saveToBot();
+});
+
+// Текст
+textInput.addEventListener('input', function() {
+    scrollingText.textContent = this.value;
+    saveToBot();
+});
+
+// RUN
+runBtn.addEventListener('click', toggleControls);
+
+// Крестик
+resetBtn.addEventListener('click', function() {
+    if (isRunning) {
+        inputArea.style.display = 'flex';
+        settingsBtn.style.display = 'flex';
+        isRunning = false;
+    }
+    closeKeyboard();
+    settingsPanel.classList.remove('show');
+    settingsBtn.classList.remove('active');
+});
+
+// Шестеренка
+settingsBtn.addEventListener('click', function() {
+    if (isRunning) return;
+    
+    if (settingsPanel.classList.contains('show')) {
+        settingsPanel.classList.remove('show');
+        this.classList.remove('active');
+    } else {
+        settingsPanel.classList.add('show');
+        this.classList.add('active');
+        closeKeyboard();
+    }
+});
+
+// Закрытие настроек
+settingsPanel.addEventListener('click', function(e) {
+    if (e.target === settingsPanel) {
+        settingsPanel.classList.remove('show');
+        settingsBtn.classList.remove('active');
+    }
+});
+
+// Enter
+textInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        toggleControls();
+    }
+});
+
+// ============================================
+// ЗАГРУЗКА
+// ============================================
+window.addEventListener('load', function() {
+    console.log('LED Banner с математической клавиатурой загружен');
+    
+    loadSavedData();
+    applyAllSettings();
+    
+    inputArea.style.display = 'flex';
+    settingsBtn.style.display = 'flex';
+    isRunning = false;
+    
+    scrollingText.style.textShadow = 'none';
+});
+
+// ============================================
+// TELEGRAM BACK BUTTON
+// ============================================
+tg.BackButton.onClick(function() {
+    if (settingsPanel.classList.contains('show')) {
+        settingsPanel.classList.remove('show');
+        settingsBtn.classList.remove('active');
+    } else if (keyboardVisible) {
+        closeKeyboard();
+    } else if (isRunning) {
+        inputArea.style.display = 'flex';
+        settingsBtn.style.display = 'flex';
+        isRunning = false;
+    } else {
+        tg.close();
+    }
+});
+tg.BackButton.show();
+
+console.log('✅ LED Banner с математической клавиатурой готов!');
