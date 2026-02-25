@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - С СОХРАНЕНИЕМ И УМНЫМ КРЕСТИКОМ
+// LED BANNER MATH - ПОЛНАЯ ВЕРСИЯ
 // ============================================
 
 // Telegram
@@ -18,12 +18,19 @@ document.body.style.color = '#ffffff';
 // ПОЛУЧАЕМ ЭЛЕМЕНТЫ
 // ============================================
 const scrollingText = document.getElementById('scrollingText');
-const textInput = document.getElementById('textInput');
 const runBtn = document.getElementById('runBtn');
 const resetBtn = document.getElementById('resetBtn');
 const settingsBtn = document.getElementById('settingsBtn');
 const settingsPanel = document.getElementById('settingsPanel');
 const inputArea = document.querySelector('.input-area');
+
+// MATH элементы
+const mathInput = document.getElementById('mathInput');
+const mathBtn = document.getElementById('mathBtn');
+const mathPanel = document.getElementById('mathPanel');
+const mathCatBtns = document.querySelectorAll('.math-cat-btn');
+const mathCategories = document.querySelectorAll('.math-category');
+const mathSymbols = document.querySelectorAll('.math-symbol');
 
 // Элементы настроек
 const sizeSlider = document.getElementById('sizeSlider');
@@ -38,44 +45,54 @@ const colorButtons = document.querySelectorAll('.color-btn');
 let currentSpeed = 15;
 let currentColor = 'white';
 let currentSize = 15;
-let currentText = 'LED бегущая строка';
 let isRunning = false;
+let mathPanelVisible = false;
+
+// ============================================
+// ИНИЦИАЛИЗАЦИЯ MATHLIVE
+// ============================================
+if (mathInput) {
+    mathInput.setOptions({
+        smartFence: true,
+        virtualKeyboardMode: 'off',
+        smartMode: true,
+        inlineShortcuts: {
+            'sqrt': '\\sqrt{}',
+            'frac': '\\frac{}{}',
+            'alpha': '\\alpha',
+            'beta': '\\beta',
+            'gamma': '\\gamma',
+            'delta': '\\delta',
+            'pi': '\\pi',
+            'sum': '\\sum',
+            'int': '\\int'
+        }
+    });
+}
 
 // ============================================
 // ЗАГРУЗКА СОХРАНЕННЫХ ДАННЫХ
 // ============================================
 function loadSavedData() {
-    console.log('Загружаем сохраненные данные...');
-    
     try {
-        // Пытаемся получить данные из localStorage (для теста в браузере)
-        const localSave = localStorage.getItem('ledBannerData');
+        const localSave = localStorage.getItem('ledBannerMathData');
         if (localSave) {
             const savedData = JSON.parse(localSave);
-            console.log('Найдены локальные данные:', savedData);
             applySavedData(savedData);
-            return;
         }
         
-        // Пытаемся получить данные из Telegram
         if (tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
             const savedData = JSON.parse(decodeURIComponent(tg.initDataUnsafe.start_param));
-            console.log('Найдены данные от бота:', savedData);
             applySavedData(savedData);
         }
     } catch (e) {
-        console.log('Нет сохраненных данных:', e);
+        console.log('Нет сохраненных данных');
     }
 }
 
-// ============================================
-// ПРИМЕНЕНИЕ СОХРАНЕННЫХ ДАННЫХ
-// ============================================
 function applySavedData(savedData) {
-    if (savedData.text) {
-        currentText = savedData.text;
-        textInput.value = currentText;
-        scrollingText.textContent = currentText;
+    if (savedData.text && mathInput) {
+        mathInput.setValue(savedData.text);
     }
     
     if (savedData.color) {
@@ -92,27 +109,22 @@ function applySavedData(savedData) {
         sizeSlider.value = currentSize;
     }
     
-    // Применяем все настройки
     applyAllSettings();
 }
 
 // ============================================
-// ФУНКЦИЯ ОТПРАВКИ ДАННЫХ В БОТА
+// СОХРАНЕНИЕ ДАННЫХ
 // ============================================
 function saveToBot() {
     const dataToSave = {
-        text: scrollingText.textContent,
+        text: mathInput ? mathInput.getValue() : '',
         color: currentColor,
         speed: currentSpeed,
         size: currentSize
     };
     
-    console.log('Сохраняем:', dataToSave);
+    localStorage.setItem('ledBannerMathData', JSON.stringify(dataToSave));
     
-    // Сохраняем в localStorage (для теста)
-    localStorage.setItem('ledBannerData', JSON.stringify(dataToSave));
-    
-    // Отправляем в бота
     if (tg) {
         try {
             tg.sendData(JSON.stringify({
@@ -120,27 +132,39 @@ function saveToBot() {
                 data: dataToSave
             }));
         } catch (e) {
-            console.log('Ошибка отправки в бота:', e);
+            console.log('Ошибка отправки');
         }
     }
+}
+
+// ============================================
+// ОТОБРАЖЕНИЕ ФОРМУЛЫ
+// ============================================
+function renderFormula() {
+    if (!mathInput) return;
+    
+    const latex = mathInput.getValue();
+    
+    // Оборачиваем в математический режим
+    scrollingText.innerHTML = `\\(${latex}\\)`;
+    
+    // Принудительно рендерим MathJax
+    if (window.MathJax) {
+        MathJax.typesetPromise([scrollingText]).catch(err => console.log(err));
+    }
+    
+    // Применяем настройки
+    scrollingText.style.fontSize = currentSize + 'vw';
+    scrollingText.style.color = '';
+    scrollingText.classList.add(currentColor);
 }
 
 // ============================================
 // ФУНКЦИЯ СМЕНЫ ЦВЕТА
 // ============================================
 function setTextColor(color) {
-    console.log('Меняем цвет на:', color);
-    
     scrollingText.classList.remove('white', 'red', 'blue', 'green', 'yellow');
     scrollingText.classList.add(color);
-    
-    if (color === 'white') scrollingText.style.color = '#ffffff';
-    if (color === 'red') scrollingText.style.color = '#ff3b30';
-    if (color === 'blue') scrollingText.style.color = '#007aff';
-    if (color === 'green') scrollingText.style.color = '#34c759';
-    if (color === 'yellow') scrollingText.style.color = '#ffcc00';
-    
-    scrollingText.style.textShadow = 'none';
     
     colorButtons.forEach(btn => {
         btn.classList.remove('active');
@@ -154,11 +178,9 @@ function setTextColor(color) {
 }
 
 // ============================================
-// ФУНКЦИЯ ПРИМЕНЕНИЯ ВСЕХ НАСТРОЕК
+// ПРИМЕНЕНИЕ НАСТРОЕК
 // ============================================
 function applyAllSettings() {
-    console.log('Применяем настройки');
-    
     // Размер
     scrollingText.style.fontSize = currentSize + 'vw';
     sizeValue.textContent = currentSize + 'vw';
@@ -170,13 +192,12 @@ function applyAllSettings() {
     // Цвет
     setTextColor(currentColor);
     
-    // Текст
-    scrollingText.textContent = currentText;
-    textInput.value = currentText;
+    // Формула
+    renderFormula();
 }
 
 // ============================================
-// ПЕРЕЗАПУСК АНИМАЦИИ
+// АНИМАЦИЯ
 // ============================================
 function restartAnimation() {
     scrollingText.style.animation = 'none';
@@ -185,31 +206,20 @@ function restartAnimation() {
 }
 
 // ============================================
-// ФУНКЦИЯ ПОКАЗА ЭЛЕМЕНТОВ (НОВЫЙ КРЕСТИК)
+// УПРАВЛЕНИЕ ЭЛЕМЕНТАМИ
 // ============================================
 function toggleControls() {
     if (isRunning) {
-        // Если бегущая строка запущена - показываем элементы
         inputArea.style.display = 'flex';
         settingsBtn.style.display = 'flex';
         isRunning = false;
+        settingsPanel.classList.remove('show');
+        settingsBtn.classList.remove('active');
     } else {
-        // Если не запущена - прячем элементы и запускаем
-        const text = textInput.value.trim();
-        if (text !== '') {
-            currentText = text;
-            scrollingText.textContent = text;
-            applyAllSettings();
-        }
-        
+        renderFormula();
         inputArea.style.display = 'none';
         settingsBtn.style.display = 'none';
         isRunning = true;
-        
-        // Закрываем настройки если открыты
-        settingsPanel.classList.remove('show');
-        settingsBtn.classList.remove('active');
-        
         saveToBot();
     }
 }
@@ -218,15 +228,70 @@ function toggleControls() {
 // ОБРАБОТЧИКИ
 // ============================================
 
-// ЦВЕТ - клик
+// MATH кнопка
+mathBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    mathPanelVisible = !mathPanelVisible;
+    
+    if (mathPanelVisible) {
+        mathPanel.classList.add('show');
+        mathBtn.classList.add('active');
+    } else {
+        mathPanel.classList.remove('show');
+        mathBtn.classList.remove('active');
+    }
+});
+
+// Переключение категорий
+mathCatBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+        const cat = this.dataset.cat;
+        
+        mathCatBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        mathCategories.forEach(c => c.classList.remove('active'));
+        document.getElementById(`cat-${cat}`).classList.add('active');
+    });
+});
+
+// Вставка символов
+mathSymbols.forEach(symbol => {
+    symbol.addEventListener('click', function() {
+        const latex = this.dataset.latex;
+        
+        if (mathInput) {
+            mathInput.executeCommand('insert', latex);
+            
+            if (latex.includes('{}')) {
+                mathInput.executeCommand('moveToNextPlaceholder');
+            }
+            
+            renderFormula();
+            saveToBot();
+        }
+    });
+});
+
+// Закрытие MATH панели
+document.addEventListener('click', function(e) {
+    if (!mathBtn.contains(e.target) && !mathPanel.contains(e.target)) {
+        mathPanel.classList.remove('show');
+        mathBtn.classList.remove('active');
+        mathPanelVisible = false;
+    }
+});
+
+// Цвет
 colorButtons.forEach(btn => {
     btn.addEventListener('click', function() {
         let color = this.classList[1];
         setTextColor(color);
+        saveToBot();
     });
 });
 
-// РАЗМЕР - изменение
+// Размер
 sizeSlider.addEventListener('input', function() {
     currentSize = this.value;
     scrollingText.style.fontSize = currentSize + 'vw';
@@ -234,7 +299,7 @@ sizeSlider.addEventListener('input', function() {
     saveToBot();
 });
 
-// СКОРОСТЬ - изменение
+// Скорость
 speedSlider.addEventListener('input', function() {
     currentSpeed = this.value;
     speedValue.textContent = currentSpeed + ' сек';
@@ -242,35 +307,24 @@ speedSlider.addEventListener('input', function() {
     saveToBot();
 });
 
-// ТЕКСТ - ввод
-textInput.addEventListener('input', function() {
-    currentText = this.value;
-});
+// RUN
+runBtn.addEventListener('click', toggleControls);
 
-// RUN - теперь просто переключает видимость
-runBtn.addEventListener('click', function() {
-    toggleControls();
-});
-
-// КРЕСТИК - показывает элементы, НО НЕ СБРАСЫВАЕТ ТЕКСТ!
+// Крестик
 resetBtn.addEventListener('click', function() {
     if (isRunning) {
-        // Если текст бежит - просто показываем элементы
         inputArea.style.display = 'flex';
         settingsBtn.style.display = 'flex';
         isRunning = false;
-        
-        // Закрываем настройки
-        settingsPanel.classList.remove('show');
-        settingsBtn.classList.remove('active');
-    } else {
-        // Если не бежит - просто закрываем настройки (если открыты)
-        settingsPanel.classList.remove('show');
-        settingsBtn.classList.remove('active');
     }
+    settingsPanel.classList.remove('show');
+    settingsBtn.classList.remove('active');
+    mathPanel.classList.remove('show');
+    mathBtn.classList.remove('active');
+    mathPanelVisible = false;
 });
 
-// ШЕСТЕРЕНКА
+// Шестеренка
 settingsBtn.addEventListener('click', function() {
     if (isRunning) return;
     
@@ -280,10 +334,13 @@ settingsBtn.addEventListener('click', function() {
     } else {
         settingsPanel.classList.add('show');
         this.classList.add('active');
+        mathPanel.classList.remove('show');
+        mathBtn.classList.remove('active');
+        mathPanelVisible = false;
     }
 });
 
-// Закрытие настроек по клику вне
+// Закрытие настроек
 settingsPanel.addEventListener('click', function(e) {
     if (e.target === settingsPanel) {
         settingsPanel.classList.remove('show');
@@ -292,28 +349,28 @@ settingsPanel.addEventListener('click', function(e) {
 });
 
 // Enter
-textInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
+mathInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
         toggleControls();
     }
+});
+
+// Обновление при вводе
+mathInput.addEventListener('input', function() {
+    renderFormula();
+    saveToBot();
 });
 
 // ============================================
 // ЗАГРУЗКА
 // ============================================
 window.addEventListener('load', function() {
-    console.log('LED Banner загружен');
+    console.log('LED Banner Math загружен');
     
-    // Загружаем сохраненные данные
     loadSavedData();
-    
-    // Применяем настройки
     applyAllSettings();
     
-    // Убираем подсветку
-    scrollingText.style.textShadow = 'none';
-    
-    // Показываем элементы при старте
     inputArea.style.display = 'flex';
     settingsBtn.style.display = 'flex';
     isRunning = false;
@@ -326,8 +383,11 @@ tg.BackButton.onClick(function() {
     if (settingsPanel.classList.contains('show')) {
         settingsPanel.classList.remove('show');
         settingsBtn.classList.remove('active');
+    } else if (mathPanel.classList.contains('show')) {
+        mathPanel.classList.remove('show');
+        mathBtn.classList.remove('active');
+        mathPanelVisible = false;
     } else if (isRunning) {
-        // Если текст бежит - показываем элементы
         inputArea.style.display = 'flex';
         settingsBtn.style.display = 'flex';
         isRunning = false;
@@ -337,4 +397,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ LED Banner - Умный крестик и сохранение!');
+console.log('✅ LED Banner Math готов!');
