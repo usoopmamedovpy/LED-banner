@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER MATH - ПОЛНАЯ ВЕРСИЯ
+// LED BANNER С МАТЕМАТИЧЕСКОЙ КЛАВИАТУРОЙ
 // ============================================
 
 // Telegram
@@ -18,19 +18,22 @@ document.body.style.color = '#ffffff';
 // ПОЛУЧАЕМ ЭЛЕМЕНТЫ
 // ============================================
 const scrollingText = document.getElementById('scrollingText');
+const textInput = document.getElementById('textInput');
 const runBtn = document.getElementById('runBtn');
 const resetBtn = document.getElementById('resetBtn');
 const settingsBtn = document.getElementById('settingsBtn');
 const settingsPanel = document.getElementById('settingsPanel');
-const inputArea = document.querySelector('.input-area');
+const inputContainer = document.querySelector('.input-container');
+const inputArea = document.getElementById('inputArea');
 
 // MATH элементы
-const mathInput = document.getElementById('mathInput');
 const mathBtn = document.getElementById('mathBtn');
-const mathPanel = document.getElementById('mathPanel');
-const mathCatBtns = document.querySelectorAll('.math-cat-btn');
-const mathCategories = document.querySelectorAll('.math-category');
-const mathSymbols = document.querySelectorAll('.math-symbol');
+const mathKeyboard = document.getElementById('mathKeyboard');
+const sectionFunctions = document.getElementById('sectionFunctions');
+const sectionGreek = document.getElementById('sectionGreek');
+const keyboardFunctions = document.getElementById('keyboardFunctions');
+const keyboardGreek = document.getElementById('keyboardGreek');
+const mathKeys = document.querySelectorAll('.math-key');
 
 // Элементы настроек
 const sizeSlider = document.getElementById('sizeSlider');
@@ -46,36 +49,14 @@ let currentSpeed = 15;
 let currentColor = 'white';
 let currentSize = 15;
 let isRunning = false;
-let mathPanelVisible = false;
-
-// ============================================
-// ИНИЦИАЛИЗАЦИЯ MATHLIVE
-// ============================================
-if (mathInput) {
-    mathInput.setOptions({
-        smartFence: true,
-        virtualKeyboardMode: 'off',
-        smartMode: true,
-        inlineShortcuts: {
-            'sqrt': '\\sqrt{}',
-            'frac': '\\frac{}{}',
-            'alpha': '\\alpha',
-            'beta': '\\beta',
-            'gamma': '\\gamma',
-            'delta': '\\delta',
-            'pi': '\\pi',
-            'sum': '\\sum',
-            'int': '\\int'
-        }
-    });
-}
+let keyboardVisible = false;
 
 // ============================================
 // ЗАГРУЗКА СОХРАНЕННЫХ ДАННЫХ
 // ============================================
 function loadSavedData() {
     try {
-        const localSave = localStorage.getItem('ledBannerMathData');
+        const localSave = localStorage.getItem('ledBannerData');
         if (localSave) {
             const savedData = JSON.parse(localSave);
             applySavedData(savedData);
@@ -91,8 +72,9 @@ function loadSavedData() {
 }
 
 function applySavedData(savedData) {
-    if (savedData.text && mathInput) {
-        mathInput.setValue(savedData.text);
+    if (savedData.text) {
+        textInput.value = savedData.text;
+        scrollingText.textContent = savedData.text;
     }
     
     if (savedData.color) {
@@ -117,13 +99,13 @@ function applySavedData(savedData) {
 // ============================================
 function saveToBot() {
     const dataToSave = {
-        text: mathInput ? mathInput.getValue() : '',
+        text: textInput.value,
         color: currentColor,
         speed: currentSpeed,
         size: currentSize
     };
     
-    localStorage.setItem('ledBannerMathData', JSON.stringify(dataToSave));
+    localStorage.setItem('ledBannerData', JSON.stringify(dataToSave));
     
     if (tg) {
         try {
@@ -138,25 +120,75 @@ function saveToBot() {
 }
 
 // ============================================
-// ОТОБРАЖЕНИЕ ФОРМУЛЫ
+// ФУНКЦИИ УПРАВЛЕНИЯ КЛАВИАТУРОЙ
 // ============================================
-function renderFormula() {
-    if (!mathInput) return;
+function toggleKeyboard() {
+    keyboardVisible = !keyboardVisible;
     
-    const latex = mathInput.getValue();
+    if (keyboardVisible) {
+        mathKeyboard.classList.add('show');
+        mathBtn.classList.add('active');
+        inputContainer.classList.add('keyboard-open');
+    } else {
+        mathKeyboard.classList.remove('show');
+        mathBtn.classList.remove('active');
+        inputContainer.classList.remove('keyboard-open');
+    }
+}
+
+function closeKeyboard() {
+    keyboardVisible = false;
+    mathKeyboard.classList.remove('show');
+    mathBtn.classList.remove('active');
+    inputContainer.classList.remove('keyboard-open');
+}
+
+// ============================================
+// ВСТАВКА МАТЕМАТИЧЕСКИХ СИМВОЛОВ
+// ============================================
+function insertMathSymbol(symbol) {
+    const cursorPos = textInput.selectionStart;
+    const currentText = textInput.value;
+    const textBefore = currentText.substring(0, cursorPos);
+    const textAfter = currentText.substring(cursorPos);
     
-    // Оборачиваем в математический режим
-    scrollingText.innerHTML = `\\(${latex}\\)`;
+    // Обработка специальных символов
+    let insertText = symbol;
     
-    // Принудительно рендерим MathJax
-    if (window.MathJax) {
-        MathJax.typesetPromise([scrollingText]).catch(err => console.log(err));
+    // Для функций добавляем скобки
+    if (['sin', 'cos', 'tan', 'cot', 'sec', 'csc', 'arcsin', 'arccos', 'arctan', 'arccot', 'log', 'ln', 'lg', 'exp', 'lim'].includes(symbol)) {
+        insertText = symbol + '(';
     }
     
-    // Применяем настройки
-    scrollingText.style.fontSize = currentSize + 'vw';
-    scrollingText.style.color = '';
-    scrollingText.classList.add(currentColor);
+    // Для корней
+    if (symbol === '\\sqrt{}') insertText = '√()';
+    if (symbol === '\\sqrt[3]{}') insertText = '∛()';
+    if (symbol === '\\sqrt[4]{}') insertText = '∜()';
+    if (symbol === '\\sqrt[n]{}') insertText = 'n√()';
+    
+    // Для дробей
+    if (symbol === '\\frac{}{}') insertText = '()/()';
+    
+    // Для векторов
+    if (symbol === '\\vec{}') insertText = '⃗';
+    
+    textInput.value = textBefore + insertText + textAfter;
+    
+    // Устанавливаем курсор в нужное место
+    let newPos = cursorPos + insertText.length;
+    
+    // Для функций с скобками ставим курсор перед закрывающей скобкой
+    if (['sin', 'cos', 'tan'].includes(symbol)) {
+        newPos = cursorPos + symbol.length + 1;
+    }
+    
+    textInput.setSelectionRange(newPos, newPos);
+    textInput.focus();
+    
+    // Обновляем бегущую строку
+    scrollingText.textContent = textInput.value;
+    applyAllSettings();
+    saveToBot();
 }
 
 // ============================================
@@ -181,19 +213,15 @@ function setTextColor(color) {
 // ПРИМЕНЕНИЕ НАСТРОЕК
 // ============================================
 function applyAllSettings() {
-    // Размер
     scrollingText.style.fontSize = currentSize + 'vw';
     sizeValue.textContent = currentSize + 'vw';
     
-    // Скорость
     speedValue.textContent = currentSpeed + ' сек';
     restartAnimation();
     
-    // Цвет
     setTextColor(currentColor);
     
-    // Формула
-    renderFormula();
+    scrollingText.textContent = textInput.value;
 }
 
 // ============================================
@@ -213,10 +241,9 @@ function toggleControls() {
         inputArea.style.display = 'flex';
         settingsBtn.style.display = 'flex';
         isRunning = false;
-        settingsPanel.classList.remove('show');
-        settingsBtn.classList.remove('active');
+        closeKeyboard();
     } else {
-        renderFormula();
+        applyAllSettings();
         inputArea.style.display = 'none';
         settingsBtn.style.display = 'none';
         isRunning = true;
@@ -231,55 +258,40 @@ function toggleControls() {
 // MATH кнопка
 mathBtn.addEventListener('click', function(e) {
     e.stopPropagation();
-    mathPanelVisible = !mathPanelVisible;
-    
-    if (mathPanelVisible) {
-        mathPanel.classList.add('show');
-        mathBtn.classList.add('active');
-    } else {
-        mathPanel.classList.remove('show');
-        mathBtn.classList.remove('active');
+    if (!isRunning) {
+        toggleKeyboard();
     }
 });
 
-// Переключение категорий
-mathCatBtns.forEach(btn => {
-    btn.addEventListener('click', function() {
-        const cat = this.dataset.cat;
-        
-        mathCatBtns.forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        
-        mathCategories.forEach(c => c.classList.remove('active'));
-        document.getElementById(`cat-${cat}`).classList.add('active');
-    });
-});
-
-// Вставка символов
-mathSymbols.forEach(symbol => {
-    symbol.addEventListener('click', function() {
-        const latex = this.dataset.latex;
-        
-        if (mathInput) {
-            mathInput.executeCommand('insert', latex);
-            
-            if (latex.includes('{}')) {
-                mathInput.executeCommand('moveToNextPlaceholder');
-            }
-            
-            renderFormula();
-            saveToBot();
-        }
-    });
-});
-
-// Закрытие MATH панели
-document.addEventListener('click', function(e) {
-    if (!mathBtn.contains(e.target) && !mathPanel.contains(e.target)) {
-        mathPanel.classList.remove('show');
-        mathBtn.classList.remove('active');
-        mathPanelVisible = false;
+// Текстовое поле - закрывает клавиатуру при фокусе
+textInput.addEventListener('focus', function() {
+    if (keyboardVisible) {
+        closeKeyboard();
     }
+});
+
+// Переключение на раздел функций
+sectionFunctions.addEventListener('click', function() {
+    sectionFunctions.classList.add('active');
+    sectionGreek.classList.remove('active');
+    keyboardFunctions.classList.add('active');
+    keyboardGreek.classList.remove('active');
+});
+
+// Переключение на раздел греческих букв
+sectionGreek.addEventListener('click', function() {
+    sectionGreek.classList.add('active');
+    sectionFunctions.classList.remove('active');
+    keyboardGreek.classList.add('active');
+    keyboardFunctions.classList.remove('active');
+});
+
+// Кнопки математической клавиатуры
+mathKeys.forEach(key => {
+    key.addEventListener('click', function() {
+        const value = this.dataset.value;
+        insertMathSymbol(value);
+    });
 });
 
 // Цвет
@@ -307,6 +319,12 @@ speedSlider.addEventListener('input', function() {
     saveToBot();
 });
 
+// Текст
+textInput.addEventListener('input', function() {
+    scrollingText.textContent = this.value;
+    saveToBot();
+});
+
 // RUN
 runBtn.addEventListener('click', toggleControls);
 
@@ -317,11 +335,9 @@ resetBtn.addEventListener('click', function() {
         settingsBtn.style.display = 'flex';
         isRunning = false;
     }
+    closeKeyboard();
     settingsPanel.classList.remove('show');
     settingsBtn.classList.remove('active');
-    mathPanel.classList.remove('show');
-    mathBtn.classList.remove('active');
-    mathPanelVisible = false;
 });
 
 // Шестеренка
@@ -334,9 +350,7 @@ settingsBtn.addEventListener('click', function() {
     } else {
         settingsPanel.classList.add('show');
         this.classList.add('active');
-        mathPanel.classList.remove('show');
-        mathBtn.classList.remove('active');
-        mathPanelVisible = false;
+        closeKeyboard();
     }
 });
 
@@ -349,24 +363,17 @@ settingsPanel.addEventListener('click', function(e) {
 });
 
 // Enter
-mathInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
+textInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
         toggleControls();
     }
-});
-
-// Обновление при вводе
-mathInput.addEventListener('input', function() {
-    renderFormula();
-    saveToBot();
 });
 
 // ============================================
 // ЗАГРУЗКА
 // ============================================
 window.addEventListener('load', function() {
-    console.log('LED Banner Math загружен');
+    console.log('LED Banner с математической клавиатурой загружен');
     
     loadSavedData();
     applyAllSettings();
@@ -383,10 +390,8 @@ tg.BackButton.onClick(function() {
     if (settingsPanel.classList.contains('show')) {
         settingsPanel.classList.remove('show');
         settingsBtn.classList.remove('active');
-    } else if (mathPanel.classList.contains('show')) {
-        mathPanel.classList.remove('show');
-        mathBtn.classList.remove('active');
-        mathPanelVisible = false;
+    } else if (keyboardVisible) {
+        closeKeyboard();
     } else if (isRunning) {
         inputArea.style.display = 'flex';
         settingsBtn.style.display = 'flex';
@@ -397,4 +402,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ LED Banner Math готов!');
+console.log('✅ LED Banner с математической клавиатурой готов!');
