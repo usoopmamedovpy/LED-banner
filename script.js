@@ -23,16 +23,15 @@ const runBtn = document.getElementById('runBtn');
 const resetBtn = document.getElementById('resetBtn');
 const settingsBtn = document.getElementById('settingsBtn');
 const settingsPanel = document.getElementById('settingsPanel');
-const inputContainer = document.getElementById('inputContainer');
 const inputArea = document.getElementById('inputArea');
 
 // MATH элементы
 const mathBtn = document.getElementById('mathBtn');
 const mathKeyboard = document.getElementById('mathKeyboard');
-const sectionFunctions = document.getElementById('sectionFunctions');
-const sectionGreek = document.getElementById('sectionGreek');
-const keyboardFunctions = document.getElementById('keyboardFunctions');
-const keyboardGreek = document.getElementById('keyboardGreek');
+const tabFunctions = document.getElementById('tabFunctions');
+const tabGreek = document.getElementById('tabGreek');
+const functionsTab = document.getElementById('functionsTab');
+const greekTab = document.getElementById('greekTab');
 const mathKeys = document.querySelectorAll('.math-key');
 
 // Элементы настроек
@@ -61,37 +60,23 @@ function loadSavedData() {
             const savedData = JSON.parse(localSave);
             applySavedData(savedData);
         }
-        
-        if (tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
-            const savedData = JSON.parse(decodeURIComponent(tg.initDataUnsafe.start_param));
-            applySavedData(savedData);
-        }
     } catch (e) {
         console.log('Нет сохраненных данных');
     }
 }
 
 function applySavedData(savedData) {
-    if (savedData.text) {
-        textInput.value = savedData.text;
-        scrollingText.textContent = savedData.text;
-    }
-    
-    if (savedData.color) {
-        currentColor = savedData.color;
-    }
-    
+    if (savedData.text) textInput.value = savedData.text;
+    if (savedData.color) currentColor = savedData.color;
     if (savedData.speed) {
         currentSpeed = savedData.speed;
         speedSlider.value = currentSpeed;
     }
-    
     if (savedData.size) {
         currentSize = savedData.size;
         sizeSlider.value = currentSize;
     }
-    
-    applyAllSettings();
+    updateDisplay();
 }
 
 // ============================================
@@ -113,114 +98,17 @@ function saveToBot() {
                 action: 'save_all',
                 data: dataToSave
             }));
-        } catch (e) {
-            console.log('Ошибка отправки');
-        }
+        } catch (e) {}
     }
 }
 
 // ============================================
-// ФУНКЦИИ УПРАВЛЕНИЯ КЛАВИАТУРОЙ
+// ОБНОВЛЕНИЕ ОТОБРАЖЕНИЯ
 // ============================================
-function toggleKeyboard() {
-    if (isRunning) return;
+function updateDisplay() {
+    // Текст
+    scrollingText.textContent = textInput.value || 'LED бегущая строка';
     
-    keyboardVisible = !keyboardVisible;
-    
-    if (keyboardVisible) {
-        mathKeyboard.classList.add('show');
-        mathBtn.classList.add('active');
-        inputContainer.classList.add('keyboard-open');
-    } else {
-        mathKeyboard.classList.remove('show');
-        mathBtn.classList.remove('active');
-        inputContainer.classList.remove('keyboard-open');
-    }
-}
-
-function closeKeyboard() {
-    keyboardVisible = false;
-    mathKeyboard.classList.remove('show');
-    mathBtn.classList.remove('active');
-    inputContainer.classList.remove('keyboard-open');
-}
-
-// ============================================
-// ВСТАВКА МАТЕМАТИЧЕСКИХ СИМВОЛОВ
-// ============================================
-function insertMathSymbol(symbol) {
-    const cursorPos = textInput.selectionStart;
-    const currentText = textInput.value;
-    const textBefore = currentText.substring(0, cursorPos);
-    const textAfter = currentText.substring(cursorPos);
-    
-    let insertText = symbol;
-    
-    // Специальная обработка для функций
-    if (['sin', 'cos', 'tan', 'cot', 'sec', 'csc', 
-         'arcsin', 'arccos', 'arctan', 'arccot',
-         'log', 'ln', 'lg', 'exp', 'lim'].includes(symbol)) {
-        insertText = symbol + '(';
-    }
-    
-    // Для стрелки (вектор)
-    if (symbol === '→') {
-        insertText = '→';
-    }
-    
-    textInput.value = textBefore + insertText + textAfter;
-    
-    // Устанавливаем курсор
-    let newPos = cursorPos + insertText.length;
-    if (['sin', 'cos', 'tan'].includes(symbol)) {
-        newPos = cursorPos + symbol.length + 1;
-    }
-    
-    textInput.setSelectionRange(newPos, newPos);
-    textInput.focus();
-    
-    // Обновляем бегущую строку
-    scrollingText.textContent = textInput.value;
-    applyAllSettings();
-    saveToBot();
-}
-
-// ============================================
-// ФУНКЦИЯ СМЕНЫ ЦВЕТА
-// ============================================
-function setTextColor(color) {
-    console.log('Меняем цвет на:', color);
-    
-    // Удаляем все классы цвета
-    scrollingText.classList.remove('white', 'red', 'blue', 'green', 'yellow');
-    
-    // Добавляем новый класс
-    scrollingText.classList.add(color);
-    
-    // Обновляем активную кнопку
-    colorButtons.forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.classList.contains(color)) {
-            btn.classList.add('active');
-        }
-    });
-    
-    currentColor = color;
-    
-    // Применяем цвет через style на всякий случай
-    if (color === 'white') scrollingText.style.color = '#ffffff';
-    if (color === 'red') scrollingText.style.color = '#ff3b30';
-    if (color === 'blue') scrollingText.style.color = '#007aff';
-    if (color === 'green') scrollingText.style.color = '#34c759';
-    if (color === 'yellow') scrollingText.style.color = '#ffcc00';
-    
-    saveToBot();
-}
-
-// ============================================
-// ПРИМЕНЕНИЕ НАСТРОЕК
-// ============================================
-function applyAllSettings() {
     // Размер
     scrollingText.style.fontSize = currentSize + 'vw';
     sizeValue.textContent = currentSize + 'vw';
@@ -230,10 +118,16 @@ function applyAllSettings() {
     restartAnimation();
     
     // Цвет
-    setTextColor(currentColor);
+    scrollingText.classList.remove('white', 'red', 'blue', 'green', 'yellow');
+    scrollingText.classList.add(currentColor);
     
-    // Текст
-    scrollingText.textContent = textInput.value;
+    // Активная кнопка цвета
+    colorButtons.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.classList.contains(currentColor)) {
+            btn.classList.add('active');
+        }
+    });
 }
 
 // ============================================
@@ -246,21 +140,92 @@ function restartAnimation() {
 }
 
 // ============================================
-// УПРАВЛЕНИЕ ЭЛЕМЕНТАМИ
+// УПРАВЛЕНИЕ КЛАВИАТУРОЙ
 // ============================================
-function toggleControls() {
+function toggleKeyboard() {
+    if (isRunning) return;
+    
+    keyboardVisible = !keyboardVisible;
+    
+    if (keyboardVisible) {
+        mathKeyboard.classList.add('show');
+        mathBtn.classList.add('active');
+    } else {
+        mathKeyboard.classList.remove('show');
+        mathBtn.classList.remove('active');
+    }
+}
+
+function closeKeyboard() {
+    keyboardVisible = false;
+    mathKeyboard.classList.remove('show');
+    mathBtn.classList.remove('active');
+}
+
+// ============================================
+// ВСТАВКА СИМВОЛА
+// ============================================
+function insertSymbol(symbol) {
+    const start = textInput.selectionStart;
+    const end = textInput.selectionEnd;
+    const text = textInput.value;
+    
+    const newText = text.substring(0, start) + symbol + text.substring(end);
+    textInput.value = newText;
+    
+    // Возвращаем курсор
+    const newPos = start + symbol.length;
+    textInput.setSelectionRange(newPos, newPos);
+    textInput.focus();
+    
+    // Обновляем предпросмотр
+    scrollingText.textContent = newText;
+    saveToBot();
+}
+
+// ============================================
+// УПРАВЛЕНИЕ ЗАПУСКОМ
+// ============================================
+function toggleRun() {
+    if (isRunning) {
+        // Останавливаем
+        inputArea.style.display = 'flex';
+        settingsBtn.style.display = 'flex';
+        isRunning = false;
+    } else {
+        // Запускаем
+        updateDisplay();
+        inputArea.style.display = 'none';
+        settingsBtn.style.display = 'none';
+        isRunning = true;
+        closeKeyboard();
+        saveToBot();
+    }
+}
+
+// ============================================
+// СБРОС
+// ============================================
+function resetAll() {
     if (isRunning) {
         inputArea.style.display = 'flex';
         settingsBtn.style.display = 'flex';
         isRunning = false;
-        closeKeyboard();
-    } else {
-        applyAllSettings();
-        inputArea.style.display = 'none';
-        settingsBtn.style.display = 'none';
-        isRunning = true;
-        saveToBot();
     }
+    
+    textInput.value = 'LED бегущая строка';
+    currentColor = 'white';
+    currentSpeed = 15;
+    currentSize = 15;
+    
+    sizeSlider.value = 15;
+    speedSlider.value = 15;
+    
+    updateDisplay();
+    closeKeyboard();
+    settingsPanel.classList.remove('show');
+    settingsBtn.classList.remove('active');
+    saveToBot();
 }
 
 // ============================================
@@ -268,13 +233,13 @@ function toggleControls() {
 // ============================================
 
 // MATH кнопка
-mathBtn.addEventListener('click', function(e) {
+mathBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     toggleKeyboard();
 });
 
-// Закрытие по клику вне клавиатуры
-document.addEventListener('click', function(e) {
+// Закрытие по клику вне
+document.addEventListener('click', (e) => {
     if (keyboardVisible && 
         !mathKeyboard.contains(e.target) && 
         !mathBtn.contains(e.target)) {
@@ -282,107 +247,84 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Предотвращаем закрытие при клике на клавиатуру
-mathKeyboard.addEventListener('click', function(e) {
-    e.stopPropagation();
+// Переключение вкладок
+tabFunctions.addEventListener('click', () => {
+    tabFunctions.classList.add('active');
+    tabGreek.classList.remove('active');
+    functionsTab.classList.add('active');
+    greekTab.classList.remove('active');
 });
 
-// Текстовое поле
-textInput.addEventListener('focus', function() {
-    if (keyboardVisible) {
-        closeKeyboard();
-    }
+tabGreek.addEventListener('click', () => {
+    tabGreek.classList.add('active');
+    tabFunctions.classList.remove('active');
+    greekTab.classList.add('active');
+    functionsTab.classList.remove('active');
 });
 
-// Переключение на раздел функций
-sectionFunctions.addEventListener('click', function() {
-    sectionFunctions.classList.add('active');
-    sectionGreek.classList.remove('active');
-    keyboardFunctions.classList.add('active');
-    keyboardGreek.classList.remove('active');
-});
-
-// Переключение на раздел греческих букв
-sectionGreek.addEventListener('click', function() {
-    sectionGreek.classList.add('active');
-    sectionFunctions.classList.remove('active');
-    keyboardGreek.classList.add('active');
-    keyboardFunctions.classList.remove('active');
-});
-
-// Кнопки математической клавиатуры
+// Кнопки клавиатуры
 mathKeys.forEach(key => {
-    key.addEventListener('click', function(e) {
+    key.addEventListener('click', (e) => {
         e.stopPropagation();
-        const value = this.dataset.value;
-        if (value && value.trim() !== '') {
-            insertMathSymbol(value);
-        }
+        const value = key.dataset.value;
+        if (value) insertSymbol(value);
     });
 });
 
 // Цвет
 colorButtons.forEach(btn => {
-    btn.addEventListener('click', function() {
-        let color = this.classList[1];
-        setTextColor(color);
+    btn.addEventListener('click', () => {
+        const color = btn.classList[1];
+        currentColor = color;
+        updateDisplay();
         saveToBot();
     });
 });
 
 // Размер
-sizeSlider.addEventListener('input', function() {
-    currentSize = this.value;
+sizeSlider.addEventListener('input', () => {
+    currentSize = parseInt(sizeSlider.value);
     scrollingText.style.fontSize = currentSize + 'vw';
     sizeValue.textContent = currentSize + 'vw';
     saveToBot();
 });
 
 // Скорость
-speedSlider.addEventListener('input', function() {
-    currentSpeed = this.value;
+speedSlider.addEventListener('input', () => {
+    currentSpeed = parseInt(speedSlider.value);
     speedValue.textContent = currentSpeed + ' сек';
     restartAnimation();
     saveToBot();
 });
 
 // Текст
-textInput.addEventListener('input', function() {
-    scrollingText.textContent = this.value;
+textInput.addEventListener('input', () => {
+    scrollingText.textContent = textInput.value || 'LED бегущая строка';
     saveToBot();
 });
 
 // RUN
-runBtn.addEventListener('click', toggleControls);
+runBtn.addEventListener('click', toggleRun);
 
 // Крестик
-resetBtn.addEventListener('click', function() {
-    if (isRunning) {
-        inputArea.style.display = 'flex';
-        settingsBtn.style.display = 'flex';
-        isRunning = false;
-    }
-    closeKeyboard();
-    settingsPanel.classList.remove('show');
-    settingsBtn.classList.remove('active');
-});
+resetBtn.addEventListener('click', resetAll);
 
 // Шестеренка
-settingsBtn.addEventListener('click', function() {
+settingsBtn.addEventListener('click', () => {
     if (isRunning) return;
     
     if (settingsPanel.classList.contains('show')) {
         settingsPanel.classList.remove('show');
-        this.classList.remove('active');
+        settingsBtn.classList.remove('active');
     } else {
         settingsPanel.classList.add('show');
-        this.classList.add('active');
+        settingsBtn.classList.add('active');
         closeKeyboard();
     }
 });
 
 // Закрытие настроек
-settingsPanel.addEventListener('click', function(e) {
+settingsPanel.addEventListener('click', (e) => {
     if (e.target === settingsPanel) {
         settingsPanel.classList.remove('show');
         settingsBtn.classList.remove('active');
@@ -390,20 +332,18 @@ settingsPanel.addEventListener('click', function(e) {
 });
 
 // Enter
-textInput.addEventListener('keypress', function(e) {
+textInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
-        toggleControls();
+        toggleRun();
     }
 });
 
 // ============================================
 // ЗАГРУЗКА
 // ============================================
-window.addEventListener('load', function() {
-    console.log('LED Banner с математической клавиатурой загружен');
-    
+window.addEventListener('load', () => {
     loadSavedData();
-    applyAllSettings();
+    updateDisplay();
     
     inputArea.style.display = 'flex';
     settingsBtn.style.display = 'flex';
@@ -415,7 +355,7 @@ window.addEventListener('load', function() {
 // ============================================
 // TELEGRAM BACK BUTTON
 // ============================================
-tg.BackButton.onClick(function() {
+tg.BackButton.onClick(() => {
     if (settingsPanel.classList.contains('show')) {
         settingsPanel.classList.remove('show');
         settingsBtn.classList.remove('active');
@@ -431,4 +371,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ LED Banner с математической клавиатурой готов!');
+console.log('✅ LED Banner готов!');
