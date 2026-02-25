@@ -62,38 +62,32 @@
         <!-- Основной экран -->
         <div class="mobile-view">
             <div class="banner-area">
-                <div class="scrolling-text" id="scrollingText">LED бегущая строка</div>
+                <div class="scrolling-text white" id="scrollingText">LED бегущая строка</div>
             </div>
             
             <!-- Контейнер для ввода с математической клавиатурой -->
-            <div class="input-wrapper">
+            <div class="input-container" id="inputContainer">
                 <div class="input-area" id="inputArea">
                     <button class="math-btn" id="mathBtn">MATH</button>
-                    <input type="text" class="text-input" id="textInput" placeholder="Введите текст..." value="LED бегущая строка" autofocus>
+                    <input type="text" class="text-input" id="textInput" placeholder="Введите текст..." value="LED бегущая строка">
                     <button class="run-btn" id="runBtn">RUN</button>
                 </div>
                 
                 <!-- Математическая клавиатура -->
                 <div class="math-keyboard" id="mathKeyboard">
-                    <!-- Переключатели разделов (слева) -->
+                    <!-- Переключатели разделов -->
                     <div class="keyboard-sections">
-                        <button class="section-btn active" id="sectionFunctions">
-                            <span class="section-icon">ƒ(x)</span>
-                        </button>
-                        <button class="section-btn" id="sectionGreek">
-                            <span class="section-icon">Aα</span>
-                        </button>
+                        <button class="section-btn active" id="sectionFunctions">ƒ(x)</button>
+                        <button class="section-btn" id="sectionGreek">Aα</button>
                     </div>
                     
-                    <!-- Раздел с функциями и знаками -->
+                    <!-- Раздел с функциями -->
                     <div class="keyboard-section active" id="keyboardFunctions">
                         <div class="keyboard-row">
                             <button class="math-key" data-value="sin">sin</button>
                             <button class="math-key" data-value="cos">cos</button>
                             <button class="math-key" data-value="tan">tan</button>
                             <button class="math-key" data-value="cot">cot</button>
-                            <button class="math-key" data-value="sec">sec</button>
-                            <button class="math-key" data-value="csc">csc</button>
                         </div>
                         <div class="keyboard-row">
                             <button class="math-key" data-value="arcsin">arcsin</button>
@@ -105,7 +99,7 @@
                             <button class="math-key" data-value="log">log</button>
                             <button class="math-key" data-value="ln">ln</button>
                             <button class="math-key" data-value="lg">lg</button>
-                            <button class="math-key" data-value="exp">e^</button>
+                            <button class="math-key" data-value="exp">exp</button>
                         </div>
                         <div class="keyboard-row">
                             <button class="math-key" data-value="√">√</button>
@@ -114,10 +108,10 @@
                             <button class="math-key" data-value="n√">n√</button>
                         </div>
                         <div class="keyboard-row">
-                            <button class="math-key" data-value="^">xⁿ</button>
-                            <button class="math-key" data-value="_">xₙ</button>
+                            <button class="math-key" data-value="^">^</button>
+                            <button class="math-key" data-value="_">_</button>
                             <button class="math-key" data-value="/">/</button>
-                            <button class="math-key" data-value="⃗">⃗</button>
+                            <button class="math-key" data-value="→">→</button>
                         </div>
                         <div class="keyboard-row">
                             <button class="math-key" data-value="∫">∫</button>
