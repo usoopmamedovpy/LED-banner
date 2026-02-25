@@ -6,6 +6,15 @@
     <meta name="theme-color" content="#000000">
     <meta name="color-scheme" content="dark">
     <title>LED Banner Math</title>
+    
+    <!-- MathQuill для красивых формул -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.css">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.min.js"></script>
+    
+    <!-- MathJax для отображения на LED-экране -->
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -62,7 +71,7 @@
         <!-- Основной экран -->
         <div class="mobile-view">
             <div class="banner-area">
-                <div class="scrolling-text white" id="scrollingText">LED бегущая строка</div>
+                <div class="scrolling-text" id="scrollingText">\(LED бегущая строка\)</div>
             </div>
             
             <!-- Контейнер для ввода -->
@@ -70,8 +79,8 @@
                 <div class="input-area" id="inputArea">
                     <button class="math-btn" id="mathBtn">MATH</button>
                     
-                    <!-- Обычный input для надежного ввода -->
-                    <input type="text" class="text-input" id="textInput" placeholder="Введите текст..." value="LED бегущая строка">
+                    <!-- MathQuill поле для формул -->
+                    <div class="math-field" id="mathField"></div>
                     
                     <button class="run-btn" id="runBtn">RUN</button>
                 </div>
@@ -87,84 +96,84 @@
                     <!-- Раздел функций -->
                     <div class="tab-content active" id="functionsTab">
                         <div class="keyboard-grid">
-                            <button class="math-key">sin</button>
-                            <button class="math-key">cos</button>
-                            <button class="math-key">tan</button>
-                            <button class="math-key">cot</button>
-                            <button class="math-key">arcsin</button>
-                            <button class="math-key">arccos</button>
-                            <button class="math-key">arctan</button>
-                            <button class="math-key">arccot</button>
-                            <button class="math-key">log</button>
-                            <button class="math-key">ln</button>
-                            <button class="math-key">lg</button>
-                            <button class="math-key">exp</button>
-                            <button class="math-key">√</button>
-                            <button class="math-key">∛</button>
-                            <button class="math-key">∜</button>
-                            <button class="math-key">n√</button>
-                            <button class="math-key">^</button>
-                            <button class="math-key">_</button>
-                            <button class="math-key">/</button>
-                            <button class="math-key">→</button>
-                            <button class="math-key">∫</button>
-                            <button class="math-key">∑</button>
-                            <button class="math-key">∏</button>
-                            <button class="math-key">lim</button>
+                            <button class="math-key" data-cmd="\sin">sin</button>
+                            <button class="math-key" data-cmd="\cos">cos</button>
+                            <button class="math-key" data-cmd="\tan">tan</button>
+                            <button class="math-key" data-cmd="\cot">cot</button>
+                            <button class="math-key" data-cmd="\arcsin">arcsin</button>
+                            <button class="math-key" data-cmd="\arccos">arccos</button>
+                            <button class="math-key" data-cmd="\arctan">arctan</button>
+                            <button class="math-key" data-cmd="\arccot">arccot</button>
+                            <button class="math-key" data-cmd="\log">log</button>
+                            <button class="math-key" data-cmd="\ln">ln</button>
+                            <button class="math-key" data-cmd="\lg">lg</button>
+                            <button class="math-key" data-cmd="\exp">exp</button>
+                            <button class="math-key" data-cmd="\sqrt">√</button>
+                            <button class="math-key" data-cmd="\sqrt[3]">∛</button>
+                            <button class="math-key" data-cmd="\sqrt[4]">∜</button>
+                            <button class="math-key" data-cmd="\sqrt[n]">n√</button>
+                            <button class="math-key" data-cmd="\frac">a/b</button>
+                            <button class="math-key" data-cmd="^">xⁿ</button>
+                            <button class="math-key" data-cmd="_">xₙ</button>
+                            <button class="math-key" data-cmd="\vec">⃗</button>
+                            <button class="math-key" data-cmd="\int">∫</button>
+                            <button class="math-key" data-cmd="\sum">∑</button>
+                            <button class="math-key" data-cmd="\prod">∏</button>
+                            <button class="math-key" data-cmd="\lim">lim</button>
                         </div>
                     </div>
                     
                     <!-- Раздел греческих букв -->
                     <div class="tab-content" id="greekTab">
                         <div class="keyboard-grid">
-                            <button class="math-key">α</button>
-                            <button class="math-key">β</button>
-                            <button class="math-key">γ</button>
-                            <button class="math-key">δ</button>
-                            <button class="math-key">ε</button>
-                            <button class="math-key">ζ</button>
-                            <button class="math-key">η</button>
-                            <button class="math-key">θ</button>
-                            <button class="math-key">ι</button>
-                            <button class="math-key">κ</button>
-                            <button class="math-key">λ</button>
-                            <button class="math-key">μ</button>
-                            <button class="math-key">ν</button>
-                            <button class="math-key">ξ</button>
-                            <button class="math-key">π</button>
-                            <button class="math-key">ρ</button>
-                            <button class="math-key">σ</button>
-                            <button class="math-key">τ</button>
-                            <button class="math-key">υ</button>
-                            <button class="math-key">φ</button>
-                            <button class="math-key">χ</button>
-                            <button class="math-key">ψ</button>
-                            <button class="math-key">ω</button>
+                            <button class="math-key" data-cmd="\alpha">α</button>
+                            <button class="math-key" data-cmd="\beta">β</button>
+                            <button class="math-key" data-cmd="\gamma">γ</button>
+                            <button class="math-key" data-cmd="\delta">δ</button>
+                            <button class="math-key" data-cmd="\epsilon">ε</button>
+                            <button class="math-key" data-cmd="\zeta">ζ</button>
+                            <button class="math-key" data-cmd="\eta">η</button>
+                            <button class="math-key" data-cmd="\theta">θ</button>
+                            <button class="math-key" data-cmd="\iota">ι</button>
+                            <button class="math-key" data-cmd="\kappa">κ</button>
+                            <button class="math-key" data-cmd="\lambda">λ</button>
+                            <button class="math-key" data-cmd="\mu">μ</button>
+                            <button class="math-key" data-cmd="\nu">ν</button>
+                            <button class="math-key" data-cmd="\xi">ξ</button>
+                            <button class="math-key" data-cmd="\pi">π</button>
+                            <button class="math-key" data-cmd="\rho">ρ</button>
+                            <button class="math-key" data-cmd="\sigma">σ</button>
+                            <button class="math-key" data-cmd="\tau">τ</button>
+                            <button class="math-key" data-cmd="\upsilon">υ</button>
+                            <button class="math-key" data-cmd="\phi">φ</button>
+                            <button class="math-key" data-cmd="\chi">χ</button>
+                            <button class="math-key" data-cmd="\psi">ψ</button>
+                            <button class="math-key" data-cmd="\omega">ω</button>
                         </div>
                     </div>
                     
                     <!-- Раздел символов -->
                     <div class="tab-content" id="symbolsTab">
                         <div class="keyboard-grid">
-                            <button class="math-key">∞</button>
-                            <button class="math-key">∂</button>
-                            <button class="math-key">∇</button>
-                            <button class="math-key">∀</button>
-                            <button class="math-key">∃</button>
-                            <button class="math-key">∈</button>
-                            <button class="math-key">∉</button>
-                            <button class="math-key">⊂</button>
-                            <button class="math-key">⊃</button>
-                            <button class="math-key">∪</button>
-                            <button class="math-key">∩</button>
-                            <button class="math-key">±</button>
-                            <button class="math-key">×</button>
-                            <button class="math-key">÷</button>
-                            <button class="math-key">≠</button>
-                            <button class="math-key">≤</button>
-                            <button class="math-key">≥</button>
-                            <button class="math-key">≈</button>
-                            <button class="math-key">∝</button>
+                            <button class="math-key" data-cmd="\infty">∞</button>
+                            <button class="math-key" data-cmd="\partial">∂</button>
+                            <button class="math-key" data-cmd="\nabla">∇</button>
+                            <button class="math-key" data-cmd="\forall">∀</button>
+                            <button class="math-key" data-cmd="\exists">∃</button>
+                            <button class="math-key" data-cmd="\in">∈</button>
+                            <button class="math-key" data-cmd="\notin">∉</button>
+                            <button class="math-key" data-cmd="\subset">⊂</button>
+                            <button class="math-key" data-cmd="\supset">⊃</button>
+                            <button class="math-key" data-cmd="\cup">∪</button>
+                            <button class="math-key" data-cmd="\cap">∩</button>
+                            <button class="math-key" data-cmd="\pm">±</button>
+                            <button class="math-key" data-cmd="\times">×</button>
+                            <button class="math-key" data-cmd="\div">÷</button>
+                            <button class="math-key" data-cmd="\neq">≠</button>
+                            <button class="math-key" data-cmd="\leq">≤</button>
+                            <button class="math-key" data-cmd="\geq">≥</button>
+                            <button class="math-key" data-cmd="\approx">≈</button>
+                            <button class="math-key" data-cmd="\propto">∝</button>
                         </div>
                     </div>
                 </div>
