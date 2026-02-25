@@ -23,7 +23,7 @@ const runBtn = document.getElementById('runBtn');
 const resetBtn = document.getElementById('resetBtn');
 const settingsBtn = document.getElementById('settingsBtn');
 const settingsPanel = document.getElementById('settingsPanel');
-const inputContainer = document.querySelector('.input-container');
+const inputWrapper = document.querySelector('.input-wrapper');
 const inputArea = document.getElementById('inputArea');
 
 // MATH элементы
@@ -123,16 +123,18 @@ function saveToBot() {
 // ФУНКЦИИ УПРАВЛЕНИЯ КЛАВИАТУРОЙ
 // ============================================
 function toggleKeyboard() {
+    if (isRunning) return;
+    
     keyboardVisible = !keyboardVisible;
     
     if (keyboardVisible) {
         mathKeyboard.classList.add('show');
         mathBtn.classList.add('active');
-        inputContainer.classList.add('keyboard-open');
+        inputWrapper.classList.add('keyboard-open');
     } else {
         mathKeyboard.classList.remove('show');
         mathBtn.classList.remove('active');
-        inputContainer.classList.remove('keyboard-open');
+        inputWrapper.classList.remove('keyboard-open');
     }
 }
 
@@ -140,7 +142,7 @@ function closeKeyboard() {
     keyboardVisible = false;
     mathKeyboard.classList.remove('show');
     mathBtn.classList.remove('active');
-    inputContainer.classList.remove('keyboard-open');
+    inputWrapper.classList.remove('keyboard-open');
 }
 
 // ============================================
@@ -152,40 +154,14 @@ function insertMathSymbol(symbol) {
     const textBefore = currentText.substring(0, cursorPos);
     const textAfter = currentText.substring(cursorPos);
     
-    // Обработка специальных символов
     let insertText = symbol;
-    
-    // Для функций добавляем скобки
-    if (['sin', 'cos', 'tan', 'cot', 'sec', 'csc', 'arcsin', 'arccos', 'arctan', 'arccot', 'log', 'ln', 'lg', 'exp', 'lim'].includes(symbol)) {
-        insertText = symbol + '(';
-    }
-    
-    // Для корней
-    if (symbol === '\\sqrt{}') insertText = '√()';
-    if (symbol === '\\sqrt[3]{}') insertText = '∛()';
-    if (symbol === '\\sqrt[4]{}') insertText = '∜()';
-    if (symbol === '\\sqrt[n]{}') insertText = 'n√()';
-    
-    // Для дробей
-    if (symbol === '\\frac{}{}') insertText = '()/()';
-    
-    // Для векторов
-    if (symbol === '\\vec{}') insertText = '⃗';
     
     textInput.value = textBefore + insertText + textAfter;
     
-    // Устанавливаем курсор в нужное место
-    let newPos = cursorPos + insertText.length;
-    
-    // Для функций с скобками ставим курсор перед закрывающей скобкой
-    if (['sin', 'cos', 'tan'].includes(symbol)) {
-        newPos = cursorPos + symbol.length + 1;
-    }
-    
+    const newPos = cursorPos + insertText.length;
     textInput.setSelectionRange(newPos, newPos);
     textInput.focus();
     
-    // Обновляем бегущую строку
     scrollingText.textContent = textInput.value;
     applyAllSettings();
     saveToBot();
@@ -229,7 +205,7 @@ function applyAllSettings() {
 // ============================================
 function restartAnimation() {
     scrollingText.style.animation = 'none';
-    scrollingText.offsetHeight;
+    void scrollingText.offsetWidth;
     scrollingText.style.animation = `scrollText ${currentSpeed}s linear infinite`;
 }
 
@@ -258,9 +234,7 @@ function toggleControls() {
 // MATH кнопка
 mathBtn.addEventListener('click', function(e) {
     e.stopPropagation();
-    if (!isRunning) {
-        toggleKeyboard();
-    }
+    toggleKeyboard();
 });
 
 // Текстовое поле - закрывает клавиатуру при фокусе
@@ -290,7 +264,9 @@ sectionGreek.addEventListener('click', function() {
 mathKeys.forEach(key => {
     key.addEventListener('click', function() {
         const value = this.dataset.value;
-        insertMathSymbol(value);
+        if (value && value.trim() !== '') {
+            insertMathSymbol(value);
+        }
     });
 });
 
@@ -381,6 +357,8 @@ window.addEventListener('load', function() {
     inputArea.style.display = 'flex';
     settingsBtn.style.display = 'flex';
     isRunning = false;
+    
+    scrollingText.style.textShadow = 'none';
 });
 
 // ============================================
