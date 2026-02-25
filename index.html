@@ -65,8 +65,8 @@
                 <div class="scrolling-text white" id="scrollingText">LED бегущая строка</div>
             </div>
             
-            <!-- Контейнер для ввода с математической клавиатурой -->
-            <div class="input-container" id="inputContainer">
+            <!-- Контейнер для ввода -->
+            <div class="input-container">
                 <div class="input-area" id="inputArea">
                     <button class="math-btn" id="mathBtn">MATH</button>
                     <input type="text" class="text-input" id="textInput" placeholder="Введите текст..." value="LED бегущая строка">
@@ -75,69 +75,50 @@
                 
                 <!-- Математическая клавиатура -->
                 <div class="math-keyboard" id="mathKeyboard">
-                    <!-- Переключатели разделов -->
-                    <div class="keyboard-sections">
-                        <button class="section-btn active" id="sectionFunctions">ƒ(x)</button>
-                        <button class="section-btn" id="sectionGreek">Aα</button>
+                    <div class="keyboard-tabs">
+                        <button class="tab-btn active" id="tabFunctions">ƒ(x)</button>
+                        <button class="tab-btn" id="tabGreek">Aα</button>
                     </div>
                     
-                    <!-- Раздел с функциями -->
-                    <div class="keyboard-section active" id="keyboardFunctions">
-                        <div class="keyboard-row">
+                    <!-- Раздел функций -->
+                    <div class="tab-content active" id="functionsTab">
+                        <div class="keyboard-grid">
                             <button class="math-key" data-value="sin">sin</button>
                             <button class="math-key" data-value="cos">cos</button>
                             <button class="math-key" data-value="tan">tan</button>
                             <button class="math-key" data-value="cot">cot</button>
-                        </div>
-                        <div class="keyboard-row">
                             <button class="math-key" data-value="arcsin">arcsin</button>
                             <button class="math-key" data-value="arccos">arccos</button>
                             <button class="math-key" data-value="arctan">arctan</button>
                             <button class="math-key" data-value="arccot">arccot</button>
-                        </div>
-                        <div class="keyboard-row">
                             <button class="math-key" data-value="log">log</button>
                             <button class="math-key" data-value="ln">ln</button>
                             <button class="math-key" data-value="lg">lg</button>
                             <button class="math-key" data-value="exp">exp</button>
-                        </div>
-                        <div class="keyboard-row">
                             <button class="math-key" data-value="√">√</button>
                             <button class="math-key" data-value="∛">∛</button>
                             <button class="math-key" data-value="∜">∜</button>
                             <button class="math-key" data-value="n√">n√</button>
-                        </div>
-                        <div class="keyboard-row">
                             <button class="math-key" data-value="^">^</button>
                             <button class="math-key" data-value="_">_</button>
                             <button class="math-key" data-value="/">/</button>
                             <button class="math-key" data-value="→">→</button>
-                        </div>
-                        <div class="keyboard-row">
                             <button class="math-key" data-value="∫">∫</button>
                             <button class="math-key" data-value="∑">∑</button>
                             <button class="math-key" data-value="∏">∏</button>
                             <button class="math-key" data-value="lim">lim</button>
-                        </div>
-                        <div class="keyboard-row">
                             <button class="math-key" data-value="∞">∞</button>
                             <button class="math-key" data-value="∂">∂</button>
                             <button class="math-key" data-value="∇">∇</button>
                             <button class="math-key" data-value="∀">∀</button>
-                        </div>
-                        <div class="keyboard-row">
                             <button class="math-key" data-value="∈">∈</button>
                             <button class="math-key" data-value="∉">∉</button>
                             <button class="math-key" data-value="⊂">⊂</button>
                             <button class="math-key" data-value="⊃">⊃</button>
-                        </div>
-                        <div class="keyboard-row">
                             <button class="math-key" data-value="±">±</button>
                             <button class="math-key" data-value="×">×</button>
                             <button class="math-key" data-value="÷">÷</button>
                             <button class="math-key" data-value="≠">≠</button>
-                        </div>
-                        <div class="keyboard-row">
                             <button class="math-key" data-value="≤">≤</button>
                             <button class="math-key" data-value="≥">≥</button>
                             <button class="math-key" data-value="≈">≈</button>
@@ -145,55 +126,42 @@
                         </div>
                     </div>
                     
-                    <!-- Раздел с греческими буквами -->
-                    <div class="keyboard-section" id="keyboardGreek">
-                        <div class="keyboard-row">
+                    <!-- Раздел греческих букв -->
+                    <div class="tab-content" id="greekTab">
+                        <div class="keyboard-grid">
                             <button class="math-key" data-value="α">α</button>
                             <button class="math-key" data-value="β">β</button>
                             <button class="math-key" data-value="γ">γ</button>
                             <button class="math-key" data-value="δ">δ</button>
                             <button class="math-key" data-value="ε">ε</button>
                             <button class="math-key" data-value="ζ">ζ</button>
-                        </div>
-                        <div class="keyboard-row">
                             <button class="math-key" data-value="η">η</button>
                             <button class="math-key" data-value="θ">θ</button>
                             <button class="math-key" data-value="ι">ι</button>
                             <button class="math-key" data-value="κ">κ</button>
                             <button class="math-key" data-value="λ">λ</button>
                             <button class="math-key" data-value="μ">μ</button>
-                        </div>
-                        <div class="keyboard-row">
                             <button class="math-key" data-value="ν">ν</button>
                             <button class="math-key" data-value="ξ">ξ</button>
                             <button class="math-key" data-value="π">π</button>
                             <button class="math-key" data-value="ρ">ρ</button>
                             <button class="math-key" data-value="σ">σ</button>
                             <button class="math-key" data-value="τ">τ</button>
-                        </div>
-                        <div class="keyboard-row">
                             <button class="math-key" data-value="υ">υ</button>
                             <button class="math-key" data-value="φ">φ</button>
                             <button class="math-key" data-value="χ">χ</button>
                             <button class="math-key" data-value="ψ">ψ</button>
                             <button class="math-key" data-value="ω">ω</button>
                             <button class="math-key" data-value="Γ">Γ</button>
-                        </div>
-                        <div class="keyboard-row">
                             <button class="math-key" data-value="Δ">Δ</button>
                             <button class="math-key" data-value="Θ">Θ</button>
                             <button class="math-key" data-value="Λ">Λ</button>
                             <button class="math-key" data-value="Ξ">Ξ</button>
                             <button class="math-key" data-value="Π">Π</button>
                             <button class="math-key" data-value="Σ">Σ</button>
-                        </div>
-                        <div class="keyboard-row">
                             <button class="math-key" data-value="Φ">Φ</button>
                             <button class="math-key" data-value="Ψ">Ψ</button>
                             <button class="math-key" data-value="Ω">Ω</button>
-                            <button class="math-key" data-value=" "> </button>
-                            <button class="math-key" data-value=" "> </button>
-                            <button class="math-key" data-value=" "> </button>
                         </div>
                     </div>
                 </div>
