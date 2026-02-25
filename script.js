@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - ПРОСТАЯ ВЕРСИЯ С МАТЕМАТИЧЕСКИМИ СИМВОЛАМИ
+// LED BANNER - С МАТЕМАТИЧЕСКИМИ ФУНКЦИЯМИ
 // ============================================
 
 // Telegram
@@ -51,6 +51,62 @@ let isRunning = false;
 let keyboardVisible = false;
 let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
+// Карта математических символов для правильной вставки
+const mathSymbols = {
+    'sin': 'sin',
+    'cos': 'cos',
+    'tan': 'tan',
+    'cot': 'cot',
+    'arcsin': 'arcsin',
+    'arccos': 'arccos',
+    'arctan': 'arctan',
+    'arccot': 'arccot',
+    'log': 'log',
+    'ln': 'ln',
+    'lg': 'lg',
+    'exp': 'exp',
+    'lim': 'lim',
+    '√': '√',
+    '∛': '∛',
+    '∜': '∜',
+    'n√': 'n√',
+    '^': '^',
+    '_': '_',
+    '/': '/',
+    '→': '→',
+    '∫': '∫',
+    '∑': '∑',
+    '∏': '∏',
+    '∞': '∞',
+    '∂': '∂',
+    '∇': '∇',
+    '∀': '∀',
+    '∃': '∃',
+    '∈': '∈',
+    '∉': '∉',
+    '⊂': '⊂',
+    '⊃': '⊃',
+    '∪': '∪',
+    '∩': '∩',
+    '±': '±',
+    '×': '×',
+    '÷': '÷',
+    '≠': '≠',
+    '≤': '≤',
+    '≥': '≥',
+    '≈': '≈',
+    '∝': '∝'
+};
+
+// Греческие буквы
+const greekLetters = {
+    'α': 'α', 'β': 'β', 'γ': 'γ', 'δ': 'δ', 'ε': 'ε',
+    'ζ': 'ζ', 'η': 'η', 'θ': 'θ', 'ι': 'ι', 'κ': 'κ',
+    'λ': 'λ', 'μ': 'μ', 'ν': 'ν', 'ξ': 'ξ', 'π': 'π',
+    'ρ': 'ρ', 'σ': 'σ', 'τ': 'τ', 'υ': 'υ', 'φ': 'φ',
+    'χ': 'χ', 'ψ': 'ψ', 'ω': 'ω'
+};
+
 // ============================================
 // ЗАГРУЗКА
 // ============================================
@@ -60,11 +116,6 @@ window.addEventListener('load', function() {
     loadSavedData();
     updateDisplay();
     scrollingText.style.textShadow = 'none';
-    
-    // Если это мобилка - показываем подсказку
-    if (isMobile) {
-        console.log('Мобильное устройство');
-    }
 });
 
 // ============================================
@@ -72,7 +123,7 @@ window.addEventListener('load', function() {
 // ============================================
 function loadSavedData() {
     try {
-        const saved = localStorage.getItem('ledBannerSimpleData');
+        const saved = localStorage.getItem('ledBannerMathData');
         if (saved) {
             const data = JSON.parse(saved);
             if (data.text) textInput.value = data.text;
@@ -102,7 +153,7 @@ function saveData() {
         size: currentSize
     };
     
-    localStorage.setItem('ledBannerSimpleData', JSON.stringify(data));
+    localStorage.setItem('ledBannerMathData', JSON.stringify(data));
     
     if (tg) {
         try {
@@ -131,16 +182,10 @@ function updateDisplay() {
 function updateColor() {
     console.log('Обновление цвета на:', currentColor);
     
-    // Убираем старые классы
     scrollingText.classList.remove('white', 'red', 'blue', 'green', 'yellow');
-    
-    // Добавляем новый класс
     scrollingText.classList.add(currentColor);
-    
-    // Убираем inline style
     scrollingText.style.color = '';
     
-    // Обновляем кнопки
     colorButtons.forEach(btn => {
         btn.classList.remove('active');
         if (btn.classList.contains(currentColor)) {
@@ -181,7 +226,7 @@ function closeKeyboard() {
 }
 
 // ============================================
-// ВСТАВКА СИМВОЛА
+// ВСТАВКА СИМВОЛА (БЕЗ ДУБЛИРОВАНИЯ)
 // ============================================
 function insertSymbol(symbol) {
     const start = textInput.selectionStart;
@@ -190,20 +235,33 @@ function insertSymbol(symbol) {
     
     let insertText = symbol;
     
-    // Для функций добавляем скобки
-    if (['sin', 'cos', 'tan', 'cot', 'arcsin', 'arccos', 'arctan', 'arccot', 'log', 'ln', 'lg', 'exp', 'lim'].includes(symbol)) {
+    // Специальная обработка для функций
+    if (['sin', 'cos', 'tan', 'cot', 'arcsin', 'arccos', 'arctan', 'arccot', 
+         'log', 'ln', 'lg', 'exp', 'lim'].includes(symbol)) {
         insertText = symbol + '(';
     }
     
+    // Специальная обработка для корней
+    if (symbol === '√') {
+        insertText = '√(';
+    } else if (symbol === '∛') {
+        insertText = '∛(';
+    } else if (symbol === '∜') {
+        insertText = '∜(';
+    } else if (symbol === 'n√') {
+        insertText = 'n√(';
+    }
+    
+    // Вставляем символ
     const newText = text.substring(0, start) + insertText + text.substring(end);
     textInput.value = newText;
     
-    // Возвращаем курсор
+    // Устанавливаем курсор после вставки
     const newPos = start + insertText.length;
     textInput.setSelectionRange(newPos, newPos);
     textInput.focus();
     
-    // Обновляем отображение
+    // Обновляем бегущую строку
     scrollingText.textContent = newText;
     saveData();
 }
@@ -300,7 +358,7 @@ tabSymbols.addEventListener('click', function() {
     greekTab.classList.remove('active');
 });
 
-// Кнопки клавиатуры
+// Кнопки клавиатуры - теперь используют функцию insertSymbol
 mathKeys.forEach(function(btn) {
     btn.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -411,4 +469,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ LED Banner простая версия готова!');
+console.log('✅ LED Banner с математическими функциями готов!');
