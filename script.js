@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER С MATHQUILL - ИСПРАВЛЕННАЯ ВЕРСИЯ (БЕЗ ДУБЛИКАЦИИ)
+// LED BANNER С MATHQUILL - МОБИЛЬНАЯ ВЕРСИЯ
 // ============================================
 
 // Telegram
@@ -58,6 +58,11 @@ let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.
 window.addEventListener('load', function() {
     console.log('LED Banner загружен, устройство:', isMobile ? 'Мобильное' : 'Компьютер');
     
+    // Если это мобилка - сразу создаем кнопку для ввода
+    if (isMobile) {
+        addMobileKeyboardButton();
+    }
+    
     setTimeout(function() {
         if (typeof MathQuill !== 'undefined') {
             initMathQuill();
@@ -71,6 +76,142 @@ window.addEventListener('load', function() {
     updateDisplay();
     scrollingText.style.textShadow = 'none';
 });
+
+// ============================================
+// ДОБАВЛЯЕМ КНОПКУ ДЛЯ МОБИЛЬНОЙ КЛАВИАТУРЫ
+// ============================================
+function addMobileKeyboardButton() {
+    const mathFieldElement = document.getElementById('mathField');
+    if (!mathFieldElement) return;
+    
+    // Создаем контейнер для поля и кнопки
+    const container = document.createElement('div');
+    container.style.display = 'flex';
+    container.style.flex = '1';
+    container.style.gap = '10px';
+    container.style.alignItems = 'center';
+    
+    // Обертываем mathField в контейнер
+    mathFieldElement.parentNode.insertBefore(container, mathFieldElement);
+    container.appendChild(mathFieldElement);
+    
+    // Создаем кнопку для открытия клавиатуры
+    const keyboardBtn = document.createElement('button');
+    keyboardBtn.className = 'mobile-keyboard-btn';
+    keyboardBtn.innerHTML = '⌨️';
+    keyboardBtn.style.width = '50px';
+    keyboardBtn.style.height = '50px';
+    keyboardBtn.style.background = '#000000';
+    keyboardBtn.style.border = '2px solid #ffffff';
+    keyboardBtn.style.borderRadius = '25px';
+    keyboardBtn.style.color = '#ffffff';
+    keyboardBtn.style.fontSize = '24px';
+    keyboardBtn.style.cursor = 'pointer';
+    keyboardBtn.style.display = 'flex';
+    keyboardBtn.style.alignItems = 'center';
+    keyboardBtn.style.justifyContent = 'center';
+    
+    container.appendChild(keyboardBtn);
+    
+    // Обработчик для кнопки
+    keyboardBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        openMobileInput();
+    });
+}
+
+// ============================================
+// ОТКРЫТЬ МОБИЛЬНЫЙ INPUT
+// ============================================
+function openMobileInput() {
+    // Создаем временный input
+    const tempInput = document.createElement('input');
+    tempInput.type = 'text';
+    tempInput.style.position = 'fixed';
+    tempInput.style.top = '0';
+    tempInput.style.left = '0';
+    tempInput.style.width = '100%';
+    tempInput.style.height = '60px';
+    tempInput.style.background = '#111111';
+    tempInput.style.border = '2px solid #ffffff';
+    tempInput.style.borderRadius = '30px';
+    tempInput.style.padding = '16px 20px';
+    tempInput.style.fontSize = '18px';
+    tempInput.style.color = '#ffffff';
+    tempInput.style.zIndex = '9999';
+    tempInput.style.marginTop = '60px';
+    tempInput.placeholder = 'Введите текст...';
+    
+    // Получаем текущий текст из MathQuill
+    if (mathField) {
+        // Пытаемся извлечь текст из LaTeX
+        let currentLatex = mathField.latex();
+        // Простая очистка LaTeX от команд
+        currentLatex = currentLatex.replace(/\\[a-zA-Z]+/g, '');
+        currentLatex = currentLatex.replace(/[{}]/g, '');
+        tempInput.value = currentLatex;
+    } else {
+        tempInput.value = 'LED бегущая строка';
+    }
+    
+    document.body.appendChild(tempInput);
+    tempInput.focus();
+    
+    // Обработчик ввода
+    tempInput.addEventListener('input', function(e) {
+        const text = e.target.value;
+        if (mathField) {
+            // Простой текст без LaTeX команд
+            mathField.latex(text);
+        }
+        scrollingText.textContent = text;
+    });
+    
+    // Обработчик потери фокуса
+    tempInput.addEventListener('blur', function() {
+        setTimeout(function() {
+            tempInput.remove();
+        }, 100);
+    });
+    
+    // Обработчик Enter
+    tempInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            tempInput.blur();
+            toggleRun();
+        }
+    });
+}
+
+// ============================================
+// СОЗДАЕМ ЗАПАСНОЙ INPUT
+// ============================================
+function createFallbackInput() {
+    const mathFieldElement = document.getElementById('mathField');
+    if (!mathFieldElement) return;
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'text-input';
+    input.id = 'fallbackInput';
+    input.value = 'LED бегущая строка';
+    input.style.flex = '1';
+    input.style.background = '#111111';
+    input.style.border = '2px solid #ffffff';
+    input.style.borderRadius = '30px';
+    input.style.padding = '16px 20px';
+    input.style.fontSize = '18px';
+    input.style.color = '#ffffff';
+    
+    mathFieldElement.parentNode.replaceChild(input, mathFieldElement);
+    
+    input.addEventListener('input', function(e) {
+        scrollingText.textContent = e.target.value;
+        saveFallbackData(e.target.value);
+    });
+    
+    console.log('Создан запасной input');
+}
 
 // ============================================
 // MATHQUILL ИНИЦИАЛИЗАЦИЯ
@@ -109,7 +250,7 @@ function initMathQuill() {
         
         mathField.latex('LED\\ бегущая\\ строка');
         
-        // На компьютере - обычный ввод
+        // Только для компьютера - разрешаем ввод
         if (!isMobile) {
             mathFieldElement.addEventListener('click', function(e) {
                 mathField.focus();
@@ -119,222 +260,10 @@ function initMathQuill() {
         console.log('MathQuill готов');
         loadSavedData();
         
-        // Если это мобилка - добавляем кнопку клавиатуры
-        if (isMobile) {
-            setTimeout(function() {
-                addMobileKeyboardButton();
-            }, 1000);
-        }
-        
     } catch (e) {
         console.error('Ошибка MathQuill:', e);
         createFallbackInput();
     }
-}
-
-// ============================================
-// ДОБАВЛЯЕМ КНОПКУ ДЛЯ МОБИЛЬНОЙ КЛАВИАТУРЫ
-// ============================================
-function addMobileKeyboardButton() {
-    console.log('Добавляем кнопку клавиатуры');
-    
-    const mathFieldElement = document.getElementById('mathField');
-    if (!mathFieldElement) return;
-    
-    // Проверяем, не добавлена ли уже кнопка
-    if (document.querySelector('.mobile-keyboard-btn')) return;
-    
-    // Создаем контейнер для поля и кнопки
-    const container = document.createElement('div');
-    container.style.display = 'flex';
-    container.style.flex = '1';
-    container.style.gap = '10px';
-    container.style.alignItems = 'center';
-    
-    // Обертываем mathField в контейнер
-    mathFieldElement.parentNode.insertBefore(container, mathFieldElement);
-    container.appendChild(mathFieldElement);
-    
-    // Создаем кнопку для открытия клавиатуры
-    const keyboardBtn = document.createElement('button');
-    keyboardBtn.className = 'mobile-keyboard-btn';
-    keyboardBtn.innerHTML = '⌨️';
-    keyboardBtn.style.width = '50px';
-    keyboardBtn.style.height = '50px';
-    keyboardBtn.style.background = '#000000';
-    keyboardBtn.style.border = '2px solid #ffffff';
-    keyboardBtn.style.borderRadius = '25px';
-    keyboardBtn.style.color = '#ffffff';
-    keyboardBtn.style.fontSize = '24px';
-    keyboardBtn.style.cursor = 'pointer';
-    keyboardBtn.style.display = 'flex';
-    keyboardBtn.style.alignItems = 'center';
-    keyboardBtn.style.justifyContent = 'center';
-    keyboardBtn.style.flexShrink = '0';
-    
-    container.appendChild(keyboardBtn);
-    
-    // Обработчик для кнопки
-    keyboardBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        openMobileInput();
-    });
-}
-
-// ============================================
-// ОТКРЫТЬ МОБИЛЬНЫЙ INPUT (ИСПРАВЛЕНО - БЕЗ ДУБЛИКАЦИИ)
-// ============================================
-function openMobileInput() {
-    if (!mathField) return;
-    
-    // Получаем текущий LaTeX
-    const currentLatex = mathField.latex();
-    
-    // Создаем overlay
-    const overlay = document.createElement('div');
-    overlay.style.position = 'fixed';
-    overlay.style.top = '0';
-    overlay.style.left = '0';
-    overlay.style.right = '0';
-    overlay.style.bottom = '0';
-    overlay.style.background = 'rgba(0, 0, 0, 0.9)';
-    overlay.style.zIndex = '10000';
-    overlay.style.display = 'flex';
-    overlay.style.alignItems = 'center';
-    overlay.style.justifyContent = 'center';
-    
-    // Создаем контейнер для input
-    const container = document.createElement('div');
-    container.style.width = '90%';
-    container.style.maxWidth = '400px';
-    container.style.background = '#111111';
-    container.style.border = '2px solid #ffffff';
-    container.style.borderRadius = '30px';
-    container.style.padding = '20px';
-    
-    // Создаем input
-    const tempInput = document.createElement('input');
-    tempInput.type = 'text';
-    tempInput.style.width = '100%';
-    tempInput.style.height = '50px';
-    tempInput.style.background = '#000000';
-    tempInput.style.border = '2px solid #ffffff';
-    tempInput.style.borderRadius = '25px';
-    tempInput.style.padding = '0 15px';
-    tempInput.style.fontSize = '16px';
-    tempInput.style.color = '#ffffff';
-    tempInput.style.marginBottom = '15px';
-    
-    // Очищаем LaTeX для отображения
-    let displayText = currentLatex
-        .replace(/\\[a-zA-Z]+(\[[^\]]*\])?(\{[^\}]*\})?/g, '')
-        .replace(/[{}]/g, '')
-        .replace(/\\/g, '');
-    
-    tempInput.value = displayText || 'LED бегущая строка';
-    tempInput.placeholder = 'Введите текст...';
-    
-    // Создаем кнопки
-    const buttonContainer = document.createElement('div');
-    buttonContainer.style.display = 'flex';
-    buttonContainer.style.gap = '10px';
-    
-    const okBtn = document.createElement('button');
-    okBtn.textContent = 'Вставить';
-    okBtn.style.flex = '1';
-    okBtn.style.height = '45px';
-    okBtn.style.background = '#ffffff';
-    okBtn.style.border = 'none';
-    okBtn.style.borderRadius = '22px';
-    okBtn.style.color = '#000000';
-    okBtn.style.fontSize = '16px';
-    okBtn.style.fontWeight = 'bold';
-    okBtn.style.cursor = 'pointer';
-    
-    const cancelBtn = document.createElement('button');
-    cancelBtn.textContent = 'Отмена';
-    cancelBtn.style.flex = '1';
-    cancelBtn.style.height = '45px';
-    cancelBtn.style.background = 'transparent';
-    cancelBtn.style.border = '2px solid #ffffff';
-    cancelBtn.style.borderRadius = '22px';
-    cancelBtn.style.color = '#ffffff';
-    cancelBtn.style.fontSize = '16px';
-    cancelBtn.style.fontWeight = 'bold';
-    cancelBtn.style.cursor = 'pointer';
-    
-    buttonContainer.appendChild(okBtn);
-    buttonContainer.appendChild(cancelBtn);
-    
-    container.appendChild(tempInput);
-    container.appendChild(buttonContainer);
-    overlay.appendChild(container);
-    document.body.appendChild(overlay);
-    
-    tempInput.focus();
-    
-    // Обработчики
-    function insertText() {
-        const text = tempInput.value;
-        if (text) {
-            // Вставляем текст посимвольно, чтобы не сломать MathQuill
-            for (let i = 0; i < text.length; i++) {
-                mathField.typedText(text[i]);
-            }
-        }
-        document.body.removeChild(overlay);
-        mathField.focus();
-    }
-    
-    okBtn.addEventListener('click', insertText);
-    
-    cancelBtn.addEventListener('click', function() {
-        document.body.removeChild(overlay);
-        mathField.focus();
-    });
-    
-    tempInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            insertText();
-        }
-    });
-    
-    overlay.addEventListener('click', function(e) {
-        if (e.target === overlay) {
-            document.body.removeChild(overlay);
-            mathField.focus();
-        }
-    });
-}
-
-// ============================================
-// СОЗДАЕМ ЗАПАСНОЙ INPUT
-// ============================================
-function createFallbackInput() {
-    const mathFieldElement = document.getElementById('mathField');
-    if (!mathFieldElement) return;
-    
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'text-input';
-    input.id = 'fallbackInput';
-    input.value = 'LED бегущая строка';
-    input.style.flex = '1';
-    input.style.background = '#111111';
-    input.style.border = '2px solid #ffffff';
-    input.style.borderRadius = '30px';
-    input.style.padding = '16px 20px';
-    input.style.fontSize = '18px';
-    input.style.color = '#ffffff';
-    
-    mathFieldElement.parentNode.replaceChild(input, mathFieldElement);
-    
-    input.addEventListener('input', function(e) {
-        scrollingText.textContent = e.target.value;
-        saveFallbackData(e.target.value);
-    });
-    
-    console.log('Создан запасной input');
 }
 
 // ============================================
@@ -352,12 +281,10 @@ function loadSavedData() {
             if (data.speed) {
                 currentSpeed = data.speed;
                 speedSlider.value = currentSpeed;
-                speedValue.textContent = currentSpeed + ' сек';
             }
             if (data.size) {
                 currentSize = data.size;
                 sizeSlider.value = currentSize;
-                sizeValue.textContent = currentSize + 'vw';
             }
             
             if (data.latex && mathField) {
@@ -510,7 +437,9 @@ function insertMathCommand(cmd) {
             mathField.cmd(cmd);
         }
         
-        mathField.focus();
+        if (!isMobile) {
+            mathField.focus();
+        }
         
     } catch (e) {
         console.error('Ошибка вставки:', e);
@@ -555,8 +484,6 @@ function resetAll() {
     
     sizeSlider.value = 15;
     speedSlider.value = 15;
-    sizeValue.textContent = '15vw';
-    speedValue.textContent = '15 сек';
     
     updateDisplay();
     closeKeyboard();
@@ -612,15 +539,15 @@ tabSymbols.addEventListener('click', function() {
     greekTab.classList.remove('active');
 });
 
-// Кнопки клавиатуры - ИСПРАВЛЕНО: используем textContent для получения символа
+// Кнопки клавиатуры
 mathKeys.forEach(function(btn) {
     btn.addEventListener('click', function(e) {
         e.stopPropagation();
         e.preventDefault();
         
-        const symbol = this.textContent;
-        if (symbol) {
-            insertMathCommand(symbol);
+        const cmd = this.dataset.cmd;
+        if (cmd) {
+            insertMathCommand(cmd);
         }
         
         return false;
@@ -630,18 +557,9 @@ mathKeys.forEach(function(btn) {
 // Цвет
 colorButtons.forEach(function(btn) {
     btn.addEventListener('click', function() {
-        let color = '';
-        if (this.classList.contains('white')) color = 'white';
-        if (this.classList.contains('red')) color = 'red';
-        if (this.classList.contains('blue')) color = 'blue';
-        if (this.classList.contains('green')) color = 'green';
-        if (this.classList.contains('yellow')) color = 'yellow';
-        
-        if (color) {
-            currentColor = color;
-            updateColor();
-            saveData();
-        }
+        currentColor = this.classList[1];
+        updateColor();
+        saveData();
     });
 });
 
@@ -710,4 +628,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ LED Banner с MathQuill исправлен (без дубликатов)!');
+console.log('✅ LED Banner с мобильной поддержкой готов!');
