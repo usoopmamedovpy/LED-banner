@@ -556,4 +556,3 @@ tg.BackButton.onClick(function() {
 tg.BackButton.show();
 
 console.log('✅ ФИНАЛ: красивые формулы на всех устройствах!');
-я
