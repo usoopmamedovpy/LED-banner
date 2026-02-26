@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - УМНЫЙ ПАРСЕР С (a)/(b) ДЛЯ ДРОБЕЙ
+// LED BANNER - УМНЫЙ ПАРСЕР С КВАДРАТНЫМИ СКОБКАМИ
 // ============================================
 
 // Telegram
@@ -79,7 +79,7 @@ function createDesktopInterface() {
     input.type = 'text';
     input.id = 'desktopInput';
     input.className = 'text-input';
-    input.placeholder = 'Введите выражение... √(x+1) или (x^2+1)/(x-1)';
+    input.placeholder = '√[x+1] или (x^2+1)/(x-1)';
     input.value = 'LED бегущая строка';
     input.style.flex = '1';
     input.style.background = '#111111';
@@ -158,7 +158,7 @@ function createMobileInterface() {
     const textInput = document.createElement('input');
     textInput.type = 'text';
     textInput.id = 'mobileInput';
-    textInput.placeholder = '√(x+1) или (x^2+1)/(x-1)';
+    textInput.placeholder = '√[x+1] или (x^2+1)/(x-1)';
     textInput.style.flex = '1';
     textInput.style.background = '#111111';
     textInput.style.border = '2px solid #ffffff';
@@ -210,17 +210,17 @@ function parseToLaTeX(text) {
     
     let result = text;
     
-    // 1. Дроби в формате (числитель)/(знаменатель) - САМОЕ ВАЖНОЕ!
+    // 1. Дроби в формате (числитель)/(знаменатель)
     result = result.replace(/\(([^)]+)\)\s*\/\s*\(([^)]+)\)/g, '\\frac{$1}{$2}');
     
     // 2. Простые дроби (число/число) - для обратной совместимости
     result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
     
-    // 3. Корни: √(выражение) → \sqrt{выражение}
-    result = result.replace(/√\(([^)]+)\)/g, '\\sqrt{$1}');
+    // 3. Корни с квадратными скобками: √[выражение] → \sqrt{выражение}
+    result = result.replace(/√\[([^\]]+)\]/g, '\\sqrt{$1}');
     
-    // 4. Корни с индексом: √[n](выражение) → \sqrt[n]{выражение}
-    result = result.replace(/√\[([^\]]+)\]\(([^)]+)\)/g, '\\sqrt[$1]{$2}');
+    // 4. Корни с индексом: √[n]{выражение} → \sqrt[n]{выражение}
+    result = result.replace(/√\[([^\]]+)\]\{([^}]+)\}/g, '\\sqrt[$1]{$2}');
     
     // 5. Степени: x^y → x^{y}
     result = result.replace(/([a-zA-Z0-9α-ω])\^\(([^)]+)\)/g, '$1^{$2}');
@@ -489,12 +489,18 @@ function insertMathSymbol(symbol) {
     let insertText = symbol;
     
     // Специальные символы
-    if (symbol === '√') insertText = '√()';
-    else if (symbol === '∛') insertText = '∛()';
-    else if (symbol === '∜') insertText = '∜()';
-    else if (symbol === '→') insertText = '→';
-    else if (symbol === '/' && text[start-1] !== '(' && text[end] !== '(') {
+    if (symbol === '√') {
+        insertText = '√[]';  // Квадратные скобки для корня
+    } else if (symbol === '∛') {
+        insertText = '∛[]';
+    } else if (symbol === '∜') {
+        insertText = '∜[]';
+    } else if (symbol === '→') {
+        insertText = '→';
+    } else if (symbol === '/' && text[start-1] !== '(' && text[end] !== '(') {
         insertText = '/( )';
+    } else if (symbol === 'a/b' || symbol === 'frac') {
+        insertText = '(a)/(b)';  // Дробь со скобками
     }
     
     const newText = text.substring(0, start) + insertText + text.substring(end);
@@ -502,10 +508,12 @@ function insertMathSymbol(symbol) {
     
     // Устанавливаем курсор в нужное место
     let newPos = start + insertText.length;
-    if (insertText.includes('()')) {
+    if (insertText.includes('[]')) {
         newPos = start + insertText.length - 1;
     } else if (insertText.includes('/( )')) {
         newPos = start + insertText.length - 2;
+    } else if (insertText === '(a)/(b)') {
+        newPos = start + 2; // Курсор после первой скобки
     }
     input.setSelectionRange(newPos, newPos);
     input.focus();
@@ -571,14 +579,18 @@ tabSymbols.addEventListener('click', function() {
     greekTab.classList.remove('active');
 });
 
-// Кнопки клавиатуры
+// Кнопки клавиатуры - ОБНОВЛЕНО ДЛЯ ДРОБИ
 mathKeys.forEach(function(btn) {
     btn.addEventListener('click', function(e) {
         e.stopPropagation();
         e.preventDefault();
         
         const cmd = this.textContent;
-        if (cmd) {
+        const dataCmd = this.dataset.cmd;
+        
+        if (dataCmd === 'frac' || cmd === 'a/b') {
+            insertMathSymbol('frac');
+        } else if (cmd) {
             insertMathSymbol(cmd);
         }
         
@@ -676,4 +688,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ УМНЫЙ ПАРСЕР: (x+1)/(x-1) = красивая дробь с любыми выражениями!');
+console.log('✅ УМНЫЙ ПАРСЕР: √[x+1] для корней, (a)/(b) для дробей');
