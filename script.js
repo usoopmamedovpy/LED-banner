@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - РАЗДЕЛЬНАЯ ВЕРСИЯ (MATH + ТЕКСТ)
+// LED BANNER - КРАСИВЫЙ ИНТЕРФЕЙС С ДВУМЯ ПОЛЯМИ
 // ============================================
 
 // Telegram
@@ -58,7 +58,7 @@ let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.
 window.addEventListener('load', function() {
     console.log('LED Banner загружен');
     
-    // Создаем структуру с двумя полями
+    // Создаем красивый интерфейс с двумя полями
     createDualInputSystem();
     
     loadSavedData();
@@ -67,48 +67,63 @@ window.addEventListener('load', function() {
 });
 
 // ============================================
-// СОЗДАЕМ СИСТЕМУ С ДВУМЯ ПОЛЯМИ
+// СОЗДАЕМ КРАСИВЫЙ ИНТЕРФЕЙС С ДВУМЯ ПОЛЯМИ
 // ============================================
 function createDualInputSystem() {
     const mathFieldElement = document.getElementById('mathField');
     if (!mathFieldElement) return;
     
-    // Создаем контейнер
-    const container = document.createElement('div');
-    container.style.display = 'flex';
-    container.style.flexDirection = 'column';
-    container.style.flex = '1';
-    container.style.gap = '10px';
+    // Очищаем inputArea
+    inputArea.innerHTML = '';
+    inputArea.style.display = 'flex';
+    inputArea.style.flexDirection = 'column';
+    inputArea.style.gap = '10px';
+    inputArea.style.padding = '16px';
     
-    // Верхнее поле - для MATH символов
-    const mathContainer = document.createElement('div');
-    mathContainer.style.display = 'flex';
-    mathContainer.style.gap = '10px';
-    mathContainer.style.alignItems = 'center';
+    // ===== ВЕРХНЯЯ СТРОКА (MATH поле) =====
+    const topRow = document.createElement('div');
+    topRow.style.display = 'flex';
+    topRow.style.gap = '10px';
+    topRow.style.alignItems = 'center';
+    topRow.style.width = '100%';
     
-    // Нижнее поле - для обычного текста
-    const textContainer = document.createElement('div');
-    textContainer.style.display = 'flex';
-    textContainer.style.gap = '10px';
-    textContainer.style.alignItems = 'center';
-    
-    // Кнопка MATH остается сверху
-    const mathBtnClone = mathBtn.cloneNode(true);
-    mathBtnClone.id = 'mathBtnClone';
-    mathBtnClone.style.width = '70px';
-    mathBtnClone.style.height = '50px';
+    // Кнопка MATH (одна!)
+    const mathButton = document.createElement('button');
+    mathButton.className = 'math-btn';
+    mathButton.id = 'mathBtnNew';
+    mathButton.textContent = 'MATH';
+    mathButton.style.width = '70px';
+    mathButton.style.height = '60px';
+    mathButton.style.background = '#000000';
+    mathButton.style.border = '2px solid #ffffff';
+    mathButton.style.borderRadius = '30px';
+    mathButton.style.color = '#ffffff';
+    mathButton.style.fontWeight = 'bold';
+    mathButton.style.fontSize = '18px';
+    mathButton.style.cursor = 'pointer';
     
     // MATH поле
     const mathDiv = document.createElement('div');
     mathDiv.id = 'mathField';
     mathDiv.className = 'math-field';
     mathDiv.style.flex = '1';
-    mathDiv.style.minHeight = '50px';
+    mathDiv.style.minHeight = '60px';
     mathDiv.style.background = '#111111';
     mathDiv.style.border = '2px solid #ffffff';
     mathDiv.style.borderRadius = '30px';
     mathDiv.style.padding = '12px 20px';
     mathDiv.style.fontSize = '18px';
+    mathDiv.style.color = '#ffffff';
+    
+    topRow.appendChild(mathButton);
+    topRow.appendChild(mathDiv);
+    
+    // ===== НИЖНЯЯ СТРОКА (текстовое поле + стрелка + RUN) =====
+    const bottomRow = document.createElement('div');
+    bottomRow.style.display = 'flex';
+    bottomRow.style.gap = '10px';
+    bottomRow.style.alignItems = 'center';
+    bottomRow.style.width = '100%';
     
     // Текстовое поле
     const textInput = document.createElement('input');
@@ -121,49 +136,67 @@ function createDualInputSystem() {
     textInput.style.background = '#111111';
     textInput.style.border = '2px solid #ffffff';
     textInput.style.borderRadius = '30px';
-    textInput.style.padding = '12px 20px';
+    textInput.style.padding = '16px 20px';
     textInput.style.fontSize = '18px';
     textInput.style.color = '#ffffff';
+    textInput.style.outline = 'none';
     
-    // Кнопка для вставки текста в MATH
-    const insertBtn = document.createElement('button');
-    insertBtn.innerHTML = '→';
-    insertBtn.style.width = '50px';
-    insertBtn.style.height = '50px';
-    insertBtn.style.background = '#000000';
-    insertBtn.style.border = '2px solid #ffffff';
-    insertBtn.style.borderRadius = '25px';
-    insertBtn.style.color = '#ffffff';
-    insertBtn.style.fontSize = '24px';
-    insertBtn.style.cursor = 'pointer';
+    // Кнопка стрелка (красивая)
+    const arrowBtn = document.createElement('button');
+    arrowBtn.id = 'arrowBtn';
+    arrowBtn.innerHTML = '→';
+    arrowBtn.style.width = '60px';
+    arrowBtn.style.height = '60px';
+    arrowBtn.style.background = '#000000';
+    arrowBtn.style.border = '2px solid #ffffff';
+    arrowBtn.style.borderRadius = '30px';
+    arrowBtn.style.color = '#ffffff';
+    arrowBtn.style.fontSize = '28px';
+    arrowBtn.style.fontWeight = 'bold';
+    arrowBtn.style.cursor = 'pointer';
+    arrowBtn.style.display = 'flex';
+    arrowBtn.style.alignItems = 'center';
+    arrowBtn.style.justifyContent = 'center';
+    arrowBtn.style.transition = 'all 0.2s ease';
     
-    // Собираем структуру
-    mathContainer.appendChild(mathBtnClone);
-    mathContainer.appendChild(mathDiv);
+    // RUN кнопка (оригинальная)
+    const runButton = document.createElement('button');
+    runButton.className = 'run-btn';
+    runButton.id = 'runBtn';
+    runButton.textContent = 'RUN';
+    runButton.style.width = '70px';
+    runButton.style.height = '60px';
+    runButton.style.background = 'transparent';
+    runButton.style.border = '2px solid #ffffff';
+    runButton.style.borderRadius = '30px';
+    runButton.style.color = '#ffffff';
+    runButton.style.fontWeight = 'bold';
+    runButton.style.fontSize = '18px';
+    runButton.style.cursor = 'pointer';
+    runButton.style.textTransform = 'uppercase';
+    runButton.style.letterSpacing = '2px';
     
-    textContainer.appendChild(textInput);
-    textContainer.appendChild(insertBtn);
+    bottomRow.appendChild(textInput);
+    bottomRow.appendChild(arrowBtn);
+    bottomRow.appendChild(runButton);
     
-    container.appendChild(mathContainer);
-    container.appendChild(textContainer);
+    // Добавляем строки в inputArea
+    inputArea.appendChild(topRow);
+    inputArea.appendChild(bottomRow);
     
-    // Заменяем оригинальное поле
-    mathFieldElement.parentNode.replaceChild(container, mathFieldElement);
-    
-    // Инициализируем MathQuill на новом поле
+    // Инициализируем MathQuill
     initMathQuill(mathDiv);
     
-    // Обработчики
-    mathBtnClone.addEventListener('click', function(e) {
+    // ===== ОБРАБОТЧИКИ =====
+    
+    // MATH кнопка
+    mathButton.addEventListener('click', function(e) {
         e.stopPropagation();
         toggleKeyboard();
     });
     
-    textInput.addEventListener('input', function(e) {
-        // Просто храним значение, ничего не делаем с MATH
-    });
-    
-    insertBtn.addEventListener('click', function() {
+    // Стрелка - вставляет текст в MATH поле
+    arrowBtn.addEventListener('click', function() {
         const text = textInput.value;
         if (text && mathField) {
             // Вставляем текст в текущую позицию курсора
@@ -171,6 +204,7 @@ function createDualInputSystem() {
                 mathField.typedText(char);
             }
             textInput.value = ''; // Очищаем после вставки
+            textInput.focus();
         }
     });
     
@@ -178,9 +212,17 @@ function createDualInputSystem() {
     textInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
-            insertBtn.click();
+            arrowBtn.click();
         }
     });
+    
+    // RUN кнопка
+    runButton.addEventListener('click', function() {
+        toggleRun();
+    });
+    
+    // Обновляем ссылку на runBtn
+    window.runBtn = runButton;
 }
 
 // ============================================
@@ -287,15 +329,22 @@ function updateDisplay() {
 }
 
 function updateColor() {
+    console.log('Обновление цвета на:', currentColor);
+    
+    // Убираем все классы цвета
     scrollingText.classList.remove('white', 'red', 'blue', 'green', 'yellow');
+    
+    // Добавляем новый класс
     scrollingText.classList.add(currentColor);
     
+    // Также применяем inline style для надежности
     if (currentColor === 'white') scrollingText.style.color = '#ffffff';
     if (currentColor === 'red') scrollingText.style.color = '#ff3b30';
     if (currentColor === 'blue') scrollingText.style.color = '#007aff';
     if (currentColor === 'green') scrollingText.style.color = '#34c759';
     if (currentColor === 'yellow') scrollingText.style.color = '#ffcc00';
     
+    // Обновляем активную кнопку цвета
     colorButtons.forEach(btn => {
         btn.classList.remove('active');
         if (btn.classList.contains(currentColor)) {
@@ -321,13 +370,13 @@ function toggleKeyboard() {
     if (keyboardVisible) {
         mathKeyboard.classList.add('show');
         mathBtn.classList.add('active');
-        document.getElementById('mathBtnClone').classList.add('active');
+        document.getElementById('mathBtnNew')?.classList.add('active');
         settingsPanel.classList.remove('show');
         settingsBtn.classList.remove('active');
     } else {
         mathKeyboard.classList.remove('show');
         mathBtn.classList.remove('active');
-        document.getElementById('mathBtnClone').classList.remove('active');
+        document.getElementById('mathBtnNew')?.classList.remove('active');
     }
 }
 
@@ -335,8 +384,8 @@ function closeKeyboard() {
     keyboardVisible = false;
     mathKeyboard.classList.remove('show');
     mathBtn.classList.remove('active');
-    const clone = document.getElementById('mathBtnClone');
-    if (clone) clone.classList.remove('active');
+    const newBtn = document.getElementById('mathBtnNew');
+    if (newBtn) newBtn.classList.remove('active');
 }
 
 // ============================================
@@ -389,6 +438,8 @@ function insertMathCommand(cmd) {
 // УПРАВЛЕНИЕ ЗАПУСКОМ
 // ============================================
 function toggleRun() {
+    const currentRunBtn = document.getElementById('runBtn');
+    
     if (isRunning) {
         inputArea.style.display = 'flex';
         settingsBtn.style.display = 'flex';
@@ -439,11 +490,10 @@ function resetAll() {
 // ОБРАБОТЧИКИ
 // ============================================
 
-// Оригинальная MATH кнопка (для совместимости)
-mathBtn.addEventListener('click', function(e) {
-    e.stopPropagation();
-    toggleKeyboard();
-});
+// Оригинальная MATH кнопка (скрываем, но оставляем для обратной совместимости)
+if (mathBtn) {
+    mathBtn.style.display = 'none';
+}
 
 // Вкладки
 tabFunctions.addEventListener('click', function() {
@@ -488,13 +538,24 @@ mathKeys.forEach(function(btn) {
     });
 });
 
-// Цвет
+// ЦВЕТ - ИСПРАВЛЕНО!
 colorButtons.forEach(function(btn) {
     btn.addEventListener('click', function(e) {
         e.stopPropagation();
+        e.preventDefault();
         
-        const color = this.classList[1];
+        console.log('Клик по цвету:', this.classList);
+        
+        // Получаем цвет из класса (white, red, blue, green, yellow)
+        let color = '';
+        if (this.classList.contains('white')) color = 'white';
+        else if (this.classList.contains('red')) color = 'red';
+        else if (this.classList.contains('blue')) color = 'blue';
+        else if (this.classList.contains('green')) color = 'green';
+        else if (this.classList.contains('yellow')) color = 'yellow';
+        
         if (color) {
+            console.log('Выбран цвет:', color);
             currentColor = color;
             updateColor();
             saveData();
@@ -517,9 +578,6 @@ speedSlider.addEventListener('input', function() {
     restartAnimation();
     saveData();
 });
-
-// RUN
-runBtn.addEventListener('click', toggleRun);
 
 // Крестик
 resetBtn.addEventListener('click', function() {
@@ -567,4 +625,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ LED Banner с раздельными полями готов!');
+console.log('✅ LED Banner с красивым интерфейсом готов!');
