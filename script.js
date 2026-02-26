@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - РАЗДЕЛЕНИЕ ВВОДА И ОТОБРАЖЕНИЯ
+// LED BANNER - УМНЫЙ ПАРСЕР МАТЕМАТИКИ
 // ============================================
 
 // Telegram
@@ -48,8 +48,6 @@ let currentColor = 'white';
 let currentSize = 15;
 let isRunning = false;
 let keyboardVisible = false;
-let mathField = null;
-let MQ = null;
 let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 // ============================================
@@ -58,12 +56,10 @@ let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.
 window.addEventListener('load', function() {
     console.log('LED Banner загружен');
     
-    // Полностью перестраиваем интерфейс для мобилок
     if (isMobile) {
         createMobileInterface();
     } else {
-        // Для компьютера оставляем как есть
-        initMathQuill(document.getElementById('mathField'));
+        createDesktopInterface();
     }
     
     loadSavedData();
@@ -72,69 +68,97 @@ window.addEventListener('load', function() {
 });
 
 // ============================================
-// МОБИЛЬНЫЙ ИНТЕРФЕЙС (Ввод через input, отображение через MathQuill)
+// ДЕСКТОПНЫЙ ИНТЕРФЕЙС
 // ============================================
-function createMobileInterface() {
-    console.log('Создание мобильного интерфейса...');
-    
+function createDesktopInterface() {
     const mathFieldElement = document.getElementById('mathField');
     if (!mathFieldElement) return;
     
-    // Очищаем inputArea
+    // Создаем input для ввода
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = 'desktopInput';
+    input.className = 'text-input';
+    input.placeholder = 'Введите выражение...';
+    input.value = 'LED бегущая строка';
+    input.style.flex = '1';
+    input.style.background = '#111111';
+    input.style.border = '2px solid #ffffff';
+    input.style.borderRadius = '30px';
+    input.style.padding = '16px 20px';
+    input.style.fontSize = '18px';
+    input.style.color = '#ffffff';
+    
+    // Заменяем mathField на input
+    mathFieldElement.parentNode.replaceChild(input, mathFieldElement);
+    
+    // Обработчик ввода
+    input.addEventListener('input', function(e) {
+        const text = e.target.value;
+        const latex = parseToLaTeX(text);
+        scrollingText.innerHTML = '\\(' + latex + '\\)';
+        if (window.MathJax) {
+            MathJax.typesetPromise([scrollingText]).catch(() => {});
+        }
+        saveData({ latex: latex });
+    });
+    
+    // Enter
+    input.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            toggleRun();
+        }
+    });
+}
+
+// ============================================
+// МОБИЛЬНЫЙ ИНТЕРФЕЙС
+// ============================================
+function createMobileInterface() {
     inputArea.innerHTML = '';
     inputArea.style.display = 'flex';
     inputArea.style.flexDirection = 'column';
     inputArea.style.gap = '10px';
     
-    // ===== ВЕРХНЯЯ СТРОКА - ОТОБРАЖЕНИЕ MATH =====
-    const displayRow = document.createElement('div');
-    displayRow.style.display = 'flex';
-    displayRow.style.gap = '10px';
-    displayRow.style.alignItems = 'center';
-    displayRow.style.width = '100%';
+    // Верхняя строка - кнопка MATH и отображение
+    const topRow = document.createElement('div');
+    topRow.style.display = 'flex';
+    topRow.style.gap = '10px';
+    topRow.style.alignItems = 'center';
     
-    // MATH кнопка
     const mathButton = document.createElement('button');
     mathButton.className = 'math-btn';
     mathButton.textContent = 'MATH';
     mathButton.style.width = '70px';
     mathButton.style.height = '60px';
-    mathButton.style.background = '#000000';
-    mathButton.style.border = '2px solid #ffffff';
-    mathButton.style.borderRadius = '30px';
-    mathButton.style.color = '#ffffff';
-    mathButton.style.fontWeight = 'bold';
-    mathButton.style.fontSize = '18px';
-    mathButton.style.cursor = 'pointer';
     
-    // Поле для отображения (MathQuill)
-    const displayField = document.createElement('div');
-    displayField.id = 'mathDisplay';
-    displayField.style.flex = '1';
-    displayField.style.minHeight = '60px';
-    displayField.style.background = '#111111';
-    displayField.style.border = '2px solid #ffffff';
-    displayField.style.borderRadius = '30px';
-    displayField.style.padding = '12px 20px';
-    displayField.style.fontSize = '18px';
-    displayField.style.color = '#ffffff';
-    displayField.style.pointerEvents = 'none'; // Не реагирует на клики
+    const previewSpan = document.createElement('span');
+    previewSpan.id = 'previewSpan';
+    previewSpan.style.flex = '1';
+    previewSpan.style.minHeight = '60px';
+    previewSpan.style.background = '#111111';
+    previewSpan.style.border = '2px solid #ffffff';
+    previewSpan.style.borderRadius = '30px';
+    previewSpan.style.padding = '16px 20px';
+    previewSpan.style.fontSize = '18px';
+    previewSpan.style.color = '#ffffff';
+    previewSpan.style.display = 'flex';
+    previewSpan.style.alignItems = 'center';
+    previewSpan.textContent = 'LED бегущая строка';
     
-    displayRow.appendChild(mathButton);
-    displayRow.appendChild(displayField);
+    topRow.appendChild(mathButton);
+    topRow.appendChild(previewSpan);
     
-    // ===== НИЖНЯЯ СТРОКА - ВВОД ТЕКСТА =====
-    const inputRow = document.createElement('div');
-    inputRow.style.display = 'flex';
-    inputRow.style.gap = '10px';
-    inputRow.style.alignItems = 'center';
-    inputRow.style.width = '100%';
+    // Нижняя строка - ввод и RUN
+    const bottomRow = document.createElement('div');
+    bottomRow.style.display = 'flex';
+    bottomRow.style.gap = '10px';
+    bottomRow.style.alignItems = 'center';
     
-    // Поле для ввода текста (обычный input)
     const textInput = document.createElement('input');
     textInput.type = 'text';
-    textInput.id = 'mobileTextInput';
-    textInput.placeholder = 'Введите текст...';
+    textInput.id = 'mobileInput';
+    textInput.placeholder = 'Введите √(x+1) или 1/2...';
     textInput.style.flex = '1';
     textInput.style.background = '#111111';
     textInput.style.border = '2px solid #ffffff';
@@ -142,147 +166,128 @@ function createMobileInterface() {
     textInput.style.padding = '16px 20px';
     textInput.style.fontSize = '18px';
     textInput.style.color = '#ffffff';
-    textInput.style.outline = 'none';
     
-    // Кнопка для вставки математических символов
-    const insertMathBtn = document.createElement('button');
-    insertMathBtn.innerHTML = '∑';
-    insertMathBtn.style.width = '60px';
-    insertMathBtn.style.height = '60px';
-    insertMathBtn.style.background = '#000000';
-    insertMathBtn.style.border = '2px solid #ffffff';
-    insertMathBtn.style.borderRadius = '30px';
-    insertMathBtn.style.color = '#ffffff';
-    insertMathBtn.style.fontSize = '24px';
-    insertMathBtn.style.fontWeight = 'bold';
-    insertMathBtn.style.cursor = 'pointer';
-    
-    // RUN кнопка
     const runButton = document.createElement('button');
     runButton.className = 'run-btn';
     runButton.textContent = 'RUN';
     runButton.style.width = '70px';
     runButton.style.height = '60px';
-    runButton.style.background = 'transparent';
-    runButton.style.border = '2px solid #ffffff';
-    runButton.style.borderRadius = '30px';
-    runButton.style.color = '#ffffff';
-    runButton.style.fontWeight = 'bold';
-    runButton.style.fontSize = '18px';
-    runButton.style.cursor = 'pointer';
     
-    inputRow.appendChild(textInput);
-    inputRow.appendChild(insertMathBtn);
-    inputRow.appendChild(runButton);
+    bottomRow.appendChild(textInput);
+    bottomRow.appendChild(runButton);
     
-    // Добавляем строки в интерфейс
-    inputArea.appendChild(displayRow);
-    inputArea.appendChild(inputRow);
+    inputArea.appendChild(topRow);
+    inputArea.appendChild(bottomRow);
     
-    // Инициализируем MathQuill на поле отображения
-    initMathQuill(displayField, true); // true = режим только для чтения
+    // Обработчики
+    mathButton.addEventListener('click', toggleKeyboard);
+    runButton.addEventListener('click', toggleRun);
     
-    // ===== ОБРАБОТЧИКИ =====
-    
-    // MATH кнопка - открывает клавиатуру с символами
-    mathButton.addEventListener('click', function(e) {
-        e.stopPropagation();
-        toggleKeyboard();
-    });
-    
-    // Кнопка вставки математических символов
-    insertMathBtn.addEventListener('click', function() {
-        // Фокус на текстовое поле
-        textInput.focus();
-    });
-    
-    // Ввод текста
     textInput.addEventListener('input', function(e) {
         const text = e.target.value;
-        if (mathField) {
-            // Обновляем MathQuill
-            mathField.latex(text);
-            
-            // Обновляем бегущую строку
-            scrollingText.innerHTML = '\\(' + text + '\\)';
-            if (window.MathJax) {
-                MathJax.typesetPromise([scrollingText]).catch(() => {});
-            }
+        const latex = parseToLaTeX(text);
+        previewSpan.innerHTML = '';
+        previewSpan.appendChild(document.createTextNode(text));
+        scrollingText.innerHTML = '\\(' + latex + '\\)';
+        if (window.MathJax) {
+            MathJax.typesetPromise([scrollingText]).catch(() => {});
         }
-        saveData();
+        saveData({ latex: latex, raw: text });
     });
     
-    // Enter в текстовом поле
     textInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
-            e.preventDefault();
             toggleRun();
         }
     });
-    
-    // RUN
-    runButton.addEventListener('click', toggleRun);
-    
-    console.log('Мобильный интерфейс создан');
 }
 
 // ============================================
-// MATHQUILL ИНИЦИАЛИЗАЦИЯ
+// УМНЫЙ ПАРСЕР МАТЕМАТИКИ
 // ============================================
-function initMathQuill(element, readOnly = false) {
-    try {
-        console.log('Инициализация MathQuill...');
-        
-        MQ = MathQuill.getInterface(2);
-        
-        const config = {
-            spaceBehavesLikeTab: true,
-            autoCommands: 'pi theta sqrt sum prod int alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi pi rho sigma tau upsilon phi chi psi omega',
-            autoOperatorNames: 'sin cos tan cot arcsin arccos arctan arccot log ln lg exp lim'
-        };
-        
-        // В режиме только для чтения - отключаем редактирование
-        if (readOnly) {
-            config.handlers = {
-                edit: function() {} // Пустой обработчик
-            };
-        } else {
-            config.handlers = {
-                edit: function() {
-                    const latex = mathField.latex();
-                    
-                    if (latex) {
-                        scrollingText.innerHTML = '\\(' + latex + '\\)';
-                        if (window.MathJax) {
-                            MathJax.typesetPromise([scrollingText]).catch(() => {});
-                        }
-                    }
-                    
-                    saveData();
-                }
-            };
-        }
-        
-        mathField = MQ.MathField(element, config);
-        
-        if (!readOnly) {
-            mathField.latex('LED\\ бегущая\\ строка');
-        }
-        
-        console.log('MathQuill готов');
-        loadSavedData();
-        
-    } catch (e) {
-        console.error('Ошибка MathQuill:', e);
+function parseToLaTeX(text) {
+    if (!text) return '';
+    
+    let result = text;
+    
+    // 1. Корни: √(выражение) → \sqrt{выражение}
+    result = result.replace(/√\(([^)]+)\)/g, '\\sqrt{$1}');
+    
+    // 2. Дроби: число/число → \frac{число}{число}
+    result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
+    
+    // 3. Смешанные числа: целое пробел дробь
+    result = result.replace(/(\d+)\s+(\d+)\/(\d+)/g, '$1\\frac{$2}{$3}');
+    
+    // 4. Степени: x^y → x^{y}
+    result = result.replace(/([a-zA-Z0-9])\^([a-zA-Z0-9])/g, '$1^{$2}');
+    result = result.replace(/([a-zA-Z0-9])\^\(([^)]+)\)/g, '$1^{$2}');
+    
+    // 5. Индексы: x_y → x_{y}
+    result = result.replace(/([a-zA-Z0-9])_([a-zA-Z0-9])/g, '$1_{$2}');
+    result = result.replace(/([a-zA-Z0-9])_\(([^)]+)\)/g, '$1_{$2}');
+    
+    // 6. Греческие буквы
+    const greekMap = {
+        'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
+        'ε': '\\epsilon', 'ζ': '\\zeta', 'η': '\\eta', 'θ': '\\theta',
+        'ι': '\\iota', 'κ': '\\kappa', 'λ': '\\lambda', 'μ': '\\mu',
+        'ν': '\\nu', 'ξ': '\\xi', 'π': '\\pi', 'ρ': '\\rho',
+        'σ': '\\sigma', 'τ': '\\tau', 'υ': '\\upsilon', 'φ': '\\phi',
+        'χ': '\\chi', 'ψ': '\\psi', 'ω': '\\omega'
+    };
+    
+    for (let [char, latex] of Object.entries(greekMap)) {
+        result = result.replace(new RegExp(char, 'g'), latex);
     }
+    
+    // 7. Функции
+    const funcs = ['sin', 'cos', 'tan', 'cot', 'log', 'ln', 'lg', 'exp', 'lim'];
+    funcs.forEach(func => {
+        const regex = new RegExp(func + '\\s*\\(', 'g');
+        result = result.replace(regex, func + '(');
+    });
+    
+    // 8. Специальные символы
+    const specialMap = {
+        '∞': '\\infty',
+        '∫': '\\int',
+        '∑': '\\sum',
+        '∏': '\\prod',
+        '±': '\\pm',
+        '×': '\\times',
+        '÷': '\\div',
+        '≠': '\\neq',
+        '≤': '\\leq',
+        '≥': '\\geq',
+        '≈': '\\approx',
+        '→': '\\rightarrow',
+        '←': '\\leftarrow',
+        '⇒': '\\Rightarrow',
+        '⇔': '\\Leftrightarrow',
+        '∀': '\\forall',
+        '∃': '\\exists',
+        '∈': '\\in',
+        '∉': '\\notin',
+        '⊂': '\\subset',
+        '⊃': '\\supset',
+        '∪': '\\cup',
+        '∩': '\\cap'
+    };
+    
+    for (let [char, latex] of Object.entries(specialMap)) {
+        result = result.replace(new RegExp(char, 'g'), latex);
+    }
+    
+    return result;
 }
 
 // ============================================
-// ЗАГРУЗКА/СОХРАНЕНИЕ
+// СОХРАНЕНИЕ
 // ============================================
 function loadSavedData() {
     try {
-        const saved = localStorage.getItem('ledBannerMathData');
+        const saved = localStorage.getItem('ledBannerData');
         if (saved) {
             const data = JSON.parse(saved);
             if (data.color) {
@@ -299,44 +304,41 @@ function loadSavedData() {
                 sizeSlider.value = currentSize;
                 sizeValue.textContent = currentSize + 'vw';
             }
-            
-            if (data.latex && mathField) {
-                mathField.latex(data.latex);
-                
-                // Обновляем текстовое поле если есть
-                const textInput = document.getElementById('mobileTextInput');
-                if (textInput) {
-                    textInput.value = data.latex.replace(/\\[a-zA-Z]+/g, '').replace(/[{}]/g, '');
+            if (data.latex) {
+                scrollingText.innerHTML = '\\(' + data.latex + '\\)';
+                if (window.MathJax) {
+                    MathJax.typesetPromise([scrollingText]).catch(() => {});
                 }
+            }
+            if (data.raw) {
+                const input = document.getElementById('mobileInput') || document.getElementById('desktopInput');
+                if (input) input.value = data.raw;
             }
         }
     } catch (e) {}
 }
 
-function saveData() {
-    if (!mathField) return;
-    
-    const data = {
-        latex: mathField.latex(),
+function saveData(data) {
+    const fullData = {
+        ...data,
         color: currentColor,
         speed: currentSpeed,
         size: currentSize
     };
-    
-    localStorage.setItem('ledBannerMathData', JSON.stringify(data));
+    localStorage.setItem('ledBannerData', JSON.stringify(fullData));
     
     if (tg) {
         try {
             tg.sendData(JSON.stringify({
                 action: 'save',
-                data: data
+                data: fullData
             }));
         } catch (e) {}
     }
 }
 
 // ============================================
-// ОБНОВЛЕНИЕ ОТОБРАЖЕНИЯ
+// ОБНОВЛЕНИЕ
 // ============================================
 function updateDisplay() {
     scrollingText.style.fontSize = currentSize + 'vw';
@@ -349,16 +351,12 @@ function updateDisplay() {
 }
 
 function updateColor() {
-    console.log('Обновление цвета на:', currentColor);
-    
-    // Применяем цвет через inline style
     if (currentColor === 'white') scrollingText.style.color = '#ffffff';
     else if (currentColor === 'red') scrollingText.style.color = '#ff3b30';
     else if (currentColor === 'blue') scrollingText.style.color = '#007aff';
     else if (currentColor === 'green') scrollingText.style.color = '#34c759';
     else if (currentColor === 'yellow') scrollingText.style.color = '#ffcc00';
     
-    // Обновляем активную кнопку цвета
     colorButtons.forEach(btn => {
         btn.classList.remove('active');
         if (btn.classList.contains(currentColor)) {
@@ -374,11 +372,10 @@ function restartAnimation() {
 }
 
 // ============================================
-// УПРАВЛЕНИЕ КЛАВИАТУРОЙ
+// УПРАВЛЕНИЕ
 // ============================================
 function toggleKeyboard() {
     if (isRunning) return;
-    
     keyboardVisible = !keyboardVisible;
     
     if (keyboardVisible) {
@@ -407,62 +404,6 @@ function closeKeyboard() {
     }
 }
 
-// ============================================
-// ВСТАВКА В ТЕКСТОВОЕ ПОЛЕ (ДЛЯ МОБИЛОК)
-// ============================================
-function insertMathCommand(cmd) {
-    if (!mathField) return;
-    
-    try {
-        console.log('Вставка символа:', cmd);
-        
-        let latexCmd = cmd;
-        
-        if (cmd === '^') latexCmd = '^';
-        else if (cmd === '_') latexCmd = '_';
-        else if (cmd === '√') latexCmd = '\\sqrt{}';
-        else if (cmd === '∛') latexCmd = '\\sqrt[3]{}';
-        else if (cmd === '∜') latexCmd = '\\sqrt[4]{}';
-        else if (cmd === 'n√') latexCmd = '\\sqrt[n]{}';
-        else if (cmd === '→' || cmd === '\\vec') latexCmd = '\\vec{}';
-        else if (cmd === '/') latexCmd = '\\frac{}{}';
-        
-        // Для мобилок - вставляем в текстовое поле
-        if (isMobile) {
-            const textInput = document.getElementById('mobileTextInput');
-            if (textInput) {
-                const start = textInput.selectionStart;
-                const end = textInput.selectionEnd;
-                const text = textInput.value;
-                
-                const newText = text.substring(0, start) + latexCmd + text.substring(end);
-                textInput.value = newText;
-                textInput.setSelectionRange(start + latexCmd.length, start + latexCmd.length);
-                
-                // Обновляем MathQuill
-                mathField.latex(newText);
-                
-                // Обновляем бегущую строку
-                scrollingText.innerHTML = '\\(' + newText + '\\)';
-                if (window.MathJax) {
-                    MathJax.typesetPromise([scrollingText]).catch(() => {});
-                }
-                
-                saveData();
-            }
-        } else {
-            // Для компьютера - прямая вставка в MathQuill
-            mathField.cmd(cmd);
-        }
-        
-    } catch (e) {
-        console.error('Ошибка вставки:', e);
-    }
-}
-
-// ============================================
-// УПРАВЛЕНИЕ ЗАПУСКОМ
-// ============================================
 function toggleRun() {
     if (isRunning) {
         inputArea.style.display = 'flex';
@@ -474,13 +415,9 @@ function toggleRun() {
         settingsBtn.style.display = 'none';
         isRunning = true;
         closeKeyboard();
-        saveData();
     }
 }
 
-// ============================================
-// СБРОС
-// ============================================
 function resetAll() {
     if (isRunning) {
         inputArea.style.display = 'flex';
@@ -488,14 +425,12 @@ function resetAll() {
         isRunning = false;
     }
     
-    if (mathField) {
-        mathField.latex('LED\\ бегущая\\ строка');
-    }
+    const input = document.getElementById('mobileInput') || document.getElementById('desktopInput');
+    if (input) input.value = 'LED бегущая строка';
     
-    // Очищаем текстовое поле для мобилок
-    const textInput = document.getElementById('mobileTextInput');
-    if (textInput) {
-        textInput.value = 'LED бегущая строка';
+    scrollingText.innerHTML = '\\(LED\\ бегущая\\ строка\\)';
+    if (window.MathJax) {
+        MathJax.typesetPromise([scrollingText]).catch(() => {});
     }
     
     currentColor = 'white';
@@ -509,20 +444,65 @@ function resetAll() {
     closeKeyboard();
     settingsPanel.classList.remove('show');
     settingsBtn.classList.remove('active');
-    saveData();
+    
+    saveData({ latex: 'LED\\ бегущая\\ строка', raw: 'LED бегущая строка' });
+}
+
+// ============================================
+// ВСТАВКА СИМВОЛОВ
+// ============================================
+function insertMathSymbol(symbol) {
+    const input = document.getElementById('mobileInput') || document.getElementById('desktopInput');
+    if (!input) return;
+    
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    const text = input.value;
+    
+    let insertText = symbol;
+    
+    // Специальные символы
+    if (symbol === '√') insertText = '√()';
+    else if (symbol === '∛') insertText = '∛()';
+    else if (symbol === '∜') insertText = '∜()';
+    else if (symbol === '→') insertText = '→';
+    else if (symbol === '/') insertText = '/';
+    
+    const newText = text.substring(0, start) + insertText + text.substring(end);
+    input.value = newText;
+    
+    // Устанавливаем курсор в нужное место
+    let newPos = start + insertText.length;
+    if (insertText.includes('()')) {
+        newPos = start + insertText.length - 1;
+    }
+    input.setSelectionRange(newPos, newPos);
+    input.focus();
+    
+    // Обновляем отображение
+    const latex = parseToLaTeX(newText);
+    scrollingText.innerHTML = '\\(' + latex + '\\)';
+    if (window.MathJax) {
+        MathJax.typesetPromise([scrollingText]).catch(() => {});
+    }
+    
+    if (isMobile) {
+        const previewSpan = document.getElementById('previewSpan');
+        if (previewSpan) {
+            previewSpan.innerHTML = '';
+            previewSpan.appendChild(document.createTextNode(newText));
+        }
+    }
+    
+    saveData({ latex: latex, raw: newText });
 }
 
 // ============================================
 // ОБРАБОТЧИКИ
 // ============================================
 
-// MATH кнопка
-mathBtn.addEventListener('click', function(e) {
-    e.stopPropagation();
-    toggleKeyboard();
-});
+mathBtn.addEventListener('click', toggleKeyboard);
 
-// Закрытие клавиатуры
 document.addEventListener('click', function(e) {
     if (keyboardVisible && 
         !mathKeyboard.contains(e.target) && 
@@ -566,22 +546,20 @@ mathKeys.forEach(function(btn) {
         e.stopPropagation();
         e.preventDefault();
         
-        const cmd = this.dataset.cmd;
+        const cmd = this.textContent;
         if (cmd) {
-            insertMathCommand(cmd);
+            insertMathSymbol(cmd);
         }
         
         return false;
     });
 });
 
-// ЦВЕТА
+// Цвета
 colorButtons.forEach(function(btn) {
     btn.addEventListener('click', function(e) {
         e.stopPropagation();
         e.preventDefault();
-        
-        console.log('Клик по кнопке цвета');
         
         let color = 'white';
         if (this.classList.contains('red')) color = 'red';
@@ -589,21 +567,18 @@ colorButtons.forEach(function(btn) {
         else if (this.classList.contains('green')) color = 'green';
         else if (this.classList.contains('yellow')) color = 'yellow';
         
-        console.log('Устанавливаем цвет:', color);
         currentColor = color;
         
-        // Принудительно применяем цвет
         scrollingText.style.color = 
             color === 'white' ? '#ffffff' :
             color === 'red' ? '#ff3b30' :
             color === 'blue' ? '#007aff' :
             color === 'green' ? '#34c759' : '#ffcc00';
         
-        // Обновляем активный класс
         colorButtons.forEach(b => b.classList.remove('active'));
         this.classList.add('active');
         
-        saveData();
+        saveData({});
     });
 });
 
@@ -612,7 +587,7 @@ sizeSlider.addEventListener('input', function() {
     currentSize = parseInt(this.value);
     scrollingText.style.fontSize = currentSize + 'vw';
     sizeValue.textContent = currentSize + 'vw';
-    saveData();
+    saveData({});
 });
 
 // Скорость
@@ -620,16 +595,14 @@ speedSlider.addEventListener('input', function() {
     currentSpeed = parseInt(this.value);
     speedValue.textContent = currentSpeed + ' сек';
     restartAnimation();
-    saveData();
+    saveData({});
 });
 
 // RUN
 runBtn.addEventListener('click', toggleRun);
 
 // Крестик
-resetBtn.addEventListener('click', function() {
-    resetAll();
-});
+resetBtn.addEventListener('click', resetAll);
 
 // Шестеренка
 settingsBtn.addEventListener('click', function() {
@@ -672,4 +645,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ РАЗДЕЛЕННАЯ ВЕРСИЯ: ввод через input, отображение через MathQuill');
+console.log('✅ УМНЫЙ ПАРСЕР: √(x) → красивый корень, 1/2 → красивая дробь');
