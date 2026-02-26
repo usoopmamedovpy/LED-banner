@@ -2,38 +2,43 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Math Scroller</title>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.js"></script>
 
 <script>
 window.MathJax = {
-  tex: {inlineMath: [['\\(','\\)']]},
-  svg: {fontCache: 'global'}
+  tex:{inlineMath:[['\\(','\\)']]},
+  svg:{fontCache:'global'}
 };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
 <style>
+*{box-sizing:border-box}
+
 body{
   margin:0;
-  background:#000;
+  background:black;
   font-family:Arial, sans-serif;
+  color:white;
   overflow:hidden;
 }
 
-/* бегущая строка */
+/* ---------- бегущая строка ---------- */
 
 #ticker{
   position:fixed;
   top:50%;
   left:100%;
+  transform:translateY(-50%);
   white-space:nowrap;
   font-size:24px;
-  color:white;
-  transform:translateY(-50%);
   pointer-events:none;
+  z-index:1;
 }
 
 #ticker mjx-container *{
@@ -41,135 +46,150 @@ body{
   color:inherit !important;
 }
 
-/* верхние кнопки */
+/* ---------- верхние кнопки ---------- */
 
-.top-buttons{
+#topBar{
   position:fixed;
-  top:15px;
-  right:15px;
+  right:12px;
+  top:12px;
   display:flex;
   gap:10px;
-  z-index:10;
+  z-index:20;
 }
 
-.circle-btn{
-  width:40px;
-  height:40px;
+.circle{
+  width:38px;
+  height:38px;
   border-radius:50%;
-  background:black;
   border:2px solid white;
+  background:black;
   color:white;
   display:flex;
   align-items:center;
   justify-content:center;
   cursor:pointer;
-  font-weight:bold;
+  font-size:18px;
+  user-select:none;
 }
 
-/* рабочая зона */
+/* ---------- нижняя панель ---------- */
 
-#ui{
+#bottomBar{
   position:fixed;
-  bottom:20px;
-  left:50%;
-  transform:translateX(-50%);
+  left:0;
+  right:0;
+  bottom:10px;
   display:flex;
-  align-items:center;
-  gap:10px;
-  z-index:5;
+  justify-content:center;
+  z-index:10;
 }
 
-/* поле ввода */
+#panel{
+  display:flex;
+  gap:8px;
+  padding:8px;
+  max-width:100%;
+  width:100%;
+  justify-content:center;
+  align-items:stretch;
+  flex-wrap:wrap;
+}
 
-#math-input{
-  min-width:320px;
-  min-height:42px;
-  padding:8px 12px;
+/* ---------- MATH ---------- */
+
+#mathPanel{
+  background:black;
   border:2px solid white;
   border-radius:10px;
-  color:white;
-  background:black;
+  padding:6px;
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  max-width:160px;
 }
+
+.mathBtn{
+  border:1px solid white;
+  border-radius:6px;
+  background:black;
+  color:white;
+  padding:4px 6px;
+  font-size:14px;
+  cursor:pointer;
+}
+
+/* ---------- поле ---------- */
+
+#inputWrap{
+  min-width:200px;
+  max-width:90vw;
+  background:black;
+  border:2px solid white;
+  border-radius:10px;
+  padding:8px 10px;
+}
+
+#mathInput{
+  min-height:28px;
+}
+
+/* MathQuill */
 
 .mq-editable-field{
   border:none !important;
-  color:white;
+  color:white !important;
 }
 
 .mq-root-block{
   line-height:1.4;
 }
 
-/* кнопка RUN */
+/* ---------- RUN ---------- */
 
-#run-btn{
-  padding:10px 18px;
-  border-radius:10px;
-  border:none;
+#runBtn{
   background:white;
   color:black;
+  border:none;
+  border-radius:10px;
+  padding:8px 16px;
   font-weight:bold;
   cursor:pointer;
 }
 
-/* панель MATH */
+/* ---------- настройки ---------- */
 
-#math-panel{
-  background:black;
-  border:2px solid white;
-  border-radius:10px;
-  padding:8px;
-  display:flex;
-  flex-wrap:wrap;
-  gap:6px;
-  max-width:200px;
-}
-
-.math-btn{
-  padding:6px 8px;
-  border-radius:6px;
-  border:1px solid white;
-  color:white;
-  background:black;
-  cursor:pointer;
-  font-size:14px;
-}
-
-/* окно настроек */
-
-#settings-overlay{
+#settingsOverlay{
   position:fixed;
   inset:0;
-  backdrop-filter:blur(6px);
   background:rgba(0,0,0,0.4);
+  backdrop-filter:blur(6px);
   display:none;
-  z-index:20;
+  z-index:30;
 }
 
-#settings{
+#settingsBox{
   position:absolute;
-  top:50%;
   left:50%;
+  top:50%;
   transform:translate(-50%,-50%);
   background:black;
   border:2px solid white;
   border-radius:12px;
-  padding:16px;
   width:280px;
-  color:white;
+  padding:14px;
 }
 
-#settings h3{
-  margin-top:0;
+#settingsBox h3{
+  margin:0 0 10px 0;
   text-align:center;
 }
 
-.close-settings{
+#closeSettings{
   position:absolute;
-  right:10px;
-  top:10px;
-  width:26px;
-  height:26px;
+  right:8px;
+  top:8px;
+  width:22px;
+  height:22px;
   border-radius:50%;
   background:white;
   color:black;
@@ -177,15 +197,21 @@ body{
   align-items:center;
   justify-content:center;
   cursor:pointer;
+  font-size:14px;
 }
 
-.color-row{
+.settingRow{
+  margin-bottom:10px;
+  font-size:14px;
+}
+
+.colors{
   display:flex;
   gap:10px;
-  margin-top:10px;
+  justify-content:center;
 }
 
-.color-dot{
+.colorDot{
   width:26px;
   height:26px;
   border-radius:50%;
@@ -193,7 +219,9 @@ body{
   cursor:pointer;
 }
 
-.hidden-ui{
+/* ---------- скрытие UI ---------- */
+
+.hidden{
   display:none !important;
 }
 </style>
@@ -202,51 +230,57 @@ body{
 
 <div id="ticker">Введите формулу…</div>
 
-<div class="top-buttons">
-  <div id="closeBtn" class="circle-btn">✕</div>
-  <div id="settingsBtn" class="circle-btn">⚙</div>
+<div id="topBar">
+  <div id="closeAll" class="circle">✕</div>
+  <div id="openSettings" class="circle">⚙</div>
 </div>
 
-<div id="ui">
+<div id="bottomBar">
+  <div id="panel">
 
-  <div id="math-panel">
-    <div class="math-btn" data-cmd="sqrt">√</div>
-    <div class="math-btn" data-cmd="frac">a/b</div>
-    <div class="math-btn" data-cmd="vec">→</div>
-    <div class="math-btn" data-text="\\alpha">α</div>
-    <div class="math-btn" data-text="\\beta">β</div>
-    <div class="math-btn" data-text="\\gamma">γ</div>
+    <div id="mathPanel">
+      <div class="mathBtn" data-cmd="sqrt">√</div>
+      <div class="mathBtn" data-cmd="frac">a/b</div>
+      <div class="mathBtn" data-cmd="vec">→</div>
+      <div class="mathBtn" data-text="\\alpha">α</div>
+      <div class="mathBtn" data-text="\\beta">β</div>
+      <div class="mathBtn" data-text="\\gamma">γ</div>
+    </div>
+
+    <div id="inputWrap">
+      <div id="mathInput"></div>
+    </div>
+
+    <button id="runBtn">RUN</button>
+
   </div>
-
-  <div id="math-input"></div>
-
-  <button id="run-btn">RUN</button>
-
 </div>
 
-<div id="settings-overlay">
-  <div id="settings">
+<!-- настройки -->
 
-    <div class="close-settings" id="closeSettings">✕</div>
+<div id="settingsOverlay">
+  <div id="settingsBox">
+
+    <div id="closeSettings">✕</div>
 
     <h3>Настройки</h3>
 
-    <div>
+    <div class="settingRow">
       Размер текста
       <input id="sizeRange" type="range" min="8" max="40" value="24">
     </div>
 
-    <div>
+    <div class="settingRow">
       Скорость (сек)
       <input id="speedRange" type="range" min="2" max="30" value="10">
     </div>
 
-    <div class="color-row">
-      <div class="color-dot" data-color="white" style="background:white"></div>
-      <div class="color-dot" data-color="red" style="background:red"></div>
-      <div class="color-dot" data-color="green" style="background:green"></div>
-      <div class="color-dot" data-color="yellow" style="background:yellow"></div>
-      <div class="color-dot" data-color="dodgerblue" style="background:dodgerblue"></div>
+    <div class="colors">
+      <div class="colorDot" data-color="white" style="background:white"></div>
+      <div class="colorDot" data-color="red" style="background:red"></div>
+      <div class="colorDot" data-color="lime" style="background:lime"></div>
+      <div class="colorDot" data-color="yellow" style="background:yellow"></div>
+      <div class="colorDot" data-color="dodgerblue" style="background:dodgerblue"></div>
     </div>
 
   </div>
@@ -255,10 +289,10 @@ body{
 <script>
 const MQ = MathQuill.getInterface(2);
 
-const inputEl = document.getElementById("math-input");
+const mathInput = document.getElementById("mathInput");
 const ticker = document.getElementById("ticker");
 
-const mathField = MQ.MathField(inputEl,{
+const mathField = MQ.MathField(mathInput,{
   handlers:{
     edit(){
       updateTicker();
@@ -266,14 +300,19 @@ const mathField = MQ.MathField(inputEl,{
   }
 });
 
-let speed = 10;
 let fontSize = 24;
+let speed = 10;
 let color = "white";
+
 let running = false;
-let animId;
+let raf;
+let posX = window.innerWidth;
+
+/* ---------- ticker ---------- */
 
 function updateTicker(){
   const latex = mathField.latex().trim();
+
   if(!latex){
     ticker.textContent = "Введите формулу…";
     return;
@@ -285,64 +324,32 @@ function updateTicker(){
 }
 
 function startTicker(){
-  cancelAnimationFrame(animId);
-  let x = window.innerWidth;
+  cancelAnimationFrame(raf);
+  posX = window.innerWidth;
 
-  function step(){
-    x -= (window.innerWidth / (speed*60));
-    ticker.style.left = x + "px";
+  function loop(){
+    const pxPerFrame = window.innerWidth / (speed * 60);
+    posX -= pxPerFrame;
+    ticker.style.left = posX + "px";
 
-    if(x < -ticker.offsetWidth){
-      x = window.innerWidth;
+    if(posX < -ticker.offsetWidth){
+      posX = window.innerWidth;
     }
-    animId = requestAnimationFrame(step);
+
+    raf = requestAnimationFrame(loop);
   }
-  step();
+
+  loop();
 }
 
-document.getElementById("run-btn").onclick = ()=>{
-  running = true;
-  document.getElementById("ui").classList.add("hidden-ui");
-  document.getElementById("settingsBtn").classList.add("hidden-ui");
-  startTicker();
-};
+/* ---------- кнопки формул ---------- */
 
-document.getElementById("closeBtn").onclick = ()=>{
-  running = false;
-  document.getElementById("ui").classList.remove("hidden-ui");
-  document.getElementById("settingsBtn").classList.remove("hidden-ui");
-};
+document.querySelectorAll(".mathBtn").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    mathField.focus();
 
-document.getElementById("settingsBtn").onclick = ()=>{
-  document.getElementById("settings-overlay").style.display="block";
-};
-
-document.getElementById("closeSettings").onclick = ()=>{
-  document.getElementById("settings-overlay").style.display="none";
-};
-
-document.getElementById("sizeRange").oninput = e=>{
-  fontSize = e.target.value;
-  ticker.style.fontSize = fontSize+"px";
-};
-
-document.getElementById("speedRange").oninput = e=>{
-  speed = e.target.value;
-};
-
-document.querySelectorAll(".color-dot").forEach(dot=>{
-  dot.onclick=()=>{
-    color = dot.dataset.color;
-    ticker.style.color = color;
-  };
-});
-
-document.querySelectorAll(".math-btn").forEach(btn=>{
-  btn.onclick = ()=>{
     const cmd = btn.dataset.cmd;
     const text = btn.dataset.text;
-
-    mathField.focus();
 
     if(cmd === "sqrt"){
       mathField.cmd("\\sqrt");
@@ -356,8 +363,65 @@ document.querySelectorAll(".math-btn").forEach(btn=>{
     else if(text){
       mathField.write(text);
     }
+  });
+});
+
+/* ---------- RUN ---------- */
+
+document.getElementById("runBtn").addEventListener("click",()=>{
+  running = true;
+
+  document.getElementById("bottomBar").classList.add("hidden");
+  document.getElementById("openSettings").classList.add("hidden");
+
+  startTicker();
+});
+
+/* ---------- крестик ---------- */
+
+document.getElementById("closeAll").addEventListener("click",()=>{
+
+  if(running){
+    running = false;
+    document.getElementById("bottomBar").classList.remove("hidden");
+    document.getElementById("openSettings").classList.remove("hidden");
+    cancelAnimationFrame(raf);
+    return;
+  }
+
+  mathField.latex("");
+  updateTicker();
+});
+
+/* ---------- настройки ---------- */
+
+const overlay = document.getElementById("settingsOverlay");
+
+document.getElementById("openSettings").onclick = ()=>{
+  overlay.style.display="block";
+};
+
+document.getElementById("closeSettings").onclick = ()=>{
+  overlay.style.display="none";
+};
+
+document.getElementById("sizeRange").oninput = e=>{
+  fontSize = e.target.value;
+  ticker.style.fontSize = fontSize+"px";
+};
+
+document.getElementById("speedRange").oninput = e=>{
+  speed = e.target.value;
+};
+
+document.querySelectorAll(".colorDot").forEach(dot=>{
+  dot.onclick = ()=>{
+    color = dot.dataset.color;
+    ticker.style.color = color;
   };
 });
+
+/* ---------- init ---------- */
 
 ticker.style.fontSize = fontSize+"px";
 ticker.style.color = color;
