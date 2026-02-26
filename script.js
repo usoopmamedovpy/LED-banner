@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - УМНЫЙ ПАРСЕР МАТЕМАТИКИ
+// LED BANNER - УМНЫЙ ПАРСЕР С (a)/(b) ДЛЯ ДРОБЕЙ
 // ============================================
 
 // Telegram
@@ -79,7 +79,7 @@ function createDesktopInterface() {
     input.type = 'text';
     input.id = 'desktopInput';
     input.className = 'text-input';
-    input.placeholder = 'Введите выражение...';
+    input.placeholder = 'Введите выражение... √(x+1) или (x^2+1)/(x-1)';
     input.value = 'LED бегущая строка';
     input.style.flex = '1';
     input.style.background = '#111111';
@@ -100,7 +100,7 @@ function createDesktopInterface() {
         if (window.MathJax) {
             MathJax.typesetPromise([scrollingText]).catch(() => {});
         }
-        saveData({ latex: latex });
+        saveData({ latex: latex, raw: text });
     });
     
     // Enter
@@ -158,7 +158,7 @@ function createMobileInterface() {
     const textInput = document.createElement('input');
     textInput.type = 'text';
     textInput.id = 'mobileInput';
-    textInput.placeholder = 'Введите √(x+1) или 1/2...';
+    textInput.placeholder = '√(x+1) или (x^2+1)/(x-1)';
     textInput.style.flex = '1';
     textInput.style.background = '#111111';
     textInput.style.border = '2px solid #ffffff';
@@ -210,45 +210,56 @@ function parseToLaTeX(text) {
     
     let result = text;
     
-    // 1. Корни: √(выражение) → \sqrt{выражение}
-    result = result.replace(/√\(([^)]+)\)/g, '\\sqrt{$1}');
+    // 1. Дроби в формате (числитель)/(знаменатель) - САМОЕ ВАЖНОЕ!
+    result = result.replace(/\(([^)]+)\)\s*\/\s*\(([^)]+)\)/g, '\\frac{$1}{$2}');
     
-    // 2. Дроби: число/число → \frac{число}{число}
+    // 2. Простые дроби (число/число) - для обратной совместимости
     result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
     
-    // 3. Смешанные числа: целое пробел дробь
-    result = result.replace(/(\d+)\s+(\d+)\/(\d+)/g, '$1\\frac{$2}{$3}');
+    // 3. Корни: √(выражение) → \sqrt{выражение}
+    result = result.replace(/√\(([^)]+)\)/g, '\\sqrt{$1}');
     
-    // 4. Степени: x^y → x^{y}
-    result = result.replace(/([a-zA-Z0-9])\^([a-zA-Z0-9])/g, '$1^{$2}');
-    result = result.replace(/([a-zA-Z0-9])\^\(([^)]+)\)/g, '$1^{$2}');
+    // 4. Корни с индексом: √[n](выражение) → \sqrt[n]{выражение}
+    result = result.replace(/√\[([^\]]+)\]\(([^)]+)\)/g, '\\sqrt[$1]{$2}');
     
-    // 5. Индексы: x_y → x_{y}
-    result = result.replace(/([a-zA-Z0-9])_([a-zA-Z0-9])/g, '$1_{$2}');
-    result = result.replace(/([a-zA-Z0-9])_\(([^)]+)\)/g, '$1_{$2}');
+    // 5. Степени: x^y → x^{y}
+    result = result.replace(/([a-zA-Z0-9α-ω])\^\(([^)]+)\)/g, '$1^{$2}');
+    result = result.replace(/([a-zA-Z0-9α-ω])\^([a-zA-Z0-9α-ω])/g, '$1^{$2}');
     
-    // 6. Греческие буквы
+    // 6. Индексы: x_y → x_{y}
+    result = result.replace(/([a-zA-Z0-9α-ω])_\(([^)]+)\)/g, '$1_{$2}');
+    result = result.replace(/([a-zA-Z0-9α-ω])_([a-zA-Z0-9α-ω])/g, '$1_{$2}');
+    
+    // 7. Греческие буквы
     const greekMap = {
         'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
         'ε': '\\epsilon', 'ζ': '\\zeta', 'η': '\\eta', 'θ': '\\theta',
         'ι': '\\iota', 'κ': '\\kappa', 'λ': '\\lambda', 'μ': '\\mu',
         'ν': '\\nu', 'ξ': '\\xi', 'π': '\\pi', 'ρ': '\\rho',
         'σ': '\\sigma', 'τ': '\\tau', 'υ': '\\upsilon', 'φ': '\\phi',
-        'χ': '\\chi', 'ψ': '\\psi', 'ω': '\\omega'
+        'χ': '\\chi', 'ψ': '\\psi', 'ω': '\\omega',
+        'Α': '\\Alpha', 'Β': '\\Beta', 'Γ': '\\Gamma', 'Δ': '\\Delta',
+        'Ε': '\\Epsilon', 'Ζ': '\\Zeta', 'Η': '\\Eta', 'Θ': '\\Theta',
+        'Ι': '\\Iota', 'Κ': '\\Kappa', 'Λ': '\\Lambda', 'Μ': '\\Mu',
+        'Ν': '\\Nu', 'Ξ': '\\Xi', 'Π': '\\Pi', 'Ρ': '\\Rho',
+        'Σ': '\\Sigma', 'Τ': '\\Tau', 'Υ': '\\Upsilon', 'Φ': '\\Phi',
+        'Χ': '\\Chi', 'Ψ': '\\Psi', 'Ω': '\\Omega'
     };
     
     for (let [char, latex] of Object.entries(greekMap)) {
         result = result.replace(new RegExp(char, 'g'), latex);
     }
     
-    // 7. Функции
-    const funcs = ['sin', 'cos', 'tan', 'cot', 'log', 'ln', 'lg', 'exp', 'lim'];
+    // 8. Функции
+    const funcs = ['sin', 'cos', 'tan', 'cot', 'sec', 'csc', 
+                   'arcsin', 'arccos', 'arctan', 'arccot',
+                   'log', 'ln', 'lg', 'exp', 'lim'];
     funcs.forEach(func => {
         const regex = new RegExp(func + '\\s*\\(', 'g');
         result = result.replace(regex, func + '(');
     });
     
-    // 8. Специальные символы
+    // 9. Специальные символы
     const specialMap = {
         '∞': '\\infty',
         '∫': '\\int',
@@ -272,11 +283,14 @@ function parseToLaTeX(text) {
         '⊂': '\\subset',
         '⊃': '\\supset',
         '∪': '\\cup',
-        '∩': '\\cap'
+        '∩': '\\cap',
+        '∇': '\\nabla',
+        '∂': '\\partial',
+        '∝': '\\propto'
     };
     
     for (let [char, latex] of Object.entries(specialMap)) {
-        result = result.replace(new RegExp(char, 'g'), latex);
+        result = result.replace(new RegExp('\\' + char, 'g'), latex);
     }
     
     return result;
@@ -313,6 +327,12 @@ function loadSavedData() {
             if (data.raw) {
                 const input = document.getElementById('mobileInput') || document.getElementById('desktopInput');
                 if (input) input.value = data.raw;
+                
+                const previewSpan = document.getElementById('previewSpan');
+                if (previewSpan) {
+                    previewSpan.innerHTML = '';
+                    previewSpan.appendChild(document.createTextNode(data.raw));
+                }
             }
         }
     } catch (e) {}
@@ -323,7 +343,8 @@ function saveData(data) {
         ...data,
         color: currentColor,
         speed: currentSpeed,
-        size: currentSize
+        size: currentSize,
+        timestamp: Date.now()
     };
     localStorage.setItem('ledBannerData', JSON.stringify(fullData));
     
@@ -428,6 +449,12 @@ function resetAll() {
     const input = document.getElementById('mobileInput') || document.getElementById('desktopInput');
     if (input) input.value = 'LED бегущая строка';
     
+    const previewSpan = document.getElementById('previewSpan');
+    if (previewSpan) {
+        previewSpan.innerHTML = '';
+        previewSpan.appendChild(document.createTextNode('LED бегущая строка'));
+    }
+    
     scrollingText.innerHTML = '\\(LED\\ бегущая\\ строка\\)';
     if (window.MathJax) {
         MathJax.typesetPromise([scrollingText]).catch(() => {});
@@ -466,7 +493,9 @@ function insertMathSymbol(symbol) {
     else if (symbol === '∛') insertText = '∛()';
     else if (symbol === '∜') insertText = '∜()';
     else if (symbol === '→') insertText = '→';
-    else if (symbol === '/') insertText = '/';
+    else if (symbol === '/' && text[start-1] !== '(' && text[end] !== '(') {
+        insertText = '/( )';
+    }
     
     const newText = text.substring(0, start) + insertText + text.substring(end);
     input.value = newText;
@@ -475,6 +504,8 @@ function insertMathSymbol(symbol) {
     let newPos = start + insertText.length;
     if (insertText.includes('()')) {
         newPos = start + insertText.length - 1;
+    } else if (insertText.includes('/( )')) {
+        newPos = start + insertText.length - 2;
     }
     input.setSelectionRange(newPos, newPos);
     input.focus();
@@ -645,4 +676,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ УМНЫЙ ПАРСЕР: √(x) → красивый корень, 1/2 → красивая дробь');
+console.log('✅ УМНЫЙ ПАРСЕР: (x+1)/(x-1) = красивая дробь с любыми выражениями!');
