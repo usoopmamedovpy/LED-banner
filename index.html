@@ -1,432 +1,175 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Math Scroller</title>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.js"></script>
-
-<script>
-window.MathJax = {
-  tex:{inlineMath:[['\\(','\\)']]},
-  svg:{fontCache:'global'}
-};
-</script>
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
-
-<style>
-*{box-sizing:border-box}
-
-body{
-  margin:0;
-  background:black;
-  font-family:Arial, sans-serif;
-  color:white;
-  overflow:hidden;
-}
-
-/* ---------- бегущая строка ---------- */
-
-#ticker{
-  position:fixed;
-  top:50%;
-  left:100%;
-  transform:translateY(-50%);
-  white-space:nowrap;
-  font-size:24px;
-  pointer-events:none;
-  z-index:1;
-}
-
-#ticker mjx-container *{
-  fill:currentColor !important;
-  color:inherit !important;
-}
-
-/* ---------- верхние кнопки ---------- */
-
-#topBar{
-  position:fixed;
-  right:12px;
-  top:12px;
-  display:flex;
-  gap:10px;
-  z-index:20;
-}
-
-.circle{
-  width:38px;
-  height:38px;
-  border-radius:50%;
-  border:2px solid white;
-  background:black;
-  color:white;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-  font-size:18px;
-  user-select:none;
-}
-
-/* ---------- нижняя панель ---------- */
-
-#bottomBar{
-  position:fixed;
-  left:0;
-  right:0;
-  bottom:10px;
-  display:flex;
-  justify-content:center;
-  z-index:10;
-}
-
-#panel{
-  display:flex;
-  gap:8px;
-  padding:8px;
-  max-width:100%;
-  width:100%;
-  justify-content:center;
-  align-items:stretch;
-  flex-wrap:wrap;
-}
-
-/* ---------- MATH ---------- */
-
-#mathPanel{
-  background:black;
-  border:2px solid white;
-  border-radius:10px;
-  padding:6px;
-  display:flex;
-  gap:6px;
-  flex-wrap:wrap;
-  max-width:160px;
-}
-
-.mathBtn{
-  border:1px solid white;
-  border-radius:6px;
-  background:black;
-  color:white;
-  padding:4px 6px;
-  font-size:14px;
-  cursor:pointer;
-}
-
-/* ---------- поле ---------- */
-
-#inputWrap{
-  min-width:200px;
-  max-width:90vw;
-  background:black;
-  border:2px solid white;
-  border-radius:10px;
-  padding:8px 10px;
-}
-
-#mathInput{
-  min-height:28px;
-}
-
-/* MathQuill */
-
-.mq-editable-field{
-  border:none !important;
-  color:white !important;
-}
-
-.mq-root-block{
-  line-height:1.4;
-}
-
-/* ---------- RUN ---------- */
-
-#runBtn{
-  background:white;
-  color:black;
-  border:none;
-  border-radius:10px;
-  padding:8px 16px;
-  font-weight:bold;
-  cursor:pointer;
-}
-
-/* ---------- настройки ---------- */
-
-#settingsOverlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.4);
-  backdrop-filter:blur(6px);
-  display:none;
-  z-index:30;
-}
-
-#settingsBox{
-  position:absolute;
-  left:50%;
-  top:50%;
-  transform:translate(-50%,-50%);
-  background:black;
-  border:2px solid white;
-  border-radius:12px;
-  width:280px;
-  padding:14px;
-}
-
-#settingsBox h3{
-  margin:0 0 10px 0;
-  text-align:center;
-}
-
-#closeSettings{
-  position:absolute;
-  right:8px;
-  top:8px;
-  width:22px;
-  height:22px;
-  border-radius:50%;
-  background:white;
-  color:black;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-  font-size:14px;
-}
-
-.settingRow{
-  margin-bottom:10px;
-  font-size:14px;
-}
-
-.colors{
-  display:flex;
-  gap:10px;
-  justify-content:center;
-}
-
-.colorDot{
-  width:26px;
-  height:26px;
-  border-radius:50%;
-  border:2px solid white;
-  cursor:pointer;
-}
-
-/* ---------- скрытие UI ---------- */
-
-.hidden{
-  display:none !important;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <meta name="color-scheme" content="dark">
+    <title>LED Banner Math</title>
+    
+    <!-- MathQuill -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.css">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.min.js"></script>
+    
+    <!-- MathJax -->
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="app-container">
+        <button class="reset-btn" id="resetBtn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M18 6L6 18M6 6L18 18" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+        </button>
 
-<div id="ticker">Введите формулу…</div>
+        <button class="settings-btn" id="settingsBtn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="white" stroke-width="2"/>
+                <path d="M19.4 15C18.9 16 18.1 16.7 17.2 17.2L19 20.6L16 21L15.2 18.2C14.3 18.5 13.3 18.6 12.3 18.6C11.3 18.6 10.3 18.5 9.4 18.2L8.6 21L5.6 20.6L7.4 17.2C6.5 16.7 5.7 16 5.2 15L2 15L2 12L5.2 12C5.3 11 5.6 10 6.1 9.2L4.3 5.8L7.3 5.4L8.1 8.2C9 7.9 10 7.7 11 7.7C12 7.7 13 7.8 14 8.1L14.8 5.4L17.8 5.8L16 9.2C16.5 10 16.8 11 16.9 12L20 12L20 15L19.4 15Z" stroke="white" stroke-width="1.5"/>
+            </svg>
+        </button>
 
-<div id="topBar">
-  <div id="closeAll" class="circle">✕</div>
-  <div id="openSettings" class="circle">⚙</div>
-</div>
+        <div class="settings-panel" id="settingsPanel">
+            <div class="settings-content">
+                <h3>Настройки</h3>
+                
+                <div class="setting-item">
+                    <label>Размер текста (8-40)</label>
+                    <div class="slider-container">
+                        <input type="range" id="sizeSlider" min="8" max="40" value="15" step="1" class="slider">
+                        <span class="value-display" id="sizeValue">15vw</span>
+                    </div>
+                </div>
 
-<div id="bottomBar">
-  <div id="panel">
+                <div class="setting-item">
+                    <label>Скорость (2-30 сек)</label>
+                    <div class="slider-container">
+                        <input type="range" id="speedSlider" min="2" max="30" value="15" step="1" class="slider">
+                        <span class="value-display" id="speedValue">15 сек</span>
+                    </div>
+                </div>
 
-    <div id="mathPanel">
-      <div class="mathBtn" data-cmd="sqrt">√</div>
-      <div class="mathBtn" data-cmd="frac">a/b</div>
-      <div class="mathBtn" data-cmd="vec">→</div>
-      <div class="mathBtn" data-text="\\alpha">α</div>
-      <div class="mathBtn" data-text="\\beta">β</div>
-      <div class="mathBtn" data-text="\\gamma">γ</div>
+                <div class="setting-item">
+                    <label>Цвет текста</label>
+                    <div class="color-buttons">
+                        <button class="color-btn white active"></button>
+                        <button class="color-btn red"></button>
+                        <button class="color-btn blue"></button>
+                        <button class="color-btn green"></button>
+                        <button class="color-btn yellow"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mobile-view">
+            <div class="banner-area">
+                <div class="scrolling-text" id="scrollingText">\(LED бегущая строка\)</div>
+            </div>
+            
+            <div class="input-container">
+                <div class="input-area" id="inputArea">
+                    <button class="math-btn" id="mathBtn">MATH</button>
+                    <div class="math-field" id="mathField"></div>
+                    <button class="run-btn" id="runBtn">RUN</button>
+                </div>
+                
+                <div class="math-keyboard" id="mathKeyboard">
+                    <div class="keyboard-tabs">
+                        <button class="tab-btn active" id="tabFunctions">ƒ(x)</button>
+                        <button class="tab-btn" id="tabGreek">Aα</button>
+                        <button class="tab-btn" id="tabSymbols">∫∑</button>
+                    </div>
+                    
+                    <div class="tab-content active" id="functionsTab">
+                        <div class="keyboard-grid">
+                            <button class="math-key" data-cmd="\sin">sin</button>
+                            <button class="math-key" data-cmd="\cos">cos</button>
+                            <button class="math-key" data-cmd="\tan">tan</button>
+                            <button class="math-key" data-cmd="\cot">cot</button>
+                            <button class="math-key" data-cmd="\arcsin">arcsin</button>
+                            <button class="math-key" data-cmd="\arccos">arccos</button>
+                            <button class="math-key" data-cmd="\arctan">arctan</button>
+                            <button class="math-key" data-cmd="\arccot">arccot</button>
+                            <button class="math-key" data-cmd="\log">log</button>
+                            <button class="math-key" data-cmd="\ln">ln</button>
+                            <button class="math-key" data-cmd="\lg">lg</button>
+                            <button class="math-key" data-cmd="\exp">exp</button>
+                            <button class="math-key" data-cmd="\sqrt">√</button>
+                            <button class="math-key" data-cmd="\sqrt[3]">∛</button>
+                            <button class="math-key" data-cmd="\sqrt[4]">∜</button>
+                            <button class="math-key" data-cmd="\sqrt[n]">n√</button>
+                            <button class="math-key" data-cmd="\frac">a/b</button>
+                            <button class="math-key" data-cmd="^">xⁿ</button>
+                            <button class="math-key" data-cmd="_">xₙ</button>
+                            <button class="math-key" data-cmd="\vec">⃗</button>
+                            <button class="math-key" data-cmd="\int">∫</button>
+                            <button class="math-key" data-cmd="\sum">∑</button>
+                            <button class="math-key" data-cmd="\prod">∏</button>
+                            <button class="math-key" data-cmd="\lim">lim</button>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="greekTab">
+                        <div class="keyboard-grid">
+                            <button class="math-key" data-cmd="\alpha">α</button>
+                            <button class="math-key" data-cmd="\beta">β</button>
+                            <button class="math-key" data-cmd="\gamma">γ</button>
+                            <button class="math-key" data-cmd="\delta">δ</button>
+                            <button class="math-key" data-cmd="\epsilon">ε</button>
+                            <button class="math-key" data-cmd="\zeta">ζ</button>
+                            <button class="math-key" data-cmd="\eta">η</button>
+                            <button class="math-key" data-cmd="\theta">θ</button>
+                            <button class="math-key" data-cmd="\iota">ι</button>
+                            <button class="math-key" data-cmd="\kappa">κ</button>
+                            <button class="math-key" data-cmd="\lambda">λ</button>
+                            <button class="math-key" data-cmd="\mu">μ</button>
+                            <button class="math-key" data-cmd="\nu">ν</button>
+                            <button class="math-key" data-cmd="\xi">ξ</button>
+                            <button class="math-key" data-cmd="\pi">π</button>
+                            <button class="math-key" data-cmd="\rho">ρ</button>
+                            <button class="math-key" data-cmd="\sigma">σ</button>
+                            <button class="math-key" data-cmd="\tau">τ</button>
+                            <button class="math-key" data-cmd="\upsilon">υ</button>
+                            <button class="math-key" data-cmd="\phi">φ</button>
+                            <button class="math-key" data-cmd="\chi">χ</button>
+                            <button class="math-key" data-cmd="\psi">ψ</button>
+                            <button class="math-key" data-cmd="\omega">ω</button>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="symbolsTab">
+                        <div class="keyboard-grid">
+                            <button class="math-key" data-cmd="\infty">∞</button>
+                            <button class="math-key" data-cmd="\partial">∂</button>
+                            <button class="math-key" data-cmd="\nabla">∇</button>
+                            <button class="math-key" data-cmd="\forall">∀</button>
+                            <button class="math-key" data-cmd="\exists">∃</button>
+                            <button class="math-key" data-cmd="\in">∈</button>
+                            <button class="math-key" data-cmd="\notin">∉</button>
+                            <button class="math-key" data-cmd="\subset">⊂</button>
+                            <button class="math-key" data-cmd="\supset">⊃</button>
+                            <button class="math-key" data-cmd="\cup">∪</button>
+                            <button class="math-key" data-cmd="\cap">∩</button>
+                            <button class="math-key" data-cmd="\pm">±</button>
+                            <button class="math-key" data-cmd="\times">×</button>
+                            <button class="math-key" data-cmd="\div">÷</button>
+                            <button class="math-key" data-cmd="\neq">≠</button>
+                            <button class="math-key" data-cmd="\leq">≤</button>
+                            <button class="math-key" data-cmd="\geq">≥</button>
+                            <button class="math-key" data-cmd="\approx">≈</button>
+                            <button class="math-key" data-cmd="\propto">∝</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div id="inputWrap">
-      <div id="mathInput"></div>
-    </div>
-
-    <button id="runBtn">RUN</button>
-
-  </div>
-</div>
-
-<!-- настройки -->
-
-<div id="settingsOverlay">
-  <div id="settingsBox">
-
-    <div id="closeSettings">✕</div>
-
-    <h3>Настройки</h3>
-
-    <div class="settingRow">
-      Размер текста
-      <input id="sizeRange" type="range" min="8" max="40" value="24">
-    </div>
-
-    <div class="settingRow">
-      Скорость (сек)
-      <input id="speedRange" type="range" min="2" max="30" value="10">
-    </div>
-
-    <div class="colors">
-      <div class="colorDot" data-color="white" style="background:white"></div>
-      <div class="colorDot" data-color="red" style="background:red"></div>
-      <div class="colorDot" data-color="lime" style="background:lime"></div>
-      <div class="colorDot" data-color="yellow" style="background:yellow"></div>
-      <div class="colorDot" data-color="dodgerblue" style="background:dodgerblue"></div>
-    </div>
-
-  </div>
-</div>
-
-<script>
-const MQ = MathQuill.getInterface(2);
-
-const mathInput = document.getElementById("mathInput");
-const ticker = document.getElementById("ticker");
-
-const mathField = MQ.MathField(mathInput,{
-  handlers:{
-    edit(){
-      updateTicker();
-    }
-  }
-});
-
-let fontSize = 24;
-let speed = 10;
-let color = "white";
-
-let running = false;
-let raf;
-let posX = window.innerWidth;
-
-/* ---------- ticker ---------- */
-
-function updateTicker(){
-  const latex = mathField.latex().trim();
-
-  if(!latex){
-    ticker.textContent = "Введите формулу…";
-    return;
-  }
-
-  ticker.innerHTML = "\\(" + latex + "\\)";
-  MathJax.typesetClear([ticker]);
-  MathJax.typesetPromise([ticker]);
-}
-
-function startTicker(){
-  cancelAnimationFrame(raf);
-  posX = window.innerWidth;
-
-  function loop(){
-    const pxPerFrame = window.innerWidth / (speed * 60);
-    posX -= pxPerFrame;
-    ticker.style.left = posX + "px";
-
-    if(posX < -ticker.offsetWidth){
-      posX = window.innerWidth;
-    }
-
-    raf = requestAnimationFrame(loop);
-  }
-
-  loop();
-}
-
-/* ---------- кнопки формул ---------- */
-
-document.querySelectorAll(".mathBtn").forEach(btn=>{
-  btn.addEventListener("click",()=>{
-    mathField.focus();
-
-    const cmd = btn.dataset.cmd;
-    const text = btn.dataset.text;
-
-    if(cmd === "sqrt"){
-      mathField.cmd("\\sqrt");
-    }
-    else if(cmd === "frac"){
-      mathField.cmd("\\frac");
-    }
-    else if(cmd === "vec"){
-      mathField.cmd("\\vec");
-    }
-    else if(text){
-      mathField.write(text);
-    }
-  });
-});
-
-/* ---------- RUN ---------- */
-
-document.getElementById("runBtn").addEventListener("click",()=>{
-  running = true;
-
-  document.getElementById("bottomBar").classList.add("hidden");
-  document.getElementById("openSettings").classList.add("hidden");
-
-  startTicker();
-});
-
-/* ---------- крестик ---------- */
-
-document.getElementById("closeAll").addEventListener("click",()=>{
-
-  if(running){
-    running = false;
-    document.getElementById("bottomBar").classList.remove("hidden");
-    document.getElementById("openSettings").classList.remove("hidden");
-    cancelAnimationFrame(raf);
-    return;
-  }
-
-  mathField.latex("");
-  updateTicker();
-});
-
-/* ---------- настройки ---------- */
-
-const overlay = document.getElementById("settingsOverlay");
-
-document.getElementById("openSettings").onclick = ()=>{
-  overlay.style.display="block";
-};
-
-document.getElementById("closeSettings").onclick = ()=>{
-  overlay.style.display="none";
-};
-
-document.getElementById("sizeRange").oninput = e=>{
-  fontSize = e.target.value;
-  ticker.style.fontSize = fontSize+"px";
-};
-
-document.getElementById("speedRange").oninput = e=>{
-  speed = e.target.value;
-};
-
-document.querySelectorAll(".colorDot").forEach(dot=>{
-  dot.onclick = ()=>{
-    color = dot.dataset.color;
-    ticker.style.color = color;
-  };
-});
-
-/* ---------- init ---------- */
-
-ticker.style.fontSize = fontSize+"px";
-ticker.style.color = color;
-updateTicker();
-</script>
-
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
