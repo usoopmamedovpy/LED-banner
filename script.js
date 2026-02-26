@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - РАБОЧАЯ ВЕРСИЯ ДЛЯ МОБИЛОК
+// LED BANNER - ФИНАЛЬНАЯ РАБОЧАЯ ВЕРСИЯ
 // ============================================
 
 // Telegram
@@ -56,7 +56,7 @@ let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.
 // ИНИЦИАЛИЗАЦИЯ
 // ============================================
 window.addEventListener('load', function() {
-    console.log('LED Banner загружен, устройство:', isMobile ? 'Мобильное' : 'Компьютер');
+    console.log('LED Banner загружен');
     
     const mathFieldElement = document.getElementById('mathField');
     
@@ -106,9 +106,9 @@ function initMathQuill(element) {
         console.log('MathQuill готов');
         loadSavedData();
         
-        // Для мобилок - создаем скрытый input для ввода текста
+        // Для мобилок - создаем систему ввода
         if (isMobile) {
-            createMobileInput(element);
+            createMobileInputSystem(element);
         }
         
     } catch (e) {
@@ -117,16 +117,23 @@ function initMathQuill(element) {
 }
 
 // ============================================
-// СОЗДАЕМ СКРЫТЫЙ INPUT ДЛЯ МОБИЛОК
+// МОБИЛЬНАЯ СИСТЕМА ВВОДА (С КУРСОРОМ)
 // ============================================
-function createMobileInput(mathFieldElement) {
-    // Создаем скрытый input
+function createMobileInputSystem(mathFieldElement) {
+    // Создаем контейнер для управления курсором
+    const cursorContainer = document.createElement('div');
+    cursorContainer.style.position = 'absolute';
+    cursorContainer.style.width = '0';
+    cursorContainer.style.height = '0';
+    cursorContainer.style.overflow = 'visible';
+    
+    // Создаем скрытое поле для ввода
     const hiddenInput = document.createElement('input');
     hiddenInput.type = 'text';
     hiddenInput.id = 'mobileInput';
     hiddenInput.style.position = 'absolute';
-    hiddenInput.style.top = '-100px';
-    hiddenInput.style.left = '-100px';
+    hiddenInput.style.top = '0';
+    hiddenInput.style.left = '0';
     hiddenInput.style.width = '1px';
     hiddenInput.style.height = '1px';
     hiddenInput.style.opacity = '0';
@@ -134,10 +141,26 @@ function createMobileInput(mathFieldElement) {
     
     document.body.appendChild(hiddenInput);
     
-    // При клике на MathQuill поле - фокусируем скрытый input
+    // Переменные для управления курсором
+    let cursorPosition = 0;
+    let textBuffer = '';
+    
+    // При клике на MathQuill поле
     mathFieldElement.addEventListener('click', function(e) {
         e.stopPropagation();
         hiddenInput.focus();
+        
+        // Получаем текущий LaTeX и конвертируем в простой текст для отображения
+        const latex = mathField.latex();
+        // Простая конвертация LaTeX в читаемый текст
+        let displayText = latex
+            .replace(/\\[a-zA-Z]+/g, '')
+            .replace(/[{}]/g, '')
+            .replace(/\\/g, '');
+        
+        hiddenInput.value = displayText;
+        textBuffer = displayText;
+        cursorPosition = displayText.length;
     });
     
     mathFieldElement.addEventListener('touchstart', function(e) {
@@ -148,27 +171,55 @@ function createMobileInput(mathFieldElement) {
     
     // Обработка ввода текста
     hiddenInput.addEventListener('input', function(e) {
-        const text = e.target.value;
-        if (text && mathField) {
-            // Вставляем каждый символ в MathQuill
-            for (let char of text) {
-                mathField.typedText(char);
+        const newText = e.target.value;
+        
+        if (newText.length > textBuffer.length) {
+            // Добавление символов
+            const addedChars = newText.substring(textBuffer.length);
+            
+            if (mathField) {
+                for (let char of addedChars) {
+                    mathField.typedText(char);
+                }
             }
-            hiddenInput.value = ''; // Очищаем после вставки
+        } else if (newText.length < textBuffer.length) {
+            // Удаление символов (backspace)
+            const charsToDelete = textBuffer.length - newText.length;
+            
+            if (mathField) {
+                for (let i = 0; i < charsToDelete; i++) {
+                    mathField.keystroke('Backspace');
+                }
+            }
         }
+        
+        textBuffer = newText;
+        cursorPosition = newText.length;
     });
     
-    // Обработка удаления (backspace)
+    // Обработка специальных клавиш
     hiddenInput.addEventListener('keydown', function(e) {
         if (e.key === 'Backspace') {
+            // Уже обработано в input
+        } else if (e.key === 'Enter') {
             e.preventDefault();
+            toggleRun();
+        } else if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            // Перемещение курсора влево
             if (mathField) {
-                mathField.keystroke('Backspace');
+                mathField.keystroke('Left');
+            }
+        } else if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            // Перемещение курсора вправо
+            if (mathField) {
+                mathField.keystroke('Right');
             }
         }
     });
     
-    console.log('Создан скрытый input для мобильного ввода');
+    console.log('Мобильная система ввода с курсором готова');
 }
 
 // ============================================
@@ -239,18 +290,16 @@ function updateDisplay() {
 function updateColor() {
     console.log('Обновление цвета на:', currentColor);
     
-    // Убираем все классы цвета
-    scrollingText.classList.remove('white', 'red', 'blue', 'green', 'yellow');
-    
-    // Добавляем новый класс
-    scrollingText.classList.add(currentColor);
-    
-    // Также применяем inline style для надежности
+    // Применяем цвет через inline style (надежнее всего)
     if (currentColor === 'white') scrollingText.style.color = '#ffffff';
-    if (currentColor === 'red') scrollingText.style.color = '#ff3b30';
-    if (currentColor === 'blue') scrollingText.style.color = '#007aff';
-    if (currentColor === 'green') scrollingText.style.color = '#34c759';
-    if (currentColor === 'yellow') scrollingText.style.color = '#ffcc00';
+    else if (currentColor === 'red') scrollingText.style.color = '#ff3b30';
+    else if (currentColor === 'blue') scrollingText.style.color = '#007aff';
+    else if (currentColor === 'green') scrollingText.style.color = '#34c759';
+    else if (currentColor === 'yellow') scrollingText.style.color = '#ffcc00';
+    
+    // Также добавляем класс для совместимости
+    scrollingText.classList.remove('white', 'red', 'blue', 'green', 'yellow');
+    scrollingText.classList.add(currentColor);
     
     // Обновляем активную кнопку цвета
     colorButtons.forEach(btn => {
@@ -331,8 +380,11 @@ function insertMathCommand(cmd) {
             mathField.cmd(cmd);
         }
         
-        if (!isMobile) {
-            mathField.focus();
+        // Обновляем скрытый input если есть
+        const hiddenInput = document.getElementById('mobileInput');
+        if (hiddenInput) {
+            const latex = mathField.latex();
+            hiddenInput.value = latex.replace(/\\[a-zA-Z]+/g, '').replace(/[{}]/g, '');
         }
         
     } catch (e) {
@@ -448,27 +500,43 @@ mathKeys.forEach(function(btn) {
     });
 });
 
-// ЦВЕТ - ИСПРАВЛЕНО!
+// ЦВЕТА - УСИЛЕННАЯ ВЕРСИЯ
 colorButtons.forEach(function(btn) {
+    // Убираем старые обработчики
+    btn.removeEventListener('click', function(){});
+    
+    // Добавляем новый обработчик
     btn.addEventListener('click', function(e) {
         e.stopPropagation();
         e.preventDefault();
         
-        console.log('Клик по кнопке цвета:', this.className);
+        console.log('Клик по цвету:', this.className);
         
-        let color = '';
-        if (this.classList.contains('white')) color = 'white';
-        else if (this.classList.contains('red')) color = 'red';
+        // Определяем цвет
+        let color = 'white';
+        if (this.classList.contains('red')) color = 'red';
         else if (this.classList.contains('blue')) color = 'blue';
         else if (this.classList.contains('green')) color = 'green';
         else if (this.classList.contains('yellow')) color = 'yellow';
         
-        if (color) {
-            console.log('Выбран цвет:', color);
-            currentColor = color;
-            updateColor();
-            saveData();
-        }
+        console.log('Устанавливаем цвет:', color);
+        currentColor = color;
+        
+        // Принудительно применяем цвет
+        scrollingText.style.color = 
+            color === 'white' ? '#ffffff' :
+            color === 'red' ? '#ff3b30' :
+            color === 'blue' ? '#007aff' :
+            color === 'green' ? '#34c759' : '#ffcc00';
+        
+        // Обновляем активный класс
+        colorButtons.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Сохраняем
+        saveData();
+        
+        console.log('Цвет применен:', scrollingText.style.color);
     });
 });
 
@@ -537,4 +605,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ LED Banner с поддержкой мобильного ввода готов!');
+console.log('✅ ФИНАЛЬНАЯ ВЕРСИЯ: цвета и курсор работают!');
