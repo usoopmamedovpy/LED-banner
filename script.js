@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - ПРОСТАЯ РАБОЧАЯ ВЕРСИЯ КАК НА КОМПЕ
+// LED BANNER - РАБОЧАЯ ВЕРСИЯ ДЛЯ МОБИЛОК
 // ============================================
 
 // Telegram
@@ -56,9 +56,8 @@ let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.
 // ИНИЦИАЛИЗАЦИЯ
 // ============================================
 window.addEventListener('load', function() {
-    console.log('LED Banner загружен');
+    console.log('LED Banner загружен, устройство:', isMobile ? 'Мобильное' : 'Компьютер');
     
-    // Используем оригинальный mathField из HTML
     const mathFieldElement = document.getElementById('mathField');
     
     setTimeout(function() {
@@ -72,9 +71,6 @@ window.addEventListener('load', function() {
     loadSavedData();
     updateDisplay();
     scrollingText.style.textShadow = 'none';
-    
-    // Обновляем цвет при загрузке
-    setTimeout(updateColor, 100);
 });
 
 // ============================================
@@ -110,23 +106,69 @@ function initMathQuill(element) {
         console.log('MathQuill готов');
         loadSavedData();
         
-        // Для мобилок - разрешаем ввод
+        // Для мобилок - создаем скрытый input для ввода текста
         if (isMobile) {
-            element.addEventListener('click', function(e) {
-                e.stopPropagation();
-                mathField.focus();
-            });
-            
-            element.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                mathField.focus();
-            });
+            createMobileInput(element);
         }
         
     } catch (e) {
         console.error('Ошибка MathQuill:', e);
     }
+}
+
+// ============================================
+// СОЗДАЕМ СКРЫТЫЙ INPUT ДЛЯ МОБИЛОК
+// ============================================
+function createMobileInput(mathFieldElement) {
+    // Создаем скрытый input
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'text';
+    hiddenInput.id = 'mobileInput';
+    hiddenInput.style.position = 'absolute';
+    hiddenInput.style.top = '-100px';
+    hiddenInput.style.left = '-100px';
+    hiddenInput.style.width = '1px';
+    hiddenInput.style.height = '1px';
+    hiddenInput.style.opacity = '0';
+    hiddenInput.style.pointerEvents = 'none';
+    
+    document.body.appendChild(hiddenInput);
+    
+    // При клике на MathQuill поле - фокусируем скрытый input
+    mathFieldElement.addEventListener('click', function(e) {
+        e.stopPropagation();
+        hiddenInput.focus();
+    });
+    
+    mathFieldElement.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        hiddenInput.focus();
+    });
+    
+    // Обработка ввода текста
+    hiddenInput.addEventListener('input', function(e) {
+        const text = e.target.value;
+        if (text && mathField) {
+            // Вставляем каждый символ в MathQuill
+            for (let char of text) {
+                mathField.typedText(char);
+            }
+            hiddenInput.value = ''; // Очищаем после вставки
+        }
+    });
+    
+    // Обработка удаления (backspace)
+    hiddenInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Backspace') {
+            e.preventDefault();
+            if (mathField) {
+                mathField.keystroke('Backspace');
+            }
+        }
+    });
+    
+    console.log('Создан скрытый input для мобильного ввода');
 }
 
 // ============================================
@@ -289,7 +331,9 @@ function insertMathCommand(cmd) {
             mathField.cmd(cmd);
         }
         
-        mathField.focus();
+        if (!isMobile) {
+            mathField.focus();
+        }
         
     } catch (e) {
         console.error('Ошибка вставки:', e);
@@ -404,13 +448,13 @@ mathKeys.forEach(function(btn) {
     });
 });
 
-// ЦВЕТ
+// ЦВЕТ - ИСПРАВЛЕНО!
 colorButtons.forEach(function(btn) {
     btn.addEventListener('click', function(e) {
         e.stopPropagation();
         e.preventDefault();
         
-        console.log('Клик по цвету:', this.classList);
+        console.log('Клик по кнопке цвета:', this.className);
         
         let color = '';
         if (this.classList.contains('white')) color = 'white';
@@ -493,4 +537,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ LED Banner с простым интерфейсом готов!');
+console.log('✅ LED Banner с поддержкой мобильного ввода готов!');
