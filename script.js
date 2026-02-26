@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - КРАСИВЫЙ ИНТЕРФЕЙС С ДВУМЯ ПОЛЯМИ
+// LED BANNER - ПРОСТАЯ РАБОЧАЯ ВЕРСИЯ КАК НА КОМПЕ
 // ============================================
 
 // Telegram
@@ -58,172 +58,24 @@ let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.
 window.addEventListener('load', function() {
     console.log('LED Banner загружен');
     
-    // Создаем красивый интерфейс с двумя полями
-    createDualInputSystem();
+    // Используем оригинальный mathField из HTML
+    const mathFieldElement = document.getElementById('mathField');
+    
+    setTimeout(function() {
+        if (typeof MathQuill !== 'undefined') {
+            initMathQuill(mathFieldElement);
+        } else {
+            console.error('MathQuill не загрузился');
+        }
+    }, 500);
     
     loadSavedData();
     updateDisplay();
     scrollingText.style.textShadow = 'none';
+    
+    // Обновляем цвет при загрузке
+    setTimeout(updateColor, 100);
 });
-
-// ============================================
-// СОЗДАЕМ КРАСИВЫЙ ИНТЕРФЕЙС С ДВУМЯ ПОЛЯМИ
-// ============================================
-function createDualInputSystem() {
-    const mathFieldElement = document.getElementById('mathField');
-    if (!mathFieldElement) return;
-    
-    // Очищаем inputArea
-    inputArea.innerHTML = '';
-    inputArea.style.display = 'flex';
-    inputArea.style.flexDirection = 'column';
-    inputArea.style.gap = '10px';
-    inputArea.style.padding = '16px';
-    
-    // ===== ВЕРХНЯЯ СТРОКА (MATH поле) =====
-    const topRow = document.createElement('div');
-    topRow.style.display = 'flex';
-    topRow.style.gap = '10px';
-    topRow.style.alignItems = 'center';
-    topRow.style.width = '100%';
-    
-    // Кнопка MATH (одна!)
-    const mathButton = document.createElement('button');
-    mathButton.className = 'math-btn';
-    mathButton.id = 'mathBtnNew';
-    mathButton.textContent = 'MATH';
-    mathButton.style.width = '70px';
-    mathButton.style.height = '60px';
-    mathButton.style.background = '#000000';
-    mathButton.style.border = '2px solid #ffffff';
-    mathButton.style.borderRadius = '30px';
-    mathButton.style.color = '#ffffff';
-    mathButton.style.fontWeight = 'bold';
-    mathButton.style.fontSize = '18px';
-    mathButton.style.cursor = 'pointer';
-    
-    // MATH поле
-    const mathDiv = document.createElement('div');
-    mathDiv.id = 'mathField';
-    mathDiv.className = 'math-field';
-    mathDiv.style.flex = '1';
-    mathDiv.style.minHeight = '60px';
-    mathDiv.style.background = '#111111';
-    mathDiv.style.border = '2px solid #ffffff';
-    mathDiv.style.borderRadius = '30px';
-    mathDiv.style.padding = '12px 20px';
-    mathDiv.style.fontSize = '18px';
-    mathDiv.style.color = '#ffffff';
-    
-    topRow.appendChild(mathButton);
-    topRow.appendChild(mathDiv);
-    
-    // ===== НИЖНЯЯ СТРОКА (текстовое поле + стрелка + RUN) =====
-    const bottomRow = document.createElement('div');
-    bottomRow.style.display = 'flex';
-    bottomRow.style.gap = '10px';
-    bottomRow.style.alignItems = 'center';
-    bottomRow.style.width = '100%';
-    
-    // Текстовое поле
-    const textInput = document.createElement('input');
-    textInput.type = 'text';
-    textInput.id = 'textInput';
-    textInput.className = 'text-input';
-    textInput.placeholder = 'Введите обычный текст...';
-    textInput.value = '';
-    textInput.style.flex = '1';
-    textInput.style.background = '#111111';
-    textInput.style.border = '2px solid #ffffff';
-    textInput.style.borderRadius = '30px';
-    textInput.style.padding = '16px 20px';
-    textInput.style.fontSize = '18px';
-    textInput.style.color = '#ffffff';
-    textInput.style.outline = 'none';
-    
-    // Кнопка стрелка (красивая)
-    const arrowBtn = document.createElement('button');
-    arrowBtn.id = 'arrowBtn';
-    arrowBtn.innerHTML = '→';
-    arrowBtn.style.width = '60px';
-    arrowBtn.style.height = '60px';
-    arrowBtn.style.background = '#000000';
-    arrowBtn.style.border = '2px solid #ffffff';
-    arrowBtn.style.borderRadius = '30px';
-    arrowBtn.style.color = '#ffffff';
-    arrowBtn.style.fontSize = '28px';
-    arrowBtn.style.fontWeight = 'bold';
-    arrowBtn.style.cursor = 'pointer';
-    arrowBtn.style.display = 'flex';
-    arrowBtn.style.alignItems = 'center';
-    arrowBtn.style.justifyContent = 'center';
-    arrowBtn.style.transition = 'all 0.2s ease';
-    
-    // RUN кнопка (оригинальная)
-    const runButton = document.createElement('button');
-    runButton.className = 'run-btn';
-    runButton.id = 'runBtn';
-    runButton.textContent = 'RUN';
-    runButton.style.width = '70px';
-    runButton.style.height = '60px';
-    runButton.style.background = 'transparent';
-    runButton.style.border = '2px solid #ffffff';
-    runButton.style.borderRadius = '30px';
-    runButton.style.color = '#ffffff';
-    runButton.style.fontWeight = 'bold';
-    runButton.style.fontSize = '18px';
-    runButton.style.cursor = 'pointer';
-    runButton.style.textTransform = 'uppercase';
-    runButton.style.letterSpacing = '2px';
-    
-    bottomRow.appendChild(textInput);
-    bottomRow.appendChild(arrowBtn);
-    bottomRow.appendChild(runButton);
-    
-    // Добавляем строки в inputArea
-    inputArea.appendChild(topRow);
-    inputArea.appendChild(bottomRow);
-    
-    // Инициализируем MathQuill
-    initMathQuill(mathDiv);
-    
-    // ===== ОБРАБОТЧИКИ =====
-    
-    // MATH кнопка
-    mathButton.addEventListener('click', function(e) {
-        e.stopPropagation();
-        toggleKeyboard();
-    });
-    
-    // Стрелка - вставляет текст в MATH поле
-    arrowBtn.addEventListener('click', function() {
-        const text = textInput.value;
-        if (text && mathField) {
-            // Вставляем текст в текущую позицию курсора
-            for (let char of text) {
-                mathField.typedText(char);
-            }
-            textInput.value = ''; // Очищаем после вставки
-            textInput.focus();
-        }
-    });
-    
-    // Enter в текстовом поле - вставляет текст
-    textInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            arrowBtn.click();
-        }
-    });
-    
-    // RUN кнопка
-    runButton.addEventListener('click', function() {
-        toggleRun();
-    });
-    
-    // Обновляем ссылку на runBtn
-    window.runBtn = runButton;
-}
 
 // ============================================
 // MATHQUILL ИНИЦИАЛИЗАЦИЯ
@@ -258,13 +110,27 @@ function initMathQuill(element) {
         console.log('MathQuill готов');
         loadSavedData();
         
+        // Для мобилок - разрешаем ввод
+        if (isMobile) {
+            element.addEventListener('click', function(e) {
+                e.stopPropagation();
+                mathField.focus();
+            });
+            
+            element.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                mathField.focus();
+            });
+        }
+        
     } catch (e) {
         console.error('Ошибка MathQuill:', e);
     }
 }
 
 // ============================================
-// СОХРАНЕНИЕ
+// ЗАГРУЗКА/СОХРАНЕНИЕ
 // ============================================
 function loadSavedData() {
     try {
@@ -370,13 +236,11 @@ function toggleKeyboard() {
     if (keyboardVisible) {
         mathKeyboard.classList.add('show');
         mathBtn.classList.add('active');
-        document.getElementById('mathBtnNew')?.classList.add('active');
         settingsPanel.classList.remove('show');
         settingsBtn.classList.remove('active');
     } else {
         mathKeyboard.classList.remove('show');
         mathBtn.classList.remove('active');
-        document.getElementById('mathBtnNew')?.classList.remove('active');
     }
 }
 
@@ -384,8 +248,6 @@ function closeKeyboard() {
     keyboardVisible = false;
     mathKeyboard.classList.remove('show');
     mathBtn.classList.remove('active');
-    const newBtn = document.getElementById('mathBtnNew');
-    if (newBtn) newBtn.classList.remove('active');
 }
 
 // ============================================
@@ -438,8 +300,6 @@ function insertMathCommand(cmd) {
 // УПРАВЛЕНИЕ ЗАПУСКОМ
 // ============================================
 function toggleRun() {
-    const currentRunBtn = document.getElementById('runBtn');
-    
     if (isRunning) {
         inputArea.style.display = 'flex';
         settingsBtn.style.display = 'flex';
@@ -468,10 +328,6 @@ function resetAll() {
         mathField.latex('LED\\ бегущая\\ строка');
     }
     
-    // Очищаем текстовое поле
-    const textInput = document.getElementById('textInput');
-    if (textInput) textInput.value = '';
-    
     currentColor = 'white';
     currentSpeed = 15;
     currentSize = 15;
@@ -490,10 +346,20 @@ function resetAll() {
 // ОБРАБОТЧИКИ
 // ============================================
 
-// Оригинальная MATH кнопка (скрываем, но оставляем для обратной совместимости)
-if (mathBtn) {
-    mathBtn.style.display = 'none';
-}
+// MATH кнопка
+mathBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    toggleKeyboard();
+});
+
+// Закрытие клавиатуры
+document.addEventListener('click', function(e) {
+    if (keyboardVisible && 
+        !mathKeyboard.contains(e.target) && 
+        !mathBtn.contains(e.target)) {
+        closeKeyboard();
+    }
+});
 
 // Вкладки
 tabFunctions.addEventListener('click', function() {
@@ -538,7 +404,7 @@ mathKeys.forEach(function(btn) {
     });
 });
 
-// ЦВЕТ - ИСПРАВЛЕНО!
+// ЦВЕТ
 colorButtons.forEach(function(btn) {
     btn.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -546,7 +412,6 @@ colorButtons.forEach(function(btn) {
         
         console.log('Клик по цвету:', this.classList);
         
-        // Получаем цвет из класса (white, red, blue, green, yellow)
         let color = '';
         if (this.classList.contains('white')) color = 'white';
         else if (this.classList.contains('red')) color = 'red';
@@ -578,6 +443,9 @@ speedSlider.addEventListener('input', function() {
     restartAnimation();
     saveData();
 });
+
+// RUN
+runBtn.addEventListener('click', toggleRun);
 
 // Крестик
 resetBtn.addEventListener('click', function() {
@@ -625,4 +493,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ LED Banner с красивым интерфейсом готов!');
+console.log('✅ LED Banner с простым интерфейсом готов!');
