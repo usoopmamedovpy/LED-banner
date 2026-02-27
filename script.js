@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ 3.0
+// LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ 4.0
 // ============================================
 
 // Telegram
@@ -68,9 +68,7 @@ window.addEventListener('load', function() {
     createUnifiedInterface();
     loadSavedData();
     
-    // Применяем цвет после загрузки
     setTimeout(applyColorToMath, 500);
-    
     scrollingText.style.textShadow = 'none';
 });
 
@@ -94,7 +92,6 @@ function createUnifiedInterface() {
     inputArea.style.backgroundColor = '#000000';
     inputArea.style.borderTop = '2px solid rgba(255, 255, 255, 0.2)';
     
-    // MATH кнопка
     const mathButton = document.createElement('button');
     mathButton.className = 'math-btn';
     mathButton.id = 'mainMathBtn';
@@ -110,7 +107,6 @@ function createUnifiedInterface() {
     mathButton.style.cursor = 'pointer';
     mathButton.style.flexShrink = '0';
     
-    // Текстовое поле
     const textInput = document.createElement('input');
     textInput.type = 'text';
     textInput.id = 'mainInput';
@@ -127,7 +123,6 @@ function createUnifiedInterface() {
     textInput.style.color = '#ffffff';
     textInput.style.outline = 'none';
     
-    // RUN кнопка
     const runButton = document.createElement('button');
     runButton.className = 'run-btn';
     runButton.id = 'mainRunBtn';
@@ -147,7 +142,6 @@ function createUnifiedInterface() {
     inputArea.appendChild(textInput);
     inputArea.appendChild(runButton);
     
-    // Обработчики
     mathButton.addEventListener('click', function(e) {
         e.stopPropagation();
         toggleKeyboard();
@@ -173,7 +167,6 @@ function createUnifiedInterface() {
         }
     });
     
-    // Закрытие MATH клавиатуры
     document.addEventListener('click', function(e) {
         if (keyboardVisible && 
             !mathKeyboard.contains(e.target) && 
@@ -184,23 +177,19 @@ function createUnifiedInterface() {
 }
 
 // ============================================
-// ПРИМЕНЕНИЕ ЦВЕТА К MATHJax
+// ПРИМЕНЕНИЕ ЦВЕТА
 // ============================================
 function applyColorToMath() {
     console.log('Применяем цвет к математике:', currentColor);
     
     const color = colorMap[currentColor];
-    
-    // Применяем цвет ко всему контейнеру
     scrollingText.style.color = color;
     
-    // Применяем цвет ко всем элементам MathJax
     const mathElements = scrollingText.querySelectorAll('mjx-container, mjx-math, mjx-mi, mjx-mo, mjx-mn, mjx-msup, mjx-mfrac, mjx-sqrt');
     mathElements.forEach(el => {
         el.style.color = color;
     });
     
-    // Добавляем CSS правило для всех будущих элементов
     const style = document.createElement('style');
     style.textContent = `
         #scrollingText, 
@@ -216,14 +205,12 @@ function applyColorToMath() {
         }
     `;
     
-    // Удаляем старый стиль если есть
     const oldStyle = document.getElementById('mathColorStyle');
     if (oldStyle) oldStyle.remove();
     
     style.id = 'mathColorStyle';
     document.head.appendChild(style);
     
-    // Обновляем активную кнопку
     colorButtons.forEach(btn => {
         btn.classList.remove('active');
         if (btn.classList.contains(currentColor)) {
@@ -240,24 +227,16 @@ function parseToLaTeX(text) {
     
     let result = text;
     
-    // Векторы
     result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
-    
-    // Дроби
     result = result.replace(/\(([^)]+)\)\s*\/\s*\(([^)]+)\)/g, '\\frac{$1}{$2}');
     result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
-    
-    // Корни
     result = result.replace(/√\[([^\]]+)\]/g, '\\sqrt{$1}');
     result = result.replace(/√\[([^\]]+)\]\{([^}]+)\}/g, '\\sqrt[$1]{$2}');
-    
-    // Степени и индексы
     result = result.replace(/([a-zA-Z0-9α-ω])\^\(([^)]+)\)/g, '$1^{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])\^([a-zA-Z0-9α-ω])/g, '$1^{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])_\(([^)]+)\)/g, '$1_{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])_([a-zA-Z0-9α-ω])/g, '$1_{$2}');
     
-    // Греческие буквы
     const greekMap = {
         'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
         'ε': '\\epsilon', 'ζ': '\\zeta', 'η': '\\eta', 'θ': '\\theta',
@@ -271,7 +250,6 @@ function parseToLaTeX(text) {
         result = result.replace(new RegExp(char, 'g'), latex);
     }
     
-    // Функции
     const funcs = ['sin', 'cos', 'tan', 'cot', 'log', 'ln', 'exp', 'lim'];
     funcs.forEach(func => {
         result = result.replace(new RegExp(func + '\\s*\\(', 'g'), func + '(');
@@ -381,12 +359,10 @@ function closeKeyboard() {
 
 function toggleRun() {
     if (isRunning) {
-        // Просто показываем кнопки, НЕ СБРАСЫВАЕМ ТЕКСТ
         inputArea.style.display = 'flex';
         settingsBtn.style.display = 'flex';
         isRunning = false;
     } else {
-        // Обновляем перед запуском
         scrollingText.style.fontSize = currentSize + 'vw';
         sizeValue.textContent = currentSize + 'vw';
         speedValue.textContent = currentSpeed + ' сек';
@@ -401,36 +377,42 @@ function toggleRun() {
     }
 }
 
-function resetAll() {
+// ============================================
+// НОВАЯ ЛОГИКА ДЛЯ КРЕСТИКА
+// ============================================
+function handleReset() {
     if (isRunning) {
+        // Если RUN активен - только показываем кнопки, текст НЕ трогаем
         inputArea.style.display = 'flex';
         settingsBtn.style.display = 'flex';
         isRunning = false;
+    } else {
+        // Если RUN не активен - полный сброс
+        const input = document.getElementById('mainInput');
+        if (input) input.value = 'LED бегущая строка';
+        
+        scrollingText.innerHTML = '\\(LED\\ бегущая\\ строка\\)';
+        if (window.MathJax) {
+            MathJax.typesetPromise([scrollingText]).then(() => {
+                applyColorToMath();
+            }).catch(() => {});
+        }
+        
+        currentColor = 'white';
+        currentSpeed = 15;
+        currentSize = 15;
+        
+        sizeSlider.value = 15;
+        speedSlider.value = 15;
+        sizeValue.textContent = '15vw';
+        speedValue.textContent = '15 сек';
+        
+        scrollingText.style.fontSize = '15vw';
+        applyColorToMath();
+        restartAnimation();
     }
     
-    const input = document.getElementById('mainInput');
-    if (input) input.value = 'LED бегущая строка';
-    
-    scrollingText.innerHTML = '\\(LED\\ бегущая\\ строка\\)';
-    if (window.MathJax) {
-        MathJax.typesetPromise([scrollingText]).then(() => {
-            applyColorToMath();
-        }).catch(() => {});
-    }
-    
-    currentColor = 'white';
-    currentSpeed = 15;
-    currentSize = 15;
-    
-    sizeSlider.value = 15;
-    speedSlider.value = 15;
-    sizeValue.textContent = '15vw';
-    speedValue.textContent = '15 сек';
-    
-    scrollingText.style.fontSize = '15vw';
-    applyColorToMath();
-    restartAnimation();
-    
+    // В любом случае закрываем клавиатуры и настройки
     closeKeyboard();
     settingsPanel.classList.remove('show');
     settingsBtn.classList.remove('active');
@@ -483,10 +465,8 @@ function insertMathSymbol(symbol) {
 // ОБРАБОТЧИКИ
 // ============================================
 
-// Скрываем оригинальную MATH кнопку
 if (mathBtn) mathBtn.style.display = 'none';
 
-// Вкладки
 tabFunctions.addEventListener('click', function() {
     tabFunctions.classList.add('active');
     tabGreek.classList.remove('active');
@@ -514,7 +494,6 @@ tabSymbols.addEventListener('click', function() {
     greekTab.classList.remove('active');
 });
 
-// Кнопки клавиатуры
 mathKeys.forEach(function(btn) {
     btn.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -531,13 +510,10 @@ mathKeys.forEach(function(btn) {
     });
 });
 
-// ЦВЕТА - НОВАЯ СИСТЕМА
 colorButtons.forEach(function(btn) {
     btn.addEventListener('click', function(e) {
         e.stopPropagation();
         e.preventDefault();
-        
-        console.log('Клик по кнопке цвета');
         
         let color = 'white';
         if (this.classList.contains('red')) color = 'red';
@@ -545,18 +521,12 @@ colorButtons.forEach(function(btn) {
         else if (this.classList.contains('green')) color = 'green';
         else if (this.classList.contains('yellow')) color = 'yellow';
         
-        console.log('Выбран цвет:', color);
         currentColor = color;
-        
-        // Применяем цвет ко всей математике
         applyColorToMath();
-        
-        // Сохраняем
         saveData({});
     });
 });
 
-// Размер
 sizeSlider.addEventListener('input', function() {
     currentSize = parseInt(this.value);
     scrollingText.style.fontSize = currentSize + 'vw';
@@ -564,7 +534,6 @@ sizeSlider.addEventListener('input', function() {
     saveData({});
 });
 
-// Скорость
 speedSlider.addEventListener('input', function() {
     currentSpeed = parseInt(this.value);
     speedValue.textContent = currentSpeed + ' сек';
@@ -572,10 +541,9 @@ speedSlider.addEventListener('input', function() {
     saveData({});
 });
 
-// Крестик
-resetBtn.addEventListener('click', resetAll);
+// НОВЫЙ ОБРАБОТЧИК ДЛЯ КРЕСТИКА
+resetBtn.addEventListener('click', handleReset);
 
-// Шестеренка
 settingsBtn.addEventListener('click', function() {
     if (isRunning) return;
     
@@ -589,7 +557,6 @@ settingsBtn.addEventListener('click', function() {
     }
 });
 
-// Закрытие настроек
 settingsPanel.addEventListener('click', function(e) {
     if (e.target === settingsPanel) {
         settingsPanel.classList.remove('show');
@@ -616,4 +583,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ ФИНАЛЬНАЯ ВЕРСИЯ 3.0: цвета работают через CSS!');
+console.log('✅ ФИНАЛЬНАЯ ВЕРСИЯ: умный крестик готов!');
