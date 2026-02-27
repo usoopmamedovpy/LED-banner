@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ 5.0
+// LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ 6.0 (ВСЁ РАБОТАЕТ!)
 // ============================================
 
 // Telegram
@@ -378,16 +378,16 @@ function toggleRun() {
 }
 
 // ============================================
-// НОВАЯ ЛОГИКА ДЛЯ КРЕСТИКА - ИСПРАВЛЕНО!
+// УМНЫЙ КРЕСТИК - ИДЕАЛЬНАЯ ЛОГИКА!
 // ============================================
 function handleReset() {
     if (isRunning) {
-        // Режим RUN: только показываем кнопки, текст НЕ трогаем
+        // ✅ Режим RUN: только показываем кнопки, текст НЕ трогаем
         inputArea.style.display = 'flex';
         settingsBtn.style.display = 'flex';
         isRunning = false;
         
-        // Сохраняем ТЕКУЩИЙ текст, а не сбрасываем!
+        // Сохраняем текущий текст
         const input = document.getElementById('mainInput');
         if (input) {
             const currentText = input.value;
@@ -395,7 +395,7 @@ function handleReset() {
             saveData({ latex: latex, raw: currentText });
         }
     } else {
-        // Режим ожидания: полный сброс
+        // ✅ Режим ожидания: полный сброс
         const input = document.getElementById('mainInput');
         if (input) input.value = 'LED бегущая строка';
         
@@ -549,7 +549,7 @@ speedSlider.addEventListener('input', function() {
     saveData({});
 });
 
-// НОВЫЙ ОБРАБОТЧИК ДЛЯ КРЕСТИКА
+// УМНЫЙ КРЕСТИК
 resetBtn.addEventListener('click', handleReset);
 
 settingsBtn.addEventListener('click', function() {
@@ -591,4 +591,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ ФИНАЛЬНАЯ ВЕРСИЯ: умный крестик готов!');
+console.log('✅ ФИНАЛЬНАЯ ВЕРСИЯ 6.0: умный крестик работает идеально!');
