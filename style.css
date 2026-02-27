@@ -122,6 +122,7 @@ body {
     padding: 20px;
 }
 
+/* Убираем !important и добавляем поддержку цветов */
 .scrolling-text {
     font-weight: bold;
     white-space: nowrap;
@@ -132,15 +133,22 @@ body {
     padding-right: 50px;
     transition: color 0.1s ease, font-size 0.1s ease;
     font-size: 15vw;
-    color: #ffffff;
-    text-shadow: none !important;
+    text-shadow: none;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    /* Цвет будет задаваться через JS */
 }
 
 /* MathJax стили */
-.scrolling-text mjx-container {
-    color: inherit !important;
-    font-size: inherit !important;
+.scrolling-text mjx-container,
+.scrolling-text mjx-math,
+.scrolling-text mjx-mi,
+.scrolling-text mjx-mo,
+.scrolling-text mjx-mn,
+.scrolling-text mjx-msup,
+.scrolling-text mjx-mfrac,
+.scrolling-text mjx-sqrt {
+    /* Цвет будет задаваться через JS */
+    transition: color 0.1s ease;
 }
 
 @keyframes scrollText {
@@ -148,9 +156,7 @@ body {
     100% { left: -100%; }
 }
 
-/* ============================================ */
-/* КОНТЕЙНЕР ДЛЯ ВВОДА */
-/* ============================================ */
+/* Контейнер для ввода */
 .input-container {
     width: 100%;
     position: relative;
@@ -197,50 +203,21 @@ body {
     transform: scale(0.95);
 }
 
-/* MathQuill поле - С БЕЛОЙ ОБВОДКОЙ */
-.math-field {
+/* Поле ввода */
+.text-input {
     flex: 1;
     background: #111111;
-    border: 2px solid #ffffff;  /* БЕЛАЯ ОБВОДКА */
+    border: 2px solid #ffffff;
     border-radius: 30px;
-    padding: 12px 20px;
-    min-height: 60px;
-    max-height: 150px;
-    overflow-y: auto;
+    padding: 16px 20px;
+    font-size: 18px;
     color: #ffffff;
-    font-size: 20px;
-    cursor: text;
-    transition: all 0.2s ease;
+    outline: none;
 }
 
-.math-field:focus-within {
+.text-input:focus {
+    outline: none;
     border-color: #ffffff;
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
-}
-
-/* Стили для MathQuill внутри поля */
-.mq-editable-field {
-    width: 100% !important;
-    background: transparent !important;
-    color: #ffffff !important;
-    border: none !important;  /* Убираем внутреннюю обводку */
-    min-height: 40px;
-}
-
-.mq-editable-field .mq-root-block {
-    color: #ffffff !important;
-    padding: 5px 0;
-}
-
-.mq-editable-field .mq-cursor {
-    border-left-color: #ffffff !important;
-    border-left-width: 2px !important;
-}
-
-/* Убираем лишние обводки */
-.mq-editable-field.mq-focused {
-    box-shadow: none !important;
-    outline: none !important;
 }
 
 /* RUN кнопка */
@@ -266,9 +243,7 @@ body {
     transform: scale(0.95);
 }
 
-/* ============================================ */
-/* МАТЕМАТИЧЕСКАЯ КЛАВИАТУРА */
-/* ============================================ */
+/* Математическая клавиатура */
 .math-keyboard {
     position: absolute;
     bottom: -500px;
@@ -356,9 +331,7 @@ body {
     transform: scale(0.95);
 }
 
-/* ============================================ */
-/* ПАНЕЛЬ НАСТРОЕК */
-/* ============================================ */
+/* Панель настроек */
 .settings-panel {
     position: fixed;
     top: 0;
@@ -509,24 +482,18 @@ body {
         font-size: 16px;
     }
     
+    .text-input {
+        padding: 14px 16px;
+        font-size: 16px;
+    }
+    
     .run-btn {
         padding: 14px 20px;
         font-size: 16px;
     }
     
-    .math-field {
-        padding: 10px 15px;
-        font-size: 18px;
-        min-height: 50px;
-    }
-    
     .math-keyboard {
         max-height: 400px;
-        padding: 15px 10px 25px 10px;
-    }
-    
-    .keyboard-grid {
-        gap: 5px;
     }
     
     .math-key {
@@ -534,78 +501,53 @@ body {
         font-size: 14px;
     }
     
-    .tab-btn {
-        height: 40px;
-        font-size: 14px;
-    }
-    
     .color-btn {
         width: 40px;
         height: 40px;
     }
-    
-    .settings-content {
-        padding: 20px;
-    }
-}
-
-/* Для очень маленьких экранов */
-@media (max-width: 360px) {
-    .math-keyboard {
-        max-height: 350px;
-    }
-    
-    .math-key {
-        height: 40px;
-        font-size: 13px;
-    }
-    
-    .math-btn {
-        width: 55px;
-        font-size: 14px;
-    }
-    
-    .run-btn {
-        padding: 12px 16px;
-        font-size: 14px;
-    }
 }
 
 /* ============================================ */
-/* ПОДДЕРЖКА ТЕЛЕГРАМ */
+/* ПОДДЕРЖКА ТЕЛЕГРАММА - УБРАЛИ !important ИЗ ЦВЕТА */
 /* ============================================ */
 body, .app-container, .mobile-view, .banner-area, 
 .input-area, .math-keyboard, .settings-content {
-    background: #000000 !important;
+    background: #000000;
 }
 
-.math-field {
-    border-color: #ffffff !important;
-    background: #111111 !important;
+.math-btn, .run-btn, .reset-btn, .settings-btn, 
+.tab-btn, .math-key, .color-btn, .text-input {
+    border-color: #ffffff;
+    color: #ffffff;
 }
 
-.text-input, .run-btn, .math-btn, .reset-btn, 
-.settings-btn, .tab-btn, .math-key, .color-btn {
-    border-color: #ffffff !important;
-    color: #ffffff !important;
+.text-input {
+    background: #111111;
+    color: #ffffff;
 }
 
+.text-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* УБИРАЕМ !important ИЗ ЦВЕТА ТЕКСТА */
+.scrolling-text {
+    text-shadow: none;
+    /* цвет будет задаваться через JS */
+}
+
+/* Активные состояния */
 .math-btn.active, .tab-btn.active, .settings-btn.active {
-    background: #ffffff !important;
-    color: #000000 !important;
+    background: #ffffff;
+    color: #000000;
 }
 
 .math-btn.active svg, .settings-btn.active svg {
-    stroke: #000000 !important;
+    stroke: #000000;
 }
 
 .math-key:active, .run-btn:active, .reset-btn:active, 
 .settings-btn:active, .tab-btn:active {
-    background: #ffffff !important;
-    color: #000000 !important;
-}
-
-.scrolling-text {
-    color: #ffffff !important;
-    text-shadow: none !important;
+    background: #ffffff;
+    color: #000000;
 }
