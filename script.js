@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - ФИНАЛ С ЦВЕТАМИ ЧЕРЕЗ СЛОИ
+// LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ 2.0
 // ============================================
 
 // Telegram
@@ -40,9 +40,6 @@ const functionsTab = document.getElementById('functionsTab');
 const greekTab = document.getElementById('greekTab');
 const symbolsTab = document.getElementById('symbolsTab');
 
-// Цветовой слой
-let colorLayer = null;
-
 // ============================================
 // ПЕРЕМЕННЫЕ
 // ============================================
@@ -53,111 +50,31 @@ let isRunning = false;
 let keyboardVisible = false;
 let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
+// Карта цветов для рендеринга
+const colorMap = {
+    'white': '#ffffff',
+    'red': '#ff3b30',
+    'blue': '#007aff',
+    'green': '#34c759',
+    'yellow': '#ffcc00'
+};
+
 // ============================================
 // ИНИЦИАЛИЗАЦИЯ
 // ============================================
 window.addEventListener('load', function() {
     console.log('LED Banner загружен');
     
-    // Создаем слоеную структуру для цветов
-    createColorLayers();
-    
     // Создаем интерфейс
     createUnifiedInterface();
     
     loadSavedData();
-    updateDisplay();
+    
+    // Принудительно применяем цвет
+    applyColor(currentColor);
+    
     scrollingText.style.textShadow = 'none';
-    
-    // Обновляем цвет через 1 сек
-    setTimeout(updateColorLayer, 1000);
 });
-
-// ============================================
-// СОЗДАНИЕ СЛОЕВ ДЛЯ ЦВЕТА
-// ============================================
-function createColorLayers() {
-    const bannerArea = document.querySelector('.banner-area');
-    if (!bannerArea) return;
-    
-    // Очищаем
-    bannerArea.innerHTML = '';
-    
-    // Создаем контейнер
-    const container = document.createElement('div');
-    container.className = 'banner-container';
-    container.style.position = 'relative';
-    container.style.width = '100%';
-    container.style.height = '100%';
-    
-    // Слой с цветом (будет виден через буквы)
-    colorLayer = document.createElement('div');
-    colorLayer.className = 'color-layer';
-    colorLayer.style.position = 'absolute';
-    colorLayer.style.top = '0';
-    colorLayer.style.left = '0';
-    colorLayer.style.width = '100%';
-    colorLayer.style.height = '100%';
-    colorLayer.style.backgroundColor = '#ffffff';
-    colorLayer.style.zIndex = '1';
-    colorLayer.style.pointerEvents = 'none';
-    colorLayer.style.transition = 'background-color 0.2s ease';
-    
-    // Слой с текстом (вырезает буквы)
-    const textLayer = document.createElement('div');
-    textLayer.className = 'text-layer';
-    textLayer.id = 'scrollingText';
-    textLayer.style.position = 'absolute';
-    textLayer.style.top = '0';
-    textLayer.style.left = '100%';
-    textLayer.style.width = '100%';
-    textLayer.style.height = '100%';
-    textLayer.style.display = 'flex';
-    textLayer.style.alignItems = 'center';
-    textLayer.style.fontWeight = 'bold';
-    textLayer.style.whiteSpace = 'nowrap';
-    textLayer.style.animation = 'scrollText linear infinite';
-    textLayer.style.animationDuration = '15s';
-    textLayer.style.paddingRight = '50px';
-    textLayer.style.fontSize = '15vw';
-    textLayer.style.color = 'transparent';
-    textLayer.style.webkitTextStroke = '2px white';
-    textLayer.style.textShadow = 'none';
-    textLayer.style.zIndex = '2';
-    textLayer.style.pointerEvents = 'none';
-    textLayer.style.mixBlendMode = 'screen';
-    textLayer.textContent = 'LED бегущая строка';
-    
-    container.appendChild(colorLayer);
-    container.appendChild(textLayer);
-    bannerArea.appendChild(container);
-    
-    // Обновляем ссылку
-    window.scrollingText = textLayer;
-}
-
-// ============================================
-// ОБНОВЛЕНИЕ ЦВЕТОВОГО СЛОЯ
-// ============================================
-function updateColorLayer() {
-    if (!colorLayer) return;
-    
-    console.log('Обновление цветового слоя:', currentColor);
-    
-    if (currentColor === 'white') colorLayer.style.backgroundColor = '#ffffff';
-    else if (currentColor === 'red') colorLayer.style.backgroundColor = '#ff3b30';
-    else if (currentColor === 'blue') colorLayer.style.backgroundColor = '#007aff';
-    else if (currentColor === 'green') colorLayer.style.backgroundColor = '#34c759';
-    else if (currentColor === 'yellow') colorLayer.style.backgroundColor = '#ffcc00';
-    
-    // Обновляем кнопки
-    colorButtons.forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.classList.contains(currentColor)) {
-            btn.classList.add('active');
-        }
-    });
-}
 
 // ============================================
 // ЕДИНЫЙ ИНТЕРФЕЙС
@@ -168,18 +85,18 @@ function createUnifiedInterface() {
     
     inputArea.innerHTML = '';
     inputArea.style.display = 'flex';
-    inputArea.style.justifyContent = 'flex-end'; // Прижимаем вправо
+    inputArea.style.justifyContent = 'flex-end';
     inputArea.style.alignItems = 'center';
-    inputArea.style.gap = '10px';
     inputArea.style.padding = '16px';
+    inputArea.style.gap = '10px';
     inputArea.style.position = 'absolute';
     inputArea.style.bottom = '0';
     inputArea.style.left = '0';
     inputArea.style.right = '0';
     inputArea.style.backgroundColor = '#000000';
-    inputArea.style.borderTop = '2px solid rgba(255,255,255,0.2)';
+    inputArea.style.borderTop = '2px solid rgba(255, 255, 255, 0.2)';
     
-    // MATH кнопка
+    // MATH кнопка слева
     const mathButton = document.createElement('button');
     mathButton.className = 'math-btn';
     mathButton.id = 'mainMathBtn';
@@ -195,7 +112,7 @@ function createUnifiedInterface() {
     mathButton.style.cursor = 'pointer';
     mathButton.style.flexShrink = '0';
     
-    // Поле ввода (растягивается)
+    // Текстовое поле (уменьшенное)
     const textInput = document.createElement('input');
     textInput.type = 'text';
     textInput.id = 'mainInput';
@@ -203,17 +120,16 @@ function createUnifiedInterface() {
     textInput.placeholder = '√[x+1] или (a)/(b) или {вектор}';
     textInput.value = 'LED бегущая строка';
     textInput.style.flex = '1';
-    textInput.style.minWidth = '0'; // Позволяет сжиматься
-    textInput.style.maxWidth = 'calc(100% - 160px)'; // Учитываем MATH и RUN
+    textInput.style.maxWidth = 'calc(100% - 160px)';
     textInput.style.background = '#111111';
     textInput.style.border = '2px solid #ffffff';
     textInput.style.borderRadius = '30px';
-    textInput.style.padding = '16px 20px';
-    textInput.style.fontSize = '18px';
+    textInput.style.padding = '14px 18px';
+    textInput.style.fontSize = '16px';
     textInput.style.color = '#ffffff';
     textInput.style.outline = 'none';
     
-    // RUN кнопка
+    // RUN кнопка справа внизу
     const runButton = document.createElement('button');
     runButton.className = 'run-btn';
     runButton.id = 'mainRunBtn';
@@ -244,7 +160,10 @@ function createUnifiedInterface() {
     textInput.addEventListener('input', function(e) {
         const text = e.target.value;
         const latex = parseToLaTeX(text);
-        scrollingText.textContent = text;
+        scrollingText.innerHTML = '\\(' + latex + '\\)';
+        if (window.MathJax) {
+            MathJax.typesetPromise([scrollingText]).catch(() => {});
+        }
         saveData({ latex: latex, raw: text });
     });
     
@@ -254,7 +173,7 @@ function createUnifiedInterface() {
         }
     });
     
-    // Закрытие MATH при клике вне
+    // Закрытие MATH клавиатуры при клике вне
     document.addEventListener('click', function(e) {
         if (keyboardVisible && 
             !mathKeyboard.contains(e.target) && 
@@ -262,6 +181,151 @@ function createUnifiedInterface() {
             closeKeyboard();
         }
     });
+}
+
+// ============================================
+// УМНЫЙ ПАРСЕР
+// ============================================
+function parseToLaTeX(text) {
+    if (!text) return '';
+    
+    let result = text;
+    
+    // Векторы
+    result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
+    
+    // Дроби
+    result = result.replace(/\(([^)]+)\)\s*\/\s*\(([^)]+)\)/g, '\\frac{$1}{$2}');
+    result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
+    
+    // Корни
+    result = result.replace(/√\[([^\]]+)\]/g, '\\sqrt{$1}');
+    result = result.replace(/√\[([^\]]+)\]\{([^}]+)\}/g, '\\sqrt[$1]{$2}');
+    
+    // Степени и индексы
+    result = result.replace(/([a-zA-Z0-9α-ω])\^\(([^)]+)\)/g, '$1^{$2}');
+    result = result.replace(/([a-zA-Z0-9α-ω])\^([a-zA-Z0-9α-ω])/g, '$1^{$2}');
+    result = result.replace(/([a-zA-Z0-9α-ω])_\(([^)]+)\)/g, '$1_{$2}');
+    result = result.replace(/([a-zA-Z0-9α-ω])_([a-zA-Z0-9α-ω])/g, '$1_{$2}');
+    
+    // Греческие буквы
+    const greekMap = {
+        'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
+        'ε': '\\epsilon', 'ζ': '\\zeta', 'η': '\\eta', 'θ': '\\theta',
+        'ι': '\\iota', 'κ': '\\kappa', 'λ': '\\lambda', 'μ': '\\mu',
+        'ν': '\\nu', 'ξ': '\\xi', 'π': '\\pi', 'ρ': '\\rho',
+        'σ': '\\sigma', 'τ': '\\tau', 'υ': '\\upsilon', 'φ': '\\phi',
+        'χ': '\\chi', 'ψ': '\\psi', 'ω': '\\omega'
+    };
+    
+    for (let [char, latex] of Object.entries(greekMap)) {
+        result = result.replace(new RegExp(char, 'g'), latex);
+    }
+    
+    // Функции
+    const funcs = ['sin', 'cos', 'tan', 'cot', 'log', 'ln', 'exp', 'lim'];
+    funcs.forEach(func => {
+        result = result.replace(new RegExp(func + '\\s*\\(', 'g'), func + '(');
+    });
+    
+    return result;
+}
+
+// ============================================
+// РАБОТА С ЦВЕТАМИ
+// ============================================
+function applyColor(color) {
+    console.log('Применяем цвет:', color);
+    
+    // Применяем цвет к бегущей строке
+    if (colorMap[color]) {
+        scrollingText.style.color = colorMap[color];
+    }
+    
+    // Обновляем активную кнопку
+    colorButtons.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.classList.contains(color)) {
+            btn.classList.add('active');
+        }
+    });
+    
+    currentColor = color;
+}
+
+// ============================================
+// СОХРАНЕНИЕ
+// ============================================
+function loadSavedData() {
+    try {
+        const saved = localStorage.getItem('ledBannerData');
+        if (saved) {
+            const data = JSON.parse(saved);
+            
+            // Загружаем цвет
+            if (data.color && colorMap[data.color]) {
+                applyColor(data.color);
+            }
+            
+            // Загружаем скорость
+            if (data.speed) {
+                currentSpeed = data.speed;
+                speedSlider.value = currentSpeed;
+                speedValue.textContent = currentSpeed + ' сек';
+            }
+            
+            // Загружаем размер
+            if (data.size) {
+                currentSize = data.size;
+                sizeSlider.value = currentSize;
+                sizeValue.textContent = currentSize + 'vw';
+                scrollingText.style.fontSize = currentSize + 'vw';
+            }
+            
+            // Загружаем текст
+            if (data.raw) {
+                const input = document.getElementById('mainInput');
+                if (input) input.value = data.raw;
+                
+                if (data.latex) {
+                    scrollingText.innerHTML = '\\(' + data.latex + '\\)';
+                    if (window.MathJax) {
+                        MathJax.typesetPromise([scrollingText]).catch(() => {});
+                    }
+                }
+            }
+        }
+    } catch (e) {
+        console.error('Ошибка загрузки:', e);
+    }
+}
+
+function saveData(data) {
+    const fullData = {
+        ...data,
+        color: currentColor,
+        speed: currentSpeed,
+        size: currentSize
+    };
+    localStorage.setItem('ledBannerData', JSON.stringify(fullData));
+    
+    if (tg) {
+        try {
+            tg.sendData(JSON.stringify({
+                action: 'save',
+                data: fullData
+            }));
+        } catch (e) {}
+    }
+}
+
+// ============================================
+// АНИМАЦИЯ
+// ============================================
+function restartAnimation() {
+    scrollingText.style.animation = 'none';
+    void scrollingText.offsetWidth;
+    scrollingText.style.animation = `scrollText ${currentSpeed}s linear infinite`;
 }
 
 // ============================================
@@ -297,7 +361,13 @@ function toggleRun() {
         settingsBtn.style.display = 'flex';
         isRunning = false;
     } else {
-        updateDisplay();
+        // Обновляем отображение перед запуском
+        scrollingText.style.fontSize = currentSize + 'vw';
+        sizeValue.textContent = currentSize + 'vw';
+        speedValue.textContent = currentSpeed + ' сек';
+        restartAnimation();
+        applyColor(currentColor);
+        
         inputArea.style.display = 'none';
         settingsBtn.style.display = 'none';
         isRunning = true;
@@ -311,91 +381,33 @@ function resetAll() {
         inputArea.style.display = 'flex';
         settingsBtn.style.display = 'flex';
         isRunning = false;
-    } else {
-        // Если не запущено, просто показываем элементы
-        inputArea.style.display = 'flex';
-        settingsBtn.style.display = 'flex';
     }
     
-    // НЕ СБРАСЫВАЕМ ТЕКСТ!
-    // Просто закрываем клавиатуру и настройки
+    const input = document.getElementById('mainInput');
+    if (input) input.value = 'LED бегущая строка';
+    
+    scrollingText.innerHTML = '\\(LED\\ бегущая\\ строка\\)';
+    if (window.MathJax) {
+        MathJax.typesetPromise([scrollingText]).catch(() => {});
+    }
+    
+    applyColor('white');
+    currentSpeed = 15;
+    currentSize = 15;
+    
+    sizeSlider.value = 15;
+    speedSlider.value = 15;
+    sizeValue.textContent = '15vw';
+    speedValue.textContent = '15 сек';
+    
+    scrollingText.style.fontSize = '15vw';
+    restartAnimation();
+    
     closeKeyboard();
     settingsPanel.classList.remove('show');
     settingsBtn.classList.remove('active');
-}
-
-// ============================================
-// ОСТАЛЬНЫЕ ФУНКЦИИ (ПАРСЕР, СОХРАНЕНИЕ И Т.Д.)
-// ============================================
-function parseToLaTeX(text) {
-    if (!text) return '';
     
-    let result = text;
-    
-    // Векторы
-    result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
-    
-    // Дроби
-    result = result.replace(/\(([^)]+)\)\s*\/\s*\(([^)]+)\)/g, '\\frac{$1}{$2}');
-    result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
-    
-    // Корни
-    result = result.replace(/√\[([^\]]+)\]/g, '\\sqrt{$1}');
-    result = result.replace(/√\[([^\]]+)\]\{([^}]+)\}/g, '\\sqrt[$1]{$2}');
-    
-    return result;
-}
-
-function loadSavedData() {
-    try {
-        const saved = localStorage.getItem('ledBannerData');
-        if (saved) {
-            const data = JSON.parse(saved);
-            if (data.color) {
-                currentColor = data.color;
-                updateColorLayer();
-            }
-            if (data.speed) {
-                currentSpeed = data.speed;
-                speedSlider.value = currentSpeed;
-                speedValue.textContent = currentSpeed + ' сек';
-            }
-            if (data.size) {
-                currentSize = data.size;
-                sizeSlider.value = currentSize;
-                sizeValue.textContent = currentSize + 'vw';
-            }
-            if (data.raw) {
-                const input = document.getElementById('mainInput');
-                if (input) input.value = data.raw;
-                if (scrollingText) scrollingText.textContent = data.raw;
-            }
-        }
-    } catch (e) {}
-}
-
-function saveData(data) {
-    const fullData = {
-        ...data,
-        color: currentColor,
-        speed: currentSpeed,
-        size: currentSize
-    };
-    localStorage.setItem('ledBannerData', JSON.stringify(fullData));
-}
-
-function updateDisplay() {
-    scrollingText.style.fontSize = currentSize + 'vw';
-    sizeValue.textContent = currentSize + 'vw';
-    speedValue.textContent = currentSpeed + ' сек';
-    restartAnimation();
-    updateColorLayer();
-}
-
-function restartAnimation() {
-    scrollingText.style.animation = 'none';
-    void scrollingText.offsetWidth;
-    scrollingText.style.animation = `scrollText ${currentSpeed}s linear infinite`;
+    saveData({ latex: 'LED\\ бегущая\\ строка', raw: 'LED бегущая строка' });
 }
 
 // ============================================
@@ -428,8 +440,13 @@ function insertMathSymbol(symbol) {
     input.setSelectionRange(newPos, newPos);
     input.focus();
     
-    scrollingText.textContent = newText;
-    saveData({ latex: parseToLaTeX(newText), raw: newText });
+    const latex = parseToLaTeX(newText);
+    scrollingText.innerHTML = '\\(' + latex + '\\)';
+    if (window.MathJax) {
+        MathJax.typesetPromise([scrollingText]).catch(() => {});
+    }
+    
+    saveData({ latex: latex, raw: newText });
 }
 
 // ============================================
@@ -484,19 +501,27 @@ mathKeys.forEach(function(btn) {
     });
 });
 
-// ЦВЕТА - теперь работают через слой!
+// ЦВЕТА - НОВАЯ СИСТЕМА
 colorButtons.forEach(function(btn) {
     btn.addEventListener('click', function(e) {
         e.stopPropagation();
         e.preventDefault();
         
-        if (this.classList.contains('white')) currentColor = 'white';
-        else if (this.classList.contains('red')) currentColor = 'red';
-        else if (this.classList.contains('blue')) currentColor = 'blue';
-        else if (this.classList.contains('green')) currentColor = 'green';
-        else if (this.classList.contains('yellow')) currentColor = 'yellow';
+        console.log('Клик по кнопке цвета');
         
-        updateColorLayer();
+        // Определяем цвет
+        let color = 'white';
+        if (this.classList.contains('red')) color = 'red';
+        else if (this.classList.contains('blue')) color = 'blue';
+        else if (this.classList.contains('green')) color = 'green';
+        else if (this.classList.contains('yellow')) color = 'yellow';
+        
+        console.log('Выбран цвет:', color);
+        
+        // Применяем цвет
+        applyColor(color);
+        
+        // Сохраняем
         saveData({});
     });
 });
@@ -517,7 +542,7 @@ speedSlider.addEventListener('input', function() {
     saveData({});
 });
 
-// Крестик (теперь НЕ сбрасывает текст)
+// Крестик
 resetBtn.addEventListener('click', resetAll);
 
 // Шестеренка
@@ -561,4 +586,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ ФИНАЛ: цвета через слои, крестик не сбрасывает текст, MATH в углу');
+console.log('✅ ФИНАЛЬНАЯ ВЕРСИЯ 2.0: цвета работают через applyColor()');
