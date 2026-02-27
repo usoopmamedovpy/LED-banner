@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ 2.0
+// LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ 3.0
 // ============================================
 
 // Telegram
@@ -50,7 +50,7 @@ let isRunning = false;
 let keyboardVisible = false;
 let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-// Карта цветов для рендеринга
+// Карта цветов
 const colorMap = {
     'white': '#ffffff',
     'red': '#ff3b30',
@@ -65,13 +65,11 @@ const colorMap = {
 window.addEventListener('load', function() {
     console.log('LED Banner загружен');
     
-    // Создаем интерфейс
     createUnifiedInterface();
-    
     loadSavedData();
     
-    // Принудительно применяем цвет
-    applyColor(currentColor);
+    // Применяем цвет после загрузки
+    setTimeout(applyColorToMath, 500);
     
     scrollingText.style.textShadow = 'none';
 });
@@ -96,7 +94,7 @@ function createUnifiedInterface() {
     inputArea.style.backgroundColor = '#000000';
     inputArea.style.borderTop = '2px solid rgba(255, 255, 255, 0.2)';
     
-    // MATH кнопка слева
+    // MATH кнопка
     const mathButton = document.createElement('button');
     mathButton.className = 'math-btn';
     mathButton.id = 'mainMathBtn';
@@ -112,7 +110,7 @@ function createUnifiedInterface() {
     mathButton.style.cursor = 'pointer';
     mathButton.style.flexShrink = '0';
     
-    // Текстовое поле (уменьшенное)
+    // Текстовое поле
     const textInput = document.createElement('input');
     textInput.type = 'text';
     textInput.id = 'mainInput';
@@ -129,7 +127,7 @@ function createUnifiedInterface() {
     textInput.style.color = '#ffffff';
     textInput.style.outline = 'none';
     
-    // RUN кнопка справа внизу
+    // RUN кнопка
     const runButton = document.createElement('button');
     runButton.className = 'run-btn';
     runButton.id = 'mainRunBtn';
@@ -162,7 +160,9 @@ function createUnifiedInterface() {
         const latex = parseToLaTeX(text);
         scrollingText.innerHTML = '\\(' + latex + '\\)';
         if (window.MathJax) {
-            MathJax.typesetPromise([scrollingText]).catch(() => {});
+            MathJax.typesetPromise([scrollingText]).then(() => {
+                applyColorToMath();
+            }).catch(() => {});
         }
         saveData({ latex: latex, raw: text });
     });
@@ -173,12 +173,61 @@ function createUnifiedInterface() {
         }
     });
     
-    // Закрытие MATH клавиатуры при клике вне
+    // Закрытие MATH клавиатуры
     document.addEventListener('click', function(e) {
         if (keyboardVisible && 
             !mathKeyboard.contains(e.target) && 
             !mathButton.contains(e.target)) {
             closeKeyboard();
+        }
+    });
+}
+
+// ============================================
+// ПРИМЕНЕНИЕ ЦВЕТА К MATHJax
+// ============================================
+function applyColorToMath() {
+    console.log('Применяем цвет к математике:', currentColor);
+    
+    const color = colorMap[currentColor];
+    
+    // Применяем цвет ко всему контейнеру
+    scrollingText.style.color = color;
+    
+    // Применяем цвет ко всем элементам MathJax
+    const mathElements = scrollingText.querySelectorAll('mjx-container, mjx-math, mjx-mi, mjx-mo, mjx-mn, mjx-msup, mjx-mfrac, mjx-sqrt');
+    mathElements.forEach(el => {
+        el.style.color = color;
+    });
+    
+    // Добавляем CSS правило для всех будущих элементов
+    const style = document.createElement('style');
+    style.textContent = `
+        #scrollingText, 
+        #scrollingText mjx-container,
+        #scrollingText mjx-math,
+        #scrollingText mjx-mi,
+        #scrollingText mjx-mo,
+        #scrollingText mjx-mn,
+        #scrollingText mjx-msup,
+        #scrollingText mjx-mfrac,
+        #scrollingText mjx-sqrt {
+            color: ${color} !important;
+        }
+    `;
+    
+    // Удаляем старый стиль если есть
+    const oldStyle = document.getElementById('mathColorStyle');
+    if (oldStyle) oldStyle.remove();
+    
+    style.id = 'mathColorStyle';
+    document.head.appendChild(style);
+    
+    // Обновляем активную кнопку
+    colorButtons.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.classList.contains(currentColor)) {
+            btn.classList.add('active');
         }
     });
 }
@@ -232,28 +281,6 @@ function parseToLaTeX(text) {
 }
 
 // ============================================
-// РАБОТА С ЦВЕТАМИ
-// ============================================
-function applyColor(color) {
-    console.log('Применяем цвет:', color);
-    
-    // Применяем цвет к бегущей строке
-    if (colorMap[color]) {
-        scrollingText.style.color = colorMap[color];
-    }
-    
-    // Обновляем активную кнопку
-    colorButtons.forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.classList.contains(color)) {
-            btn.classList.add('active');
-        }
-    });
-    
-    currentColor = color;
-}
-
-// ============================================
 // СОХРАНЕНИЕ
 // ============================================
 function loadSavedData() {
@@ -262,19 +289,17 @@ function loadSavedData() {
         if (saved) {
             const data = JSON.parse(saved);
             
-            // Загружаем цвет
-            if (data.color && colorMap[data.color]) {
-                applyColor(data.color);
+            if (data.color) {
+                currentColor = data.color;
+                setTimeout(() => applyColorToMath(), 100);
             }
             
-            // Загружаем скорость
             if (data.speed) {
                 currentSpeed = data.speed;
                 speedSlider.value = currentSpeed;
                 speedValue.textContent = currentSpeed + ' сек';
             }
             
-            // Загружаем размер
             if (data.size) {
                 currentSize = data.size;
                 sizeSlider.value = currentSize;
@@ -282,7 +307,6 @@ function loadSavedData() {
                 scrollingText.style.fontSize = currentSize + 'vw';
             }
             
-            // Загружаем текст
             if (data.raw) {
                 const input = document.getElementById('mainInput');
                 if (input) input.value = data.raw;
@@ -290,14 +314,14 @@ function loadSavedData() {
                 if (data.latex) {
                     scrollingText.innerHTML = '\\(' + data.latex + '\\)';
                     if (window.MathJax) {
-                        MathJax.typesetPromise([scrollingText]).catch(() => {});
+                        MathJax.typesetPromise([scrollingText]).then(() => {
+                            applyColorToMath();
+                        }).catch(() => {});
                     }
                 }
             }
         }
-    } catch (e) {
-        console.error('Ошибка загрузки:', e);
-    }
+    } catch (e) {}
 }
 
 function saveData(data) {
@@ -357,16 +381,17 @@ function closeKeyboard() {
 
 function toggleRun() {
     if (isRunning) {
+        // Просто показываем кнопки, НЕ СБРАСЫВАЕМ ТЕКСТ
         inputArea.style.display = 'flex';
         settingsBtn.style.display = 'flex';
         isRunning = false;
     } else {
-        // Обновляем отображение перед запуском
+        // Обновляем перед запуском
         scrollingText.style.fontSize = currentSize + 'vw';
         sizeValue.textContent = currentSize + 'vw';
         speedValue.textContent = currentSpeed + ' сек';
         restartAnimation();
-        applyColor(currentColor);
+        applyColorToMath();
         
         inputArea.style.display = 'none';
         settingsBtn.style.display = 'none';
@@ -388,10 +413,12 @@ function resetAll() {
     
     scrollingText.innerHTML = '\\(LED\\ бегущая\\ строка\\)';
     if (window.MathJax) {
-        MathJax.typesetPromise([scrollingText]).catch(() => {});
+        MathJax.typesetPromise([scrollingText]).then(() => {
+            applyColorToMath();
+        }).catch(() => {});
     }
     
-    applyColor('white');
+    currentColor = 'white';
     currentSpeed = 15;
     currentSize = 15;
     
@@ -401,6 +428,7 @@ function resetAll() {
     speedValue.textContent = '15 сек';
     
     scrollingText.style.fontSize = '15vw';
+    applyColorToMath();
     restartAnimation();
     
     closeKeyboard();
@@ -443,7 +471,9 @@ function insertMathSymbol(symbol) {
     const latex = parseToLaTeX(newText);
     scrollingText.innerHTML = '\\(' + latex + '\\)';
     if (window.MathJax) {
-        MathJax.typesetPromise([scrollingText]).catch(() => {});
+        MathJax.typesetPromise([scrollingText]).then(() => {
+            applyColorToMath();
+        }).catch(() => {});
     }
     
     saveData({ latex: latex, raw: newText });
@@ -509,7 +539,6 @@ colorButtons.forEach(function(btn) {
         
         console.log('Клик по кнопке цвета');
         
-        // Определяем цвет
         let color = 'white';
         if (this.classList.contains('red')) color = 'red';
         else if (this.classList.contains('blue')) color = 'blue';
@@ -517,9 +546,10 @@ colorButtons.forEach(function(btn) {
         else if (this.classList.contains('yellow')) color = 'yellow';
         
         console.log('Выбран цвет:', color);
+        currentColor = color;
         
-        // Применяем цвет
-        applyColor(color);
+        // Применяем цвет ко всей математике
+        applyColorToMath();
         
         // Сохраняем
         saveData({});
@@ -586,4 +616,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ ФИНАЛЬНАЯ ВЕРСИЯ 2.0: цвета работают через applyColor()');
+console.log('✅ ФИНАЛЬНАЯ ВЕРСИЯ 3.0: цвета работают через CSS!');
