@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ 4.0
+// LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ 5.0
 // ============================================
 
 // Telegram
@@ -378,16 +378,24 @@ function toggleRun() {
 }
 
 // ============================================
-// НОВАЯ ЛОГИКА ДЛЯ КРЕСТИКА
+// НОВАЯ ЛОГИКА ДЛЯ КРЕСТИКА - ИСПРАВЛЕНО!
 // ============================================
 function handleReset() {
     if (isRunning) {
-        // Если RUN активен - только показываем кнопки, текст НЕ трогаем
+        // Режим RUN: только показываем кнопки, текст НЕ трогаем
         inputArea.style.display = 'flex';
         settingsBtn.style.display = 'flex';
         isRunning = false;
+        
+        // Сохраняем ТЕКУЩИЙ текст, а не сбрасываем!
+        const input = document.getElementById('mainInput');
+        if (input) {
+            const currentText = input.value;
+            const latex = parseToLaTeX(currentText);
+            saveData({ latex: latex, raw: currentText });
+        }
     } else {
-        // Если RUN не активен - полный сброс
+        // Режим ожидания: полный сброс
         const input = document.getElementById('mainInput');
         if (input) input.value = 'LED бегущая строка';
         
@@ -410,14 +418,14 @@ function handleReset() {
         scrollingText.style.fontSize = '15vw';
         applyColorToMath();
         restartAnimation();
+        
+        saveData({ latex: 'LED\\ бегущая\\ строка', raw: 'LED бегущая строка' });
     }
     
     // В любом случае закрываем клавиатуры и настройки
     closeKeyboard();
     settingsPanel.classList.remove('show');
     settingsBtn.classList.remove('active');
-    
-    saveData({ latex: 'LED\\ бегущая\\ строка', raw: 'LED бегущая строка' });
 }
 
 // ============================================
