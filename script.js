@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ 7.0 (ВСЁ РАБОТАЕТ!)
+// LED BANNER - АБСОЛЮТНО ФИНАЛЬНАЯ ВЕРСИЯ 8.0
 // ============================================
 
 // Telegram
@@ -65,9 +65,7 @@ const colorMap = {
 window.addEventListener('load', function() {
     console.log('LED Banner загружен');
     
-    // СОЗДАЁМ ИНТЕРФЕЙС С ТЕКСТОВЫМ ПОЛЕМ
     createUnifiedInterface();
-    
     loadSavedData();
     
     setTimeout(applyColorToMath, 500);
@@ -75,7 +73,7 @@ window.addEventListener('load', function() {
 });
 
 // ============================================
-// ЕДИНЫЙ ИНТЕРФЕЙС - ТЕКСТОВОЕ ПОЛЕ ЕСТЬ!
+// ЕДИНЫЙ ИНТЕРФЕЙС
 // ============================================
 function createUnifiedInterface() {
     const mathFieldElement = document.getElementById('mathField');
@@ -84,7 +82,6 @@ function createUnifiedInterface() {
         return;
     }
     
-    // Очищаем inputArea
     inputArea.innerHTML = '';
     inputArea.style.display = 'flex';
     inputArea.style.justifyContent = 'flex-end';
@@ -99,7 +96,6 @@ function createUnifiedInterface() {
     inputArea.style.borderTop = '2px solid rgba(255, 255, 255, 0.2)';
     inputArea.style.zIndex = '100';
     
-    // MATH кнопка слева
     const mathButton = document.createElement('button');
     mathButton.className = 'math-btn';
     mathButton.id = 'mainMathBtn';
@@ -116,15 +112,14 @@ function createUnifiedInterface() {
     mathButton.style.flexShrink = '0';
     mathButton.style.transition = 'all 0.2s ease';
     
-    // ТЕКСТОВОЕ ПОЛЕ - ОНО БУДЕТ ЗДЕСЬ!
     const textInput = document.createElement('input');
     textInput.type = 'text';
     textInput.id = 'mainInput';
     textInput.className = 'text-input';
-    textInput.placeholder = '√[x+1] или (a)/(b) или {вектор}';
+    textInput.placeholder = '√[x+1] или /3/√[x] или (a)/(b) или {вектор}';
     textInput.value = 'LED бегущая строка';
     textInput.style.flex = '1';
-    textInput.style.minWidth = '0'; // Важно для flex
+    textInput.style.minWidth = '0';
     textInput.style.background = '#111111';
     textInput.style.border = '2px solid #ffffff';
     textInput.style.borderRadius = '30px';
@@ -134,7 +129,6 @@ function createUnifiedInterface() {
     textInput.style.outline = 'none';
     textInput.style.transition = 'all 0.2s ease';
     
-    // RUN кнопка справа
     const runButton = document.createElement('button');
     runButton.className = 'run-btn';
     runButton.id = 'mainRunBtn';
@@ -151,14 +145,11 @@ function createUnifiedInterface() {
     runButton.style.flexShrink = '0';
     runButton.style.transition = 'all 0.2s ease';
     
-    // Добавляем всё в inputArea
     inputArea.appendChild(mathButton);
     inputArea.appendChild(textInput);
     inputArea.appendChild(runButton);
     
     console.log('Интерфейс создан: MATH + текстовое поле + RUN');
-    
-    // ===== ОБРАБОТЧИКИ =====
     
     mathButton.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -185,7 +176,6 @@ function createUnifiedInterface() {
         }
     });
     
-    // Закрытие MATH клавиатуры при клике вне
     document.addEventListener('click', function(e) {
         if (keyboardVisible && 
             !mathKeyboard.contains(e.target) && 
@@ -203,32 +193,33 @@ function parseToLaTeX(text) {
     
     let result = text;
     
-    // Векторы
+    // 1. Векторы
     result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
     
-    // Дроби
+    // 2. Дроби
     result = result.replace(/\(([^)]+)\)\s*\/\s*\(([^)]+)\)/g, '\\frac{$1}{$2}');
     result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
     
-    // КУБИЧЕСКИЙ КОРЕНЬ: ∛[выражение] → \sqrt[3]{выражение}
+    // 3. КОРЕНЬ n-Й СТЕПЕНИ: /число/√[выражение] → \sqrt[число]{выражение}
+    result = result.replace(/\/(\d+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
+    result = result.replace(/\/([a-zA-Zα-ω]+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
+    
+    // 4. КУБИЧЕСКИЙ КОРЕНЬ: ∛[выражение] → \sqrt[3]{выражение}
     result = result.replace(/∛\[([^\]]+)\]/g, '\\sqrt[3]{$1}');
     
-    // КОРЕНЬ 4-Й СТЕПЕНИ: ∜[выражение] → \sqrt[4]{выражение}
+    // 5. КОРЕНЬ 4-Й СТЕПЕНИ: ∜[выражение] → \sqrt[4]{выражение}
     result = result.replace(/∜\[([^\]]+)\]/g, '\\sqrt[4]{$1}');
     
-    // КОРЕНЬ n-Й СТЕПЕНИ: √[n]{выражение} → \sqrt[n]{выражение}
-    result = result.replace(/√\[([^\]]+)\]\{([^}]+)\}/g, '\\sqrt[$1]{$2}');
-    
-    // ОБЫЧНЫЙ КОРЕНЬ: √[выражение] → \sqrt{выражение}
+    // 6. ОБЫЧНЫЙ КОРЕНЬ: √[выражение] → \sqrt{выражение}
     result = result.replace(/√\[([^\]]+)\]/g, '\\sqrt{$1}');
     
-    // Степени и индексы
+    // 7. Степени и индексы
     result = result.replace(/([a-zA-Z0-9α-ω])\^\(([^)]+)\)/g, '$1^{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])\^([a-zA-Z0-9α-ω])/g, '$1^{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])_\(([^)]+)\)/g, '$1_{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])_([a-zA-Z0-9α-ω])/g, '$1_{$2}');
     
-    // Греческие буквы
+    // 8. Греческие буквы
     const greekMap = {
         'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
         'ε': '\\epsilon', 'ζ': '\\zeta', 'η': '\\eta', 'θ': '\\theta',
@@ -242,7 +233,7 @@ function parseToLaTeX(text) {
         result = result.replace(new RegExp(char, 'g'), latex);
     }
     
-    // Функции
+    // 9. Функции
     const funcs = ['sin', 'cos', 'tan', 'cot', 'log', 'ln', 'exp', 'lim'];
     funcs.forEach(func => {
         result = result.replace(new RegExp(func + '\\s*\\(', 'g'), func + '(');
@@ -418,12 +409,10 @@ function toggleRun() {
 // ============================================
 function handleReset() {
     if (isRunning) {
-        // Режим RUN: только показываем кнопки, текст НЕ трогаем
         inputArea.style.display = 'flex';
         settingsBtn.style.display = 'flex';
         isRunning = false;
         
-        // Сохраняем текущий текст
         const input = document.getElementById('mainInput');
         if (input) {
             const currentText = input.value;
@@ -431,7 +420,6 @@ function handleReset() {
             saveData({ latex: latex, raw: currentText });
         }
     } else {
-        // Режим ожидания: полный сброс
         const input = document.getElementById('mainInput');
         if (input) input.value = 'LED бегущая строка';
         
@@ -458,14 +446,13 @@ function handleReset() {
         saveData({ latex: 'LED\\ бегущая\\ строка', raw: 'LED бегущая строка' });
     }
     
-    // В любом случае закрываем клавиатуры и настройки
     closeKeyboard();
     settingsPanel.classList.remove('show');
     settingsBtn.classList.remove('active');
 }
 
 // ============================================
-// ВСТАВКА СИМВОЛОВ (ОБНОВЛЕНО)
+// ВСТАВКА СИМВОЛОВ (С КОРНЕМ n-Й СТЕПЕНИ)
 // ============================================
 function insertMathSymbol(symbol) {
     const input = document.getElementById('mainInput');
@@ -477,34 +464,33 @@ function insertMathSymbol(symbol) {
     
     let insertText = symbol;
     
-    // Специальные символы
     if (symbol === '√') {
-        insertText = '√[]';  // Обычный корень
+        insertText = '√[]';
     } else if (symbol === '∛') {
-        insertText = '∛[]';  // Кубический корень
+        insertText = '∛[]';
     } else if (symbol === '∜') {
-        insertText = '∜[]';  // Корень 4-й степени
-    } else if (symbol === 'n√' || (symbol === '√' && this?.dataset?.cmd === '\\sqrt[n]')) {
-        insertText = '√[n]{}';  // Корень n-й степени
+        insertText = '∜[]';
+    } else if (symbol === 'n√' || symbol === '√[n]' || (this?.dataset?.cmd === '\\sqrt[n]')) {
+        insertText = '/n/√[]';
     } else if (symbol === '→' || symbol === '\\vec' || symbol === '⃗') {
-        insertText = '{}';  // Вектор
+        insertText = '{}';
     } else if (symbol === 'a/b' || symbol === 'frac') {
-        insertText = '(a)/(b)';  // Дробь
+        insertText = '(a)/(b)';
     }
     
     const newText = text.substring(0, start) + insertText + text.substring(end);
     input.value = newText;
     
-    // Устанавливаем курсор в нужное место
     let newPos = start + insertText.length;
+    
     if (insertText.includes('[]')) {
-        newPos = start + insertText.length - 1;  // Курсор внутри скобок
+        newPos = start + insertText.length - 1;
     } else if (insertText === '{}') {
-        newPos = start + 1;  // Курсор внутри фигурных скобок
+        newPos = start + 1;
     } else if (insertText === '(a)/(b)') {
-        newPos = start + 2;  // Курсор после первой скобки
-    } else if (insertText === '√[n]{}') {
-        newPos = start + 5;  // Курсор внутри фигурных скобок
+        newPos = start + 2;
+    } else if (insertText === '/n/√[]') {
+        newPos = start + 3;
     }
     
     input.setSelectionRange(newPos, newPos);
@@ -525,10 +511,8 @@ function insertMathSymbol(symbol) {
 // ОБРАБОТЧИКИ
 // ============================================
 
-// Скрываем оригинальную MATH кнопку
 if (mathBtn) mathBtn.style.display = 'none';
 
-// Вкладки
 tabFunctions.addEventListener('click', function() {
     tabFunctions.classList.add('active');
     tabGreek.classList.remove('active');
@@ -556,7 +540,6 @@ tabSymbols.addEventListener('click', function() {
     greekTab.classList.remove('active');
 });
 
-// Кнопки клавиатуры - ОБНОВЛЕНО ДЛЯ ВСЕХ КОРНЕЙ
 mathKeys.forEach(function(btn) {
     btn.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -579,7 +562,6 @@ mathKeys.forEach(function(btn) {
     });
 });
 
-// Цвета
 colorButtons.forEach(function(btn) {
     btn.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -597,7 +579,6 @@ colorButtons.forEach(function(btn) {
     });
 });
 
-// Размер
 sizeSlider.addEventListener('input', function() {
     currentSize = parseInt(this.value);
     scrollingText.style.fontSize = currentSize + 'vw';
@@ -605,7 +586,6 @@ sizeSlider.addEventListener('input', function() {
     saveData({});
 });
 
-// Скорость
 speedSlider.addEventListener('input', function() {
     currentSpeed = parseInt(this.value);
     speedValue.textContent = currentSpeed + ' сек';
@@ -613,10 +593,8 @@ speedSlider.addEventListener('input', function() {
     saveData({});
 });
 
-// УМНЫЙ КРЕСТИК
 resetBtn.addEventListener('click', handleReset);
 
-// Шестеренка
 settingsBtn.addEventListener('click', function() {
     if (isRunning) return;
     
@@ -630,7 +608,6 @@ settingsBtn.addEventListener('click', function() {
     }
 });
 
-// Закрытие настроек
 settingsPanel.addEventListener('click', function(e) {
     if (e.target === settingsPanel) {
         settingsPanel.classList.remove('show');
@@ -657,4 +634,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ ФИНАЛЬНАЯ ВЕРСИЯ 7.0: всё работает, текстовое поле на месте!');
+console.log('✅ АБСОЛЮТНО ФИНАЛЬНАЯ ВЕРСИЯ: /3/√[x] = красивый корень!');
