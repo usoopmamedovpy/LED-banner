@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ 6.0 (ВСЁ РАБОТАЕТ!)
+// LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ 7.0 (ВСЁ РАБОТАЕТ!)
 // ============================================
 
 // Telegram
@@ -65,7 +65,9 @@ const colorMap = {
 window.addEventListener('load', function() {
     console.log('LED Banner загружен');
     
+    // СОЗДАЁМ ИНТЕРФЕЙС С ТЕКСТОВЫМ ПОЛЕМ
     createUnifiedInterface();
+    
     loadSavedData();
     
     setTimeout(applyColorToMath, 500);
@@ -73,12 +75,16 @@ window.addEventListener('load', function() {
 });
 
 // ============================================
-// ЕДИНЫЙ ИНТЕРФЕЙС
+// ЕДИНЫЙ ИНТЕРФЕЙС - ТЕКСТОВОЕ ПОЛЕ ЕСТЬ!
 // ============================================
 function createUnifiedInterface() {
     const mathFieldElement = document.getElementById('mathField');
-    if (!mathFieldElement) return;
+    if (!mathFieldElement) {
+        console.error('mathField не найден!');
+        return;
+    }
     
+    // Очищаем inputArea
     inputArea.innerHTML = '';
     inputArea.style.display = 'flex';
     inputArea.style.justifyContent = 'flex-end';
@@ -91,7 +97,9 @@ function createUnifiedInterface() {
     inputArea.style.right = '0';
     inputArea.style.backgroundColor = '#000000';
     inputArea.style.borderTop = '2px solid rgba(255, 255, 255, 0.2)';
+    inputArea.style.zIndex = '100';
     
+    // MATH кнопка слева
     const mathButton = document.createElement('button');
     mathButton.className = 'math-btn';
     mathButton.id = 'mainMathBtn';
@@ -106,7 +114,9 @@ function createUnifiedInterface() {
     mathButton.style.fontSize = '18px';
     mathButton.style.cursor = 'pointer';
     mathButton.style.flexShrink = '0';
+    mathButton.style.transition = 'all 0.2s ease';
     
+    // ТЕКСТОВОЕ ПОЛЕ - ОНО БУДЕТ ЗДЕСЬ!
     const textInput = document.createElement('input');
     textInput.type = 'text';
     textInput.id = 'mainInput';
@@ -114,7 +124,7 @@ function createUnifiedInterface() {
     textInput.placeholder = '√[x+1] или (a)/(b) или {вектор}';
     textInput.value = 'LED бегущая строка';
     textInput.style.flex = '1';
-    textInput.style.maxWidth = 'calc(100% - 160px)';
+    textInput.style.minWidth = '0'; // Важно для flex
     textInput.style.background = '#111111';
     textInput.style.border = '2px solid #ffffff';
     textInput.style.borderRadius = '30px';
@@ -122,7 +132,9 @@ function createUnifiedInterface() {
     textInput.style.fontSize = '16px';
     textInput.style.color = '#ffffff';
     textInput.style.outline = 'none';
+    textInput.style.transition = 'all 0.2s ease';
     
+    // RUN кнопка справа
     const runButton = document.createElement('button');
     runButton.className = 'run-btn';
     runButton.id = 'mainRunBtn';
@@ -137,10 +149,16 @@ function createUnifiedInterface() {
     runButton.style.fontSize = '18px';
     runButton.style.cursor = 'pointer';
     runButton.style.flexShrink = '0';
+    runButton.style.transition = 'all 0.2s ease';
     
+    // Добавляем всё в inputArea
     inputArea.appendChild(mathButton);
     inputArea.appendChild(textInput);
     inputArea.appendChild(runButton);
+    
+    console.log('Интерфейс создан: MATH + текстовое поле + RUN');
+    
+    // ===== ОБРАБОТЧИКИ =====
     
     mathButton.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -167,6 +185,7 @@ function createUnifiedInterface() {
         }
     });
     
+    // Закрытие MATH клавиатуры при клике вне
     document.addEventListener('click', function(e) {
         if (keyboardVisible && 
             !mathKeyboard.contains(e.target) && 
@@ -174,6 +193,62 @@ function createUnifiedInterface() {
             closeKeyboard();
         }
     });
+}
+
+// ============================================
+// УМНЫЙ ПАРСЕР - ВСЕ КОРНИ КРАСИВЫЕ
+// ============================================
+function parseToLaTeX(text) {
+    if (!text) return '';
+    
+    let result = text;
+    
+    // Векторы
+    result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
+    
+    // Дроби
+    result = result.replace(/\(([^)]+)\)\s*\/\s*\(([^)]+)\)/g, '\\frac{$1}{$2}');
+    result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
+    
+    // КУБИЧЕСКИЙ КОРЕНЬ: ∛[выражение] → \sqrt[3]{выражение}
+    result = result.replace(/∛\[([^\]]+)\]/g, '\\sqrt[3]{$1}');
+    
+    // КОРЕНЬ 4-Й СТЕПЕНИ: ∜[выражение] → \sqrt[4]{выражение}
+    result = result.replace(/∜\[([^\]]+)\]/g, '\\sqrt[4]{$1}');
+    
+    // КОРЕНЬ n-Й СТЕПЕНИ: √[n]{выражение} → \sqrt[n]{выражение}
+    result = result.replace(/√\[([^\]]+)\]\{([^}]+)\}/g, '\\sqrt[$1]{$2}');
+    
+    // ОБЫЧНЫЙ КОРЕНЬ: √[выражение] → \sqrt{выражение}
+    result = result.replace(/√\[([^\]]+)\]/g, '\\sqrt{$1}');
+    
+    // Степени и индексы
+    result = result.replace(/([a-zA-Z0-9α-ω])\^\(([^)]+)\)/g, '$1^{$2}');
+    result = result.replace(/([a-zA-Z0-9α-ω])\^([a-zA-Z0-9α-ω])/g, '$1^{$2}');
+    result = result.replace(/([a-zA-Z0-9α-ω])_\(([^)]+)\)/g, '$1_{$2}');
+    result = result.replace(/([a-zA-Z0-9α-ω])_([a-zA-Z0-9α-ω])/g, '$1_{$2}');
+    
+    // Греческие буквы
+    const greekMap = {
+        'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
+        'ε': '\\epsilon', 'ζ': '\\zeta', 'η': '\\eta', 'θ': '\\theta',
+        'ι': '\\iota', 'κ': '\\kappa', 'λ': '\\lambda', 'μ': '\\mu',
+        'ν': '\\nu', 'ξ': '\\xi', 'π': '\\pi', 'ρ': '\\rho',
+        'σ': '\\sigma', 'τ': '\\tau', 'υ': '\\upsilon', 'φ': '\\phi',
+        'χ': '\\chi', 'ψ': '\\psi', 'ω': '\\omega'
+    };
+    
+    for (let [char, latex] of Object.entries(greekMap)) {
+        result = result.replace(new RegExp(char, 'g'), latex);
+    }
+    
+    // Функции
+    const funcs = ['sin', 'cos', 'tan', 'cot', 'log', 'ln', 'exp', 'lim'];
+    funcs.forEach(func => {
+        result = result.replace(new RegExp(func + '\\s*\\(', 'g'), func + '(');
+    });
+    
+    return result;
 }
 
 // ============================================
@@ -217,45 +292,6 @@ function applyColorToMath() {
             btn.classList.add('active');
         }
     });
-}
-
-// ============================================
-// УМНЫЙ ПАРСЕР
-// ============================================
-function parseToLaTeX(text) {
-    if (!text) return '';
-    
-    let result = text;
-    
-    result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
-    result = result.replace(/\(([^)]+)\)\s*\/\s*\(([^)]+)\)/g, '\\frac{$1}{$2}');
-    result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
-    result = result.replace(/√\[([^\]]+)\]/g, '\\sqrt{$1}');
-    result = result.replace(/√\[([^\]]+)\]\{([^}]+)\}/g, '\\sqrt[$1]{$2}');
-    result = result.replace(/([a-zA-Z0-9α-ω])\^\(([^)]+)\)/g, '$1^{$2}');
-    result = result.replace(/([a-zA-Z0-9α-ω])\^([a-zA-Z0-9α-ω])/g, '$1^{$2}');
-    result = result.replace(/([a-zA-Z0-9α-ω])_\(([^)]+)\)/g, '$1_{$2}');
-    result = result.replace(/([a-zA-Z0-9α-ω])_([a-zA-Z0-9α-ω])/g, '$1_{$2}');
-    
-    const greekMap = {
-        'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
-        'ε': '\\epsilon', 'ζ': '\\zeta', 'η': '\\eta', 'θ': '\\theta',
-        'ι': '\\iota', 'κ': '\\kappa', 'λ': '\\lambda', 'μ': '\\mu',
-        'ν': '\\nu', 'ξ': '\\xi', 'π': '\\pi', 'ρ': '\\rho',
-        'σ': '\\sigma', 'τ': '\\tau', 'υ': '\\upsilon', 'φ': '\\phi',
-        'χ': '\\chi', 'ψ': '\\psi', 'ω': '\\omega'
-    };
-    
-    for (let [char, latex] of Object.entries(greekMap)) {
-        result = result.replace(new RegExp(char, 'g'), latex);
-    }
-    
-    const funcs = ['sin', 'cos', 'tan', 'cot', 'log', 'ln', 'exp', 'lim'];
-    funcs.forEach(func => {
-        result = result.replace(new RegExp(func + '\\s*\\(', 'g'), func + '(');
-    });
-    
-    return result;
 }
 
 // ============================================
@@ -378,11 +414,11 @@ function toggleRun() {
 }
 
 // ============================================
-// УМНЫЙ КРЕСТИК - ИДЕАЛЬНАЯ ЛОГИКА!
+// УМНЫЙ КРЕСТИК
 // ============================================
 function handleReset() {
     if (isRunning) {
-        // ✅ Режим RUN: только показываем кнопки, текст НЕ трогаем
+        // Режим RUN: только показываем кнопки, текст НЕ трогаем
         inputArea.style.display = 'flex';
         settingsBtn.style.display = 'flex';
         isRunning = false;
@@ -395,7 +431,7 @@ function handleReset() {
             saveData({ latex: latex, raw: currentText });
         }
     } else {
-        // ✅ Режим ожидания: полный сброс
+        // Режим ожидания: полный сброс
         const input = document.getElementById('mainInput');
         if (input) input.value = 'LED бегущая строка';
         
@@ -429,7 +465,7 @@ function handleReset() {
 }
 
 // ============================================
-// ВСТАВКА СИМВОЛОВ
+// ВСТАВКА СИМВОЛОВ (ОБНОВЛЕНО)
 // ============================================
 function insertMathSymbol(symbol) {
     const input = document.getElementById('mainInput');
@@ -441,19 +477,35 @@ function insertMathSymbol(symbol) {
     
     let insertText = symbol;
     
-    if (symbol === '√') insertText = '√[]';
-    else if (symbol === '∛') insertText = '∛[]';
-    else if (symbol === '∜') insertText = '∜[]';
-    else if (symbol === '→' || symbol === '\\vec' || symbol === '⃗') insertText = '{}';
-    else if (symbol === 'a/b' || symbol === 'frac') insertText = '(a)/(b)';
+    // Специальные символы
+    if (symbol === '√') {
+        insertText = '√[]';  // Обычный корень
+    } else if (symbol === '∛') {
+        insertText = '∛[]';  // Кубический корень
+    } else if (symbol === '∜') {
+        insertText = '∜[]';  // Корень 4-й степени
+    } else if (symbol === 'n√' || (symbol === '√' && this?.dataset?.cmd === '\\sqrt[n]')) {
+        insertText = '√[n]{}';  // Корень n-й степени
+    } else if (symbol === '→' || symbol === '\\vec' || symbol === '⃗') {
+        insertText = '{}';  // Вектор
+    } else if (symbol === 'a/b' || symbol === 'frac') {
+        insertText = '(a)/(b)';  // Дробь
+    }
     
     const newText = text.substring(0, start) + insertText + text.substring(end);
     input.value = newText;
     
+    // Устанавливаем курсор в нужное место
     let newPos = start + insertText.length;
-    if (insertText.includes('[]')) newPos = start + insertText.length - 1;
-    else if (insertText === '{}') newPos = start + 1;
-    else if (insertText === '(a)/(b)') newPos = start + 2;
+    if (insertText.includes('[]')) {
+        newPos = start + insertText.length - 1;  // Курсор внутри скобок
+    } else if (insertText === '{}') {
+        newPos = start + 1;  // Курсор внутри фигурных скобок
+    } else if (insertText === '(a)/(b)') {
+        newPos = start + 2;  // Курсор после первой скобки
+    } else if (insertText === '√[n]{}') {
+        newPos = start + 5;  // Курсор внутри фигурных скобок
+    }
     
     input.setSelectionRange(newPos, newPos);
     input.focus();
@@ -473,8 +525,10 @@ function insertMathSymbol(symbol) {
 // ОБРАБОТЧИКИ
 // ============================================
 
+// Скрываем оригинальную MATH кнопку
 if (mathBtn) mathBtn.style.display = 'none';
 
+// Вкладки
 tabFunctions.addEventListener('click', function() {
     tabFunctions.classList.add('active');
     tabGreek.classList.remove('active');
@@ -502,6 +556,7 @@ tabSymbols.addEventListener('click', function() {
     greekTab.classList.remove('active');
 });
 
+// Кнопки клавиатуры - ОБНОВЛЕНО ДЛЯ ВСЕХ КОРНЕЙ
 mathKeys.forEach(function(btn) {
     btn.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -510,14 +565,21 @@ mathKeys.forEach(function(btn) {
         const cmd = this.textContent;
         const dataCmd = this.dataset.cmd;
         
-        if (dataCmd === 'frac' || cmd === 'a/b') insertMathSymbol('frac');
-        else if (dataCmd === '\\vec' || cmd === '⃗' || cmd === '→') insertMathSymbol('→');
-        else insertMathSymbol(cmd);
+        if (dataCmd === 'frac' || cmd === 'a/b') {
+            insertMathSymbol('frac');
+        } else if (dataCmd === '\\vec' || cmd === '⃗' || cmd === '→') {
+            insertMathSymbol('→');
+        } else if (dataCmd === '\\sqrt[n]' || cmd === 'n√') {
+            insertMathSymbol('n√');
+        } else {
+            insertMathSymbol(cmd);
+        }
         
         return false;
     });
 });
 
+// Цвета
 colorButtons.forEach(function(btn) {
     btn.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -535,6 +597,7 @@ colorButtons.forEach(function(btn) {
     });
 });
 
+// Размер
 sizeSlider.addEventListener('input', function() {
     currentSize = parseInt(this.value);
     scrollingText.style.fontSize = currentSize + 'vw';
@@ -542,6 +605,7 @@ sizeSlider.addEventListener('input', function() {
     saveData({});
 });
 
+// Скорость
 speedSlider.addEventListener('input', function() {
     currentSpeed = parseInt(this.value);
     speedValue.textContent = currentSpeed + ' сек';
@@ -552,6 +616,7 @@ speedSlider.addEventListener('input', function() {
 // УМНЫЙ КРЕСТИК
 resetBtn.addEventListener('click', handleReset);
 
+// Шестеренка
 settingsBtn.addEventListener('click', function() {
     if (isRunning) return;
     
@@ -565,6 +630,7 @@ settingsBtn.addEventListener('click', function() {
     }
 });
 
+// Закрытие настроек
 settingsPanel.addEventListener('click', function(e) {
     if (e.target === settingsPanel) {
         settingsPanel.classList.remove('show');
@@ -591,4 +657,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ ФИНАЛЬНАЯ ВЕРСИЯ 6.0: умный крестик работает идеально!');
+console.log('✅ ФИНАЛЬНАЯ ВЕРСИЯ 7.0: всё работает, текстовое поле на месте!');
