@@ -1,8 +1,17 @@
+/* ============================================ */
+/* LED BANNER - ФИНАЛЬНЫЙ СТИЛЬ БЕЗ АРТЕФАКТОВ */
+/* ============================================ */
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
+    /* Анти-артефакты для всех элементов */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 body {
@@ -18,6 +27,7 @@ body {
     width: 100%;
     height: 100%;
     color: white;
+    transform: translateZ(0);
 }
 
 .app-container {
@@ -25,6 +35,7 @@ body {
     height: 100%;
     position: relative;
     background: #000000;
+    transform: translateZ(0);
 }
 
 /* ============================================ */
@@ -45,6 +56,11 @@ body {
     padding: 0;
     transition: all 0.2s ease;
     box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+    /* Защита от артефактов */
+    background-clip: padding-box;
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+    mask-image: radial-gradient(white, black);
+    transform: translateZ(0);
 }
 
 .reset-btn {
@@ -61,6 +77,7 @@ body {
     width: 24px;
     height: 24px;
     stroke: #ffffff;
+    transition: all 0.2s ease;
 }
 
 .reset-btn:active, .settings-btn:active {
@@ -107,6 +124,7 @@ body {
     width: 100%;
     background: #000000;
     position: relative;
+    transform: translateZ(0);
 }
 
 /* Зона с бегущей строкой */
@@ -120,9 +138,9 @@ body {
     position: relative;
     min-height: 0;
     padding: 20px;
+    transform: translateZ(0);
 }
 
-/* Убираем !important и добавляем поддержку цветов */
 .scrolling-text {
     font-weight: bold;
     white-space: nowrap;
@@ -135,7 +153,9 @@ body {
     font-size: 15vw;
     text-shadow: none;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    /* Цвет будет задаваться через JS */
+    transform: translateZ(0);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* MathJax стили */
@@ -147,8 +167,11 @@ body {
 .scrolling-text mjx-msup,
 .scrolling-text mjx-mfrac,
 .scrolling-text mjx-sqrt {
-    /* Цвет будет задаваться через JS */
-    transition: color 0.1s ease;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 @keyframes scrollText {
@@ -161,6 +184,7 @@ body {
     width: 100%;
     position: relative;
     z-index: 100;
+    transform: translateZ(0);
 }
 
 /* Область ввода */
@@ -175,6 +199,7 @@ body {
     align-items: center;
     position: relative;
     z-index: 101;
+    transform: translateZ(0);
 }
 
 /* MATH кнопка */
@@ -190,6 +215,11 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+    /* Защита от артефактов */
+    background-clip: padding-box;
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+    mask-image: radial-gradient(white, black);
+    transform: translateZ(0);
 }
 
 .math-btn.active {
@@ -213,28 +243,45 @@ body {
     font-size: 18px;
     color: #ffffff;
     outline: none;
+    transition: all 0.2s ease;
+    /* Защита от артефактов */
+    background-clip: padding-box;
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+    mask-image: radial-gradient(white, black);
+    transform: translateZ(0);
 }
 
 .text-input:focus {
     outline: none;
     border-color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.text-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
 }
 
 /* RUN кнопка */
 .run-btn {
+    width: 70px;
+    height: 60px;
     background: transparent;
     border: 2px solid #ffffff;
     border-radius: 30px;
-    padding: 16px 30px;
-    font-size: 20px;
-    font-weight: bold;
     color: #ffffff;
+    font-weight: bold;
+    font-size: 18px;
     cursor: pointer;
     white-space: nowrap;
     text-transform: uppercase;
     letter-spacing: 2px;
     transition: all 0.2s ease;
     box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+    /* Защита от артефактов */
+    background-clip: padding-box;
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+    mask-image: radial-gradient(white, black);
+    transform: translateZ(0);
 }
 
 .run-btn:active {
@@ -259,6 +306,10 @@ body {
     max-height: 450px;
     overflow-y: auto;
     box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.8);
+    /* Защита от артефактов */
+    -webkit-overflow-scrolling: touch;
+    transform: translateZ(0);
+    background-clip: padding-box;
 }
 
 .math-keyboard.show {
@@ -283,6 +334,11 @@ body {
     font-weight: bold;
     cursor: pointer;
     transition: all 0.2s ease;
+    /* Защита от артефактов */
+    background-clip: padding-box;
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+    mask-image: radial-gradient(white, black);
+    transform: translateZ(0);
 }
 
 .tab-btn.active {
@@ -323,6 +379,11 @@ body {
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
+    /* Защита от артефактов */
+    background-clip: padding-box;
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+    mask-image: radial-gradient(white, black);
+    transform: translateZ(0);
 }
 
 .math-key:active {
@@ -340,10 +401,13 @@ body {
     bottom: 0;
     background: rgba(0, 0, 0, 0.95);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     display: none;
     justify-content: center;
     align-items: center;
     z-index: 3000;
+    /* Защита от артефактов */
+    transform: translateZ(0);
 }
 
 .settings-panel.show {
@@ -358,6 +422,11 @@ body {
     width: 90%;
     max-width: 400px;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+    /* Защита от артефактов */
+    background-clip: padding-box;
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+    mask-image: radial-gradient(white, black);
+    transform: translateZ(0);
 }
 
 .settings-content h3 {
@@ -375,6 +444,9 @@ body {
     border-radius: 20px;
     padding: 15px;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    /* Защита от артефактов */
+    background-clip: padding-box;
+    transform: translateZ(0);
 }
 
 .setting-item label {
@@ -392,6 +464,9 @@ body {
     background: #222222;
     padding: 10px 15px;
     border-radius: 30px;
+    /* Защита от артефактов */
+    background-clip: padding-box;
+    transform: translateZ(0);
 }
 
 .slider {
@@ -400,6 +475,7 @@ body {
     -webkit-appearance: none;
     background: #333333;
     border-radius: 3px;
+    outline: none;
 }
 
 .slider::-webkit-slider-thumb {
@@ -411,6 +487,8 @@ body {
     cursor: pointer;
     border: 2px solid #000000;
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    /* Защита от артефактов */
+    transform: translateZ(0);
 }
 
 .value-display {
@@ -434,6 +512,9 @@ body {
     padding: 15px;
     border-radius: 30px;
     margin-top: 5px;
+    /* Защита от артефактов */
+    background-clip: padding-box;
+    transform: translateZ(0);
 }
 
 .color-btn {
@@ -444,6 +525,11 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    /* Защита от артефактов */
+    background-clip: padding-box;
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+    mask-image: radial-gradient(white, black);
+    transform: translateZ(0);
 }
 
 .color-btn.active {
@@ -482,13 +568,14 @@ body {
         font-size: 16px;
     }
     
-    .text-input {
-        padding: 14px 16px;
+    .run-btn {
+        width: 60px;
+        height: 50px;
         font-size: 16px;
     }
     
-    .run-btn {
-        padding: 14px 20px;
+    .text-input {
+        padding: 12px 16px;
         font-size: 16px;
     }
     
@@ -496,8 +583,17 @@ body {
         max-height: 400px;
     }
     
+    .keyboard-grid {
+        gap: 5px;
+    }
+    
     .math-key {
         height: 45px;
+        font-size: 14px;
+    }
+    
+    .tab-btn {
+        height: 40px;
         font-size: 14px;
     }
     
@@ -505,10 +601,31 @@ body {
         width: 40px;
         height: 40px;
     }
+    
+    .settings-content {
+        padding: 20px;
+    }
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 360px) {
+    .math-keyboard {
+        max-height: 350px;
+    }
+    
+    .math-key {
+        height: 40px;
+        font-size: 13px;
+    }
+    
+    .math-btn, .run-btn {
+        width: 55px;
+        font-size: 14px;
+    }
 }
 
 /* ============================================ */
-/* ПОДДЕРЖКА ТЕЛЕГРАММА - УБРАЛИ !important ИЗ ЦВЕТА */
+/* ПОДДЕРЖКА ТЕЛЕГРАММА - БЕЗ КОНФЛИКТОВ */
 /* ============================================ */
 body, .app-container, .mobile-view, .banner-area, 
 .input-area, .math-keyboard, .settings-content {
@@ -530,12 +647,6 @@ body, .app-container, .mobile-view, .banner-area,
     color: rgba(255, 255, 255, 0.5);
 }
 
-/* УБИРАЕМ !important ИЗ ЦВЕТА ТЕКСТА */
-.scrolling-text {
-    text-shadow: none;
-    /* цвет будет задаваться через JS */
-}
-
 /* Активные состояния */
 .math-btn.active, .tab-btn.active, .settings-btn.active {
     background: #ffffff;
@@ -551,3 +662,63 @@ body, .app-container, .mobile-view, .banner-area,
     background: #ffffff;
     color: #000000;
 }
+
+/* ============================================ */
+/* УБИРАЕМ БЕЛЫЕ ПИКСЕЛИ - ФИНАЛЬНЫЕ ФИКСЫ */
+/* ============================================ */
+
+/* Анти-артефакты для всех элементов с закруглёнными углами */
+.math-btn, .run-btn, .reset-btn, .settings-btn, 
+.tab-btn, .math-key, .color-btn, .text-input,
+.settings-content, .setting-item, .slider-container {
+    background-clip: padding-box;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Специально для скруглённых углов */
+.math-btn, .run-btn, .reset-btn, .settings-btn, 
+.tab-btn, .math-key, .color-btn {
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+    mask-image: radial-gradient(white, black);
+}
+
+/* Убираем возможные артефакты у теней */
+.math-btn, .run-btn, .reset-btn, .settings-btn, 
+.math-key, .run-btn {
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+    -webkit-box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+/* Фикс для MathJax */
+#scrollingText mjx-container,
+#scrollingText mjx-math,
+#scrollingText mjx-mi,
+#scrollingText mjx-mo,
+#scrollingText mjx-mn,
+#scrollingText mjx-msup,
+#scrollingText mjx-mfrac,
+#scrollingText mjx-sqrt {
+    -webkit-backface-visibility: hidden !important;
+    backface-visibility: hidden !important;
+    transform: translateZ(0) !important;
+    -webkit-transform: translateZ(0) !important;
+}
+
+/* Убираем белые точки у кнопок при нажатии */
+.math-btn:active, .run-btn:active, .reset-btn:active, 
+.settings-btn:active, .tab-btn:active, .math-key:active {
+    transform: scale(0.95) translateZ(0);
+    -webkit-transform: scale(0.95) translateZ(0);
+}
+
+/* Убираем артефакты у анимированных элементов */
+.scrolling-text {
+    will-change: transform, left;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    }
