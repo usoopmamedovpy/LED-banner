@@ -721,4 +721,4 @@ body, .app-container, .mobile-view, .banner-area,
     will-change: transform, left;
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
-    }
+}
