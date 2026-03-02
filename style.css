@@ -1,17 +1,26 @@
 /* ============================================ */
-/* LED BANNER - АБСОЛЮТНО ЧЁРНЫЙ */
+/* LED BANNER - ФИНАЛ (БЕЗ GPU-АРТЕФАКТОВ) */
 /* ============================================ */
 
-/* Глобально отключаем тени */
+/* Базовый сброс */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
+    /* Отключаем всё, что может давать артефакты */
     text-shadow: none !important;
     box-shadow: none !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    outline: none !important;
 }
 
+/* Убираем GPU-форсинг везде */
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     background: #000000;
@@ -25,7 +34,6 @@ body {
     width: 100%;
     height: 100%;
     color: white;
-    transform: translateZ(0);
 }
 
 .app-container {
@@ -33,7 +41,16 @@ body {
     height: 100%;
     position: relative;
     background: #000000;
-    transform: translateZ(0);
+}
+
+.mobile-view {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    width: 100%;
+    background: #000000;
+    position: relative;
 }
 
 /* ============================================ */
@@ -53,12 +70,6 @@ body {
     z-index: 1000;
     padding: 0;
     transition: all 0.2s ease;
-    /* Убираем тени */
-    box-shadow: none !important;
-    background-clip: padding-box;
-    -webkit-mask-image: -webkit-radial-gradient(white, black);
-    mask-image: radial-gradient(white, black);
-    transform: translateZ(0);
 }
 
 .reset-btn {
@@ -112,20 +123,8 @@ body {
 }
 
 /* ============================================ */
-/* ОСНОВНОЙ ЭКРАН */
+/* ЗОНА С БЕГУЩЕЙ СТРОКОЙ - ИСПРАВЛЕНО */
 /* ============================================ */
-.mobile-view {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    height: 100dvh;
-    width: 100%;
-    background: #000000;
-    position: relative;
-    transform: translateZ(0);
-}
-
-/* Зона с бегущей строкой */
 .banner-area {
     flex: 1;
     width: 100%;
@@ -136,27 +135,29 @@ body {
     position: relative;
     min-height: 0;
     padding: 20px;
-    transform: translateZ(0);
 }
 
+/* БЕЗ GPU-ФОРСИНГА, анимация через transform */
 .scrolling-text {
     font-weight: bold;
     white-space: nowrap;
     position: absolute;
-    left: 100%;
-    animation: scrollText linear infinite;
-    animation-duration: 15s;
-    padding-right: 50px;
-    transition: color 0.1s ease, font-size 0.1s ease;
+    left: 0;
     font-size: 15vw;
-    text-shadow: none !important;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    transform: translateZ(0);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    
+    /* Анимация через transform - никакого left */
+    animation: scrollText linear infinite;
+    animation-duration: 15s;
+    
+    /* Убираем GPU-форсинг */
+    /* transform: translateZ(0) - УДАЛЕНО */
+    /* backface-visibility: hidden - УДАЛЕНО */
 }
 
-/* MathJax стили */
+/* MathJax элементы - БЕЗ трансформаций */
 .scrolling-text mjx-container,
 .scrolling-text mjx-math,
 .scrolling-text mjx-mi,
@@ -166,25 +167,29 @@ body {
 .scrolling-text mjx-mfrac,
 .scrolling-text mjx-sqrt {
     text-shadow: none !important;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    transform: translateZ(0) !important;
+    box-shadow: none !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    /* Убираем transform: translateZ(0) */
 }
 
+/* Новая анимация через transform */
 @keyframes scrollText {
-    0% { left: 100%; }
-    100% { left: -100%; }
+    from { transform: translateX(100vw); }
+    to   { transform: translateX(-100%); }
 }
 
-/* Контейнер для ввода */
+/* ============================================ */
+/* КОНТЕЙНЕР ДЛЯ ВВОДА */
+/* ============================================ */
 .input-container {
     width: 100%;
     position: relative;
     z-index: 100;
-    transform: translateZ(0);
 }
 
-/* Область ввода */
 .input-area {
     display: flex;
     gap: 10px;
@@ -196,10 +201,9 @@ body {
     align-items: center;
     position: relative;
     z-index: 101;
-    transform: translateZ(0);
 }
 
-/* MATH кнопка */
+/* MATH кнопка - без масок */
 .math-btn {
     width: 70px;
     height: 60px;
@@ -211,12 +215,6 @@ body {
     font-size: 18px;
     cursor: pointer;
     transition: all 0.2s ease;
-    /* Убираем тени */
-    box-shadow: none !important;
-    background-clip: padding-box;
-    -webkit-mask-image: -webkit-radial-gradient(white, black);
-    mask-image: radial-gradient(white, black);
-    transform: translateZ(0);
 }
 
 .math-btn.active {
@@ -230,7 +228,7 @@ body {
     transform: scale(0.95);
 }
 
-/* Поле ввода */
+/* Поле ввода - без масок */
 .text-input {
     flex: 1;
     background: #111111;
@@ -241,12 +239,6 @@ body {
     color: #ffffff;
     outline: none;
     transition: all 0.2s ease;
-    /* Убираем тени */
-    box-shadow: none !important;
-    background-clip: padding-box;
-    -webkit-mask-image: -webkit-radial-gradient(white, black);
-    mask-image: radial-gradient(white, black);
-    transform: translateZ(0);
 }
 
 .text-input:focus {
@@ -258,7 +250,7 @@ body {
     color: rgba(255, 255, 255, 0.5);
 }
 
-/* RUN кнопка */
+/* RUN кнопка - без масок */
 .run-btn {
     width: 70px;
     height: 60px;
@@ -273,12 +265,6 @@ body {
     text-transform: uppercase;
     letter-spacing: 2px;
     transition: all 0.2s ease;
-    /* Убираем тени */
-    box-shadow: none !important;
-    background-clip: padding-box;
-    -webkit-mask-image: -webkit-radial-gradient(white, black);
-    mask-image: radial-gradient(white, black);
-    transform: translateZ(0);
 }
 
 .run-btn:active {
@@ -287,7 +273,9 @@ body {
     transform: scale(0.95);
 }
 
-/* Математическая клавиатура */
+/* ============================================ */
+/* МАТЕМАТИЧЕСКАЯ КЛАВИАТУРА */
+/* ============================================ */
 .math-keyboard {
     position: absolute;
     bottom: -500px;
@@ -302,18 +290,14 @@ body {
     z-index: 2000;
     max-height: 450px;
     overflow-y: auto;
-    /* Убираем тени */
-    box-shadow: none !important;
     -webkit-overflow-scrolling: touch;
-    transform: translateZ(0);
-    background-clip: padding-box;
 }
 
 .math-keyboard.show {
     bottom: 0;
 }
 
-/* Вкладки клавиатуры */
+/* Вкладки - без масок */
 .keyboard-tabs {
     display: flex;
     gap: 10px;
@@ -331,12 +315,6 @@ body {
     font-weight: bold;
     cursor: pointer;
     transition: all 0.2s ease;
-    /* Убираем тени */
-    box-shadow: none !important;
-    background-clip: padding-box;
-    -webkit-mask-image: -webkit-radial-gradient(white, black);
-    mask-image: radial-gradient(white, black);
-    transform: translateZ(0);
 }
 
 .tab-btn.active {
@@ -359,7 +337,7 @@ body {
     display: block;
 }
 
-/* Сетка кнопок */
+/* Сетка кнопок - без масок */
 .keyboard-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -377,12 +355,6 @@ body {
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
-    /* Убираем тени */
-    box-shadow: none !important;
-    background-clip: padding-box;
-    -webkit-mask-image: -webkit-radial-gradient(white, black);
-    mask-image: radial-gradient(white, black);
-    transform: translateZ(0);
 }
 
 .math-key:active {
@@ -391,23 +363,20 @@ body {
     transform: scale(0.95);
 }
 
-/* Панель настроек */
+/* ============================================ */
+/* ПАНЕЛЬ НАСТРОЕК - БЕЗ BLUR */
+/* ============================================ */
 .settings-panel {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.95);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: #000000;
     display: none;
     justify-content: center;
     align-items: center;
     z-index: 3000;
-    /* Убираем тени */
-    box-shadow: none !important;
-    transform: translateZ(0);
 }
 
 .settings-panel.show {
@@ -421,12 +390,6 @@ body {
     padding: 25px;
     width: 90%;
     max-width: 400px;
-    /* Убираем тени */
-    box-shadow: none !important;
-    background-clip: padding-box;
-    -webkit-mask-image: -webkit-radial-gradient(white, black);
-    mask-image: radial-gradient(white, black);
-    transform: translateZ(0);
 }
 
 .settings-content h3 {
@@ -444,10 +407,6 @@ body {
     border-radius: 20px;
     padding: 15px;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    /* Убираем тени */
-    box-shadow: none !important;
-    background-clip: padding-box;
-    transform: translateZ(0);
 }
 
 .setting-item label {
@@ -465,10 +424,6 @@ body {
     background: #222222;
     padding: 10px 15px;
     border-radius: 30px;
-    /* Убираем тени */
-    box-shadow: none !important;
-    background-clip: padding-box;
-    transform: translateZ(0);
 }
 
 .slider {
@@ -488,9 +443,6 @@ body {
     border-radius: 50%;
     cursor: pointer;
     border: 2px solid #000000;
-    /* Убираем тени */
-    box-shadow: none !important;
-    transform: translateZ(0);
 }
 
 .value-display {
@@ -504,7 +456,7 @@ body {
     font-weight: bold;
 }
 
-/* Кнопки цвета */
+/* Кнопки цвета - без масок */
 .color-buttons {
     display: flex;
     gap: 12px;
@@ -514,10 +466,6 @@ body {
     padding: 15px;
     border-radius: 30px;
     margin-top: 5px;
-    /* Убираем тени */
-    box-shadow: none !important;
-    background-clip: padding-box;
-    transform: translateZ(0);
 }
 
 .color-btn {
@@ -527,12 +475,6 @@ body {
     border: 3px solid #ffffff;
     cursor: pointer;
     transition: all 0.2s ease;
-    /* Убираем тени */
-    box-shadow: none !important;
-    background-clip: padding-box;
-    -webkit-mask-image: -webkit-radial-gradient(white, black);
-    mask-image: radial-gradient(white, black);
-    transform: translateZ(0);
 }
 
 .color-btn.active {
@@ -574,6 +516,7 @@ body {
         width: 60px;
         height: 50px;
         font-size: 16px;
+        padding: 0;
     }
     
     .text-input {
@@ -610,16 +553,11 @@ body {
 }
 
 /* ============================================ */
-/* ПОДДЕРЖКА ТЕЛЕГРАММА */
+/* ПОДДЕРЖКА ТЕЛЕГРАММА - МИНИМАЛЬНО */
 /* ============================================ */
-body, .app-container, .mobile-view, .banner-area, 
-.input-area, .math-keyboard, .settings-content {
-    background: #000000;
-}
-
 .math-btn, .run-btn, .reset-btn, .settings-btn, 
 .tab-btn, .math-key, .color-btn, .text-input {
-    border-color: #ffffff !important;
+    border-color: #ffffff;
     color: #ffffff;
 }
 
@@ -646,18 +584,4 @@ body, .app-container, .mobile-view, .banner-area,
 .settings-btn:active, .tab-btn:active {
     background: #ffffff;
     color: #000000;
-}
-
-/* ============================================ */
-/* УБИРАЕМ БЕЛЫЕ ПИКСЕЛИ - ТВОЁ РЕШЕНИЕ */
-/* ============================================ */
-* {
-    text-shadow: none !important;
-    box-shadow: none !important;
-}
-
-.math-btn, .run-btn, .reset-btn, .settings-btn,
-.tab-btn, .math-key, .color-btn, .text-input,
-.settings-content, .setting-item, .slider-container {
-    border-color: #000000 !important;
 }
