@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - АБСОЛЮТНО ФИНАЛЬНАЯ ВЕРСИЯ 12.0
+// LED BANNER - АБСОЛЮТНО ФИНАЛЬНАЯ ВЕРСИЯ 10.0
 // ============================================
 
 // Telegram
@@ -49,7 +49,6 @@ let currentSize = 15;
 let isRunning = false;
 let keyboardVisible = false;
 let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-let animationFrame = null;
 
 // Карта цветов
 const colorMap = {
@@ -77,6 +76,7 @@ window.addEventListener('load', function() {
 });
 
 function fixWhitePixels() {
+    // Добавляем классы для всех элементов с закруглёнными углами
     document.querySelectorAll('.math-btn, .run-btn, .reset-btn, .settings-btn, .tab-btn, .math-key, .color-btn, .text-input').forEach(el => {
         el.style.webkitBackfaceVisibility = 'hidden';
         el.style.backfaceVisibility = 'hidden';
@@ -161,7 +161,7 @@ function createUnifiedInterface() {
     inputArea.appendChild(textInput);
     inputArea.appendChild(runButton);
     
-    console.log('Интерфейс создан');
+    console.log('Интерфейс создан: MATH + текстовое поле + RUN');
     
     mathButton.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -198,37 +198,43 @@ function createUnifiedInterface() {
 }
 
 // ============================================
-// УМНЫЙ ПАРСЕР
+// УМНЫЙ ПАРСЕР - С ПОДДЕРЖКОЙ ПРОБЕЛОВ!
 // ============================================
 function parseToLaTeX(text) {
     if (!text) return '';
     
     let result = text;
     
-    // Сохраняем пробелы
+    // 0. Сохраняем пробелы (заменяем на \ )
     result = result.replace(/ /g, '\\ ');
     
-    // Векторы
+    // 1. Векторы
     result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
     
-    // Дроби
+    // 2. Дроби
     result = result.replace(/\(([^)]+)\)\s*\/\s*\(([^)]+)\)/g, '\\frac{$1}{$2}');
     result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
     
-    // Корни
+    // 3. КОРЕНЬ n-Й СТЕПЕНИ: /число/√[выражение] → \sqrt[число]{выражение}
     result = result.replace(/\/(\d+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
     result = result.replace(/\/([a-zA-Zα-ω]+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
+    
+    // 4. КУБИЧЕСКИЙ КОРЕНЬ: ∛[выражение] → \sqrt[3]{выражение}
     result = result.replace(/∛\[([^\]]+)\]/g, '\\sqrt[3]{$1}');
+    
+    // 5. КОРЕНЬ 4-Й СТЕПЕНИ: ∜[выражение] → \sqrt[4]{выражение}
     result = result.replace(/∜\[([^\]]+)\]/g, '\\sqrt[4]{$1}');
+    
+    // 6. ОБЫЧНЫЙ КОРЕНЬ: √[выражение] → \sqrt{выражение}
     result = result.replace(/√\[([^\]]+)\]/g, '\\sqrt{$1}');
     
-    // Степени и индексы
+    // 7. Степени и индексы
     result = result.replace(/([a-zA-Z0-9α-ω])\^\(([^)]+)\)/g, '$1^{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])\^([a-zA-Z0-9α-ω])/g, '$1^{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])_\(([^)]+)\)/g, '$1_{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])_([a-zA-Z0-9α-ω])/g, '$1_{$2}');
     
-    // Греческие буквы
+    // 8. Греческие буквы (ВКЛЮЧАЯ ДЕЛЬТУ)
     const greekMap = {
         'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
         'ε': '\\epsilon', 'ζ': '\\zeta', 'η': '\\eta', 'θ': '\\theta',
@@ -248,7 +254,7 @@ function parseToLaTeX(text) {
         result = result.replace(new RegExp(char, 'g'), latex);
     }
     
-    // Функции
+    // 9. Функции
     const funcs = ['sin', 'cos', 'tan', 'cot', 'log', 'ln', 'exp', 'lim'];
     funcs.forEach(func => {
         result = result.replace(new RegExp(func + '\\s*\\(', 'g'), func + '(');
@@ -261,6 +267,8 @@ function parseToLaTeX(text) {
 // ПРИМЕНЕНИЕ ЦВЕТА
 // ============================================
 function applyColorToMath() {
+    console.log('Применяем цвет к математике:', currentColor);
+    
     const color = colorMap[currentColor];
     scrollingText.style.color = color;
     
@@ -362,56 +370,12 @@ function saveData(data) {
 }
 
 // ============================================
-// АНИМАЦИЯ - ГАРАНТИРОВАННЫЙ ПОЛНЫЙ ПРОХОД
+// АНИМАЦИЯ
 // ============================================
 function restartAnimation() {
-    // Отменяем предыдущий таймаут
-    if (animationFrame) {
-        clearTimeout(animationFrame);
-    }
-    
-    // Полностью убираем анимацию
     scrollingText.style.animation = 'none';
-    
-    // Принудительный перерасчет
-    void scrollingText.offsetHeight;
-    
-    // Таймаут для гарантии, что DOM обновился
-    animationFrame = setTimeout(() => {
-        // Получаем актуальные размеры
-        const textWidth = scrollingText.scrollWidth;
-        const containerWidth = scrollingText.parentElement.clientWidth;
-        
-        console.log('Анимация:', {
-            текст: scrollingText.textContent.substring(0, 20) + '...',
-            ширина_текста: textWidth,
-            ширина_контейнера: containerWidth,
-            скорость_из_слайдера: currentSpeed
-        });
-        
-        // Рассчитываем идеальную скорость
-        // Текст должен пройти расстояние textWidth + containerWidth (от +100% до -100%)
-        const totalDistance = textWidth + containerWidth;
-        const baseDistance = containerWidth * 2; // базовая дистанция для короткого текста
-        
-        // Коэффициент длины
-        let speedMultiplier = totalDistance / baseDistance;
-        
-        // Финальная скорость
-        let finalSpeed = currentSpeed * speedMultiplier;
-        
-        // Жесткие ограничения
-        const MIN_SPEED = 3;
-        const MAX_SPEED = 60;
-        
-        if (finalSpeed < MIN_SPEED) finalSpeed = MIN_SPEED;
-        if (finalSpeed > MAX_SPEED) finalSpeed = MAX_SPEED;
-        
-        console.log('→ Финальная скорость:', finalSpeed.toFixed(1), 'сек (x' + speedMultiplier.toFixed(2) + ')');
-        
-        // Применяем анимацию
-        scrollingText.style.animation = `scrollText ${finalSpeed}s linear infinite`;
-    }, 50);
+    void scrollingText.offsetWidth;
+    scrollingText.style.animation = `scrollText ${currentSpeed}s linear infinite`;
 }
 
 // ============================================
@@ -450,12 +414,8 @@ function toggleRun() {
         scrollingText.style.fontSize = currentSize + 'vw';
         sizeValue.textContent = currentSize + 'vw';
         speedValue.textContent = currentSpeed + ' сек';
+        restartAnimation();
         applyColorToMath();
-        
-        // Запускаем анимацию с задержкой
-        setTimeout(() => {
-            restartAnimation();
-        }, 100);
         
         inputArea.style.display = 'none';
         settingsBtn.style.display = 'none';
@@ -502,14 +462,7 @@ function handleReset() {
         
         scrollingText.style.fontSize = '15vw';
         applyColorToMath();
-        
-        setTimeout(() => {
-            restartAnimation();
-        }, 100);
-        
-        closeKeyboard();
-        settingsPanel.classList.remove('show');
-        settingsBtn.classList.remove('active');
+        restartAnimation();
         
         saveData({ latex: 'LED\\ бегущая\\ строка', raw: 'LED бегущая строка' });
     }
@@ -655,18 +608,13 @@ sizeSlider.addEventListener('input', function() {
     currentSize = parseInt(this.value);
     scrollingText.style.fontSize = currentSize + 'vw';
     sizeValue.textContent = currentSize + 'vw';
-    if (isRunning) {
-        restartAnimation();
-    }
     saveData({});
 });
 
 speedSlider.addEventListener('input', function() {
     currentSpeed = parseInt(this.value);
     speedValue.textContent = currentSpeed + ' сек';
-    if (isRunning) {
-        restartAnimation();
-    }
+    restartAnimation();
     saveData({});
 });
 
@@ -693,15 +641,6 @@ settingsPanel.addEventListener('click', function(e) {
 });
 
 // ============================================
-// RESIZE HANDLER
-// ============================================
-window.addEventListener('resize', function() {
-    if (isRunning) {
-        restartAnimation();
-    }
-});
-
-// ============================================
 // TELEGRAM BACK BUTTON
 // ============================================
 tg.BackButton.onClick(function() {
@@ -720,4 +659,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ АБСОЛЮТНО ФИНАЛЬНАЯ ВЕРСИЯ 12.0: анимация работает идеально!');
+console.log('✅ АБСОЛЮТНО ФИНАЛЬНАЯ ВЕРСИЯ 10.0: пробелы работают!');
