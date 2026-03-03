@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - АБСОЛЮТНО ФИНАЛЬНАЯ ВЕРСИЯ 8.0
+// LED BANNER - АБСОЛЮТНО ФИНАЛЬНАЯ ВЕРСИЯ 9.0
 // ============================================
 
 // Telegram
@@ -70,7 +70,19 @@ window.addEventListener('load', function() {
     
     setTimeout(applyColorToMath, 500);
     scrollingText.style.textShadow = 'none';
+    
+    // Функция для фикса белых пикселей
+    fixWhitePixels();
 });
+
+function fixWhitePixels() {
+    // Добавляем классы для всех элементов с закруглёнными углами
+    document.querySelectorAll('.math-btn, .run-btn, .reset-btn, .settings-btn, .tab-btn, .math-key, .color-btn, .text-input').forEach(el => {
+        el.style.webkitBackfaceVisibility = 'hidden';
+        el.style.backfaceVisibility = 'hidden';
+        el.style.transform = 'translateZ(0)';
+    });
+}
 
 // ============================================
 // ЕДИНЫЙ ИНТЕРФЕЙС
@@ -186,54 +198,60 @@ function createUnifiedInterface() {
 }
 
 // ============================================
-// УМНЫЙ ПАРСЕР - ВСЕ КОРНИ КРАСИВЫЕ
+// УМНЫЙ ПАРСЕР - ВСЕ КОРНИ КРАСИВЫЕ + ДЕЛЬТА
 // ============================================
 function parseToLaTeX(text) {
     if (!text) return '';
     
     let result = text;
     
-    // 1. Векторы
+    // Векторы
     result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
     
-    // 2. Дроби
+    // Дроби
     result = result.replace(/\(([^)]+)\)\s*\/\s*\(([^)]+)\)/g, '\\frac{$1}{$2}');
     result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
     
-    // 3. КОРЕНЬ n-Й СТЕПЕНИ: /число/√[выражение] → \sqrt[число]{выражение}
+    // КОРЕНЬ n-Й СТЕПЕНИ: /число/√[выражение] → \sqrt[число]{выражение}
     result = result.replace(/\/(\d+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
     result = result.replace(/\/([a-zA-Zα-ω]+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
     
-    // 4. КУБИЧЕСКИЙ КОРЕНЬ: ∛[выражение] → \sqrt[3]{выражение}
+    // КУБИЧЕСКИЙ КОРЕНЬ: ∛[выражение] → \sqrt[3]{выражение}
     result = result.replace(/∛\[([^\]]+)\]/g, '\\sqrt[3]{$1}');
     
-    // 5. КОРЕНЬ 4-Й СТЕПЕНИ: ∜[выражение] → \sqrt[4]{выражение}
+    // КОРЕНЬ 4-Й СТЕПЕНИ: ∜[выражение] → \sqrt[4]{выражение}
     result = result.replace(/∜\[([^\]]+)\]/g, '\\sqrt[4]{$1}');
     
-    // 6. ОБЫЧНЫЙ КОРЕНЬ: √[выражение] → \sqrt{выражение}
+    // ОБЫЧНЫЙ КОРЕНЬ: √[выражение] → \sqrt{выражение}
     result = result.replace(/√\[([^\]]+)\]/g, '\\sqrt{$1}');
     
-    // 7. Степени и индексы
+    // Степени и индексы
     result = result.replace(/([a-zA-Z0-9α-ω])\^\(([^)]+)\)/g, '$1^{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])\^([a-zA-Z0-9α-ω])/g, '$1^{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])_\(([^)]+)\)/g, '$1_{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])_([a-zA-Z0-9α-ω])/g, '$1_{$2}');
     
-    // 8. Греческие буквы
+    // Греческие буквы (ВКЛЮЧАЯ ДЕЛЬТУ)
     const greekMap = {
         'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
         'ε': '\\epsilon', 'ζ': '\\zeta', 'η': '\\eta', 'θ': '\\theta',
         'ι': '\\iota', 'κ': '\\kappa', 'λ': '\\lambda', 'μ': '\\mu',
         'ν': '\\nu', 'ξ': '\\xi', 'π': '\\pi', 'ρ': '\\rho',
         'σ': '\\sigma', 'τ': '\\tau', 'υ': '\\upsilon', 'φ': '\\phi',
-        'χ': '\\chi', 'ψ': '\\psi', 'ω': '\\omega'
+        'χ': '\\chi', 'ψ': '\\psi', 'ω': '\\omega',
+        'Α': '\\Alpha', 'Β': '\\Beta', 'Γ': '\\Gamma', 'Δ': '\\Delta',
+        'Ε': '\\Epsilon', 'Ζ': '\\Zeta', 'Η': '\\Eta', 'Θ': '\\Theta',
+        'Ι': '\\Iota', 'Κ': '\\Kappa', 'Λ': '\\Lambda', 'Μ': '\\Mu',
+        'Ν': '\\Nu', 'Ξ': '\\Xi', 'Π': '\\Pi', 'Ρ': '\\Rho',
+        'Σ': '\\Sigma', 'Τ': '\\Tau', 'Υ': '\\Upsilon', 'Φ': '\\Phi',
+        'Χ': '\\Chi', 'Ψ': '\\Psi', 'Ω': '\\Omega'
     };
     
     for (let [char, latex] of Object.entries(greekMap)) {
         result = result.replace(new RegExp(char, 'g'), latex);
     }
     
-    // 9. Функции
+    // Функции
     const funcs = ['sin', 'cos', 'tan', 'cot', 'log', 'ln', 'exp', 'lim'];
     funcs.forEach(func => {
         result = result.replace(new RegExp(func + '\\s*\\(', 'g'), func + '(');
@@ -452,7 +470,7 @@ function handleReset() {
 }
 
 // ============================================
-// ВСТАВКА СИМВОЛОВ (С КОРНЕМ n-Й СТЕПЕНИ)
+// ВСТАВКА СИМВОЛОВ
 // ============================================
 function insertMathSymbol(symbol) {
     const input = document.getElementById('mainInput');
@@ -476,6 +494,8 @@ function insertMathSymbol(symbol) {
         insertText = '{}';
     } else if (symbol === 'a/b' || symbol === 'frac') {
         insertText = '(a)/(b)';
+    } else if (symbol === 'Δ' || symbol === '\\Delta') {
+        insertText = 'Δ';
     }
     
     const newText = text.substring(0, start) + insertText + text.substring(end);
@@ -554,6 +574,8 @@ mathKeys.forEach(function(btn) {
             insertMathSymbol('→');
         } else if (dataCmd === '\\sqrt[n]' || cmd === 'n√') {
             insertMathSymbol('n√');
+        } else if (dataCmd === '\\Delta' || cmd === 'Δ') {
+            insertMathSymbol('Δ');
         } else {
             insertMathSymbol(cmd);
         }
@@ -634,4 +656,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ АБСОЛЮТНО ФИНАЛЬНАЯ ВЕРСИЯ: /3/√[x] = красивый корень!');
+console.log('✅ АБСОЛЮТНО ФИНАЛЬНАЯ ВЕРСИЯ 9.0: Δ работает!');
