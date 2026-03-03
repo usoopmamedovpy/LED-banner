@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - АБСОЛЮТНО ФИНАЛЬНАЯ ВЕРСИЯ 11.0
+// LED BANNER - АБСОЛЮТНО ФИНАЛЬНАЯ ВЕРСИЯ 10.0
 // ============================================
 
 // Telegram
@@ -370,49 +370,12 @@ function saveData(data) {
 }
 
 // ============================================
-// АНИМАЦИЯ - С АВТОПОДСТРОЙКОЙ СКОРОСТИ
+// АНИМАЦИЯ
 // ============================================
 function restartAnimation() {
-    // Сбрасываем анимацию
     scrollingText.style.animation = 'none';
-    
-    // Принудительный перерасчет
     void scrollingText.offsetWidth;
-    
-    // Получаем ширину текста
-    const textWidth = scrollingText.scrollWidth;
-    const containerWidth = scrollingText.parentElement.clientWidth;
-    
-    // Минимальное время анимации - 3 секунды (чтобы текст не мелькал)
-    const MIN_TIME = 3;
-    // Максимальное время - 30 секунд (чтобы не было слишком медленно)
-    const MAX_TIME = 30;
-    
-    // Рассчитываем скорость: (ширина текста / ширина экрана) * базовая_скорость
-    // Базовая скорость - это значение из слайдера (2-30 сек)
-    let finalSpeed = (textWidth / containerWidth) * currentSpeed;
-    
-    // Ограничиваем скорость
-    if (finalSpeed < MIN_TIME) {
-        finalSpeed = MIN_TIME;
-    }
-    if (finalSpeed > MAX_TIME) {
-        finalSpeed = MAX_TIME;
-    }
-    
-    // Запускаем анимацию
-    scrollingText.style.animation = `scrollText ${finalSpeed}s linear infinite`;
-    
-    // Обновляем отображение скорости в интерфейсе (опционально)
-    // speedValue.textContent = finalSpeed.toFixed(1) + ' сек';
-    
-    console.log('Анимация:', {
-        текст: scrollingText.textContent.substring(0, 20) + '...',
-        ширина_текста: textWidth,
-        ширина_экрана: containerWidth,
-        базовая_скорость: currentSpeed,
-        итоговая_скорость: finalSpeed.toFixed(1) + ' сек'
-    });
+    scrollingText.style.animation = `scrollText ${currentSpeed}s linear infinite`;
 }
 
 // ============================================
@@ -696,4 +659,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ АБСОЛЮТНО ФИНАЛЬНАЯ ВЕРСИЯ 11.0: динамическая анимация!');
+console.log('✅ АБСОЛЮТНО ФИНАЛЬНАЯ ВЕРСИЯ 10.0: пробелы работают!');
