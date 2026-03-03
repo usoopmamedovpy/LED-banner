@@ -71,12 +71,10 @@ window.addEventListener('load', function() {
     setTimeout(applyColorToMath, 500);
     scrollingText.style.textShadow = 'none';
     
-    // Функция для фикса белых пикселей
     fixWhitePixels();
 });
 
 function fixWhitePixels() {
-    // Добавляем классы для всех элементов с закруглёнными углами
     document.querySelectorAll('.math-btn, .run-btn, .reset-btn, .settings-btn, .tab-btn, .math-key, .color-btn, .text-input').forEach(el => {
         el.style.webkitBackfaceVisibility = 'hidden';
         el.style.backfaceVisibility = 'hidden';
@@ -198,7 +196,7 @@ function createUnifiedInterface() {
 }
 
 // ============================================
-// УМНЫЙ ПАРСЕР - С ПОДДЕРЖКОЙ ПРОБЕЛОВ!
+// УМНЫЙ ПАРСЕР - С ПОДДЕРЖКОЙ ПРОБЕЛОВ
 // ============================================
 function parseToLaTeX(text) {
     if (!text) return '';
@@ -307,7 +305,7 @@ function applyColorToMath() {
 }
 
 // ============================================
-// СОХРАНЕНИЕ
+// СОХРАНЕНИЕ (РАЗМЕР, СКОРОСТЬ, ЦВЕТ)
 // ============================================
 function loadSavedData() {
     try {
@@ -315,17 +313,20 @@ function loadSavedData() {
         if (saved) {
             const data = JSON.parse(saved);
             
+            // Загружаем цвет
             if (data.color) {
                 currentColor = data.color;
                 setTimeout(() => applyColorToMath(), 100);
             }
             
+            // Загружаем скорость
             if (data.speed) {
                 currentSpeed = data.speed;
                 speedSlider.value = currentSpeed;
                 speedValue.textContent = currentSpeed + ' сек';
             }
             
+            // Загружаем размер
             if (data.size) {
                 currentSize = data.size;
                 sizeSlider.value = currentSize;
@@ -333,6 +334,7 @@ function loadSavedData() {
                 scrollingText.style.fontSize = currentSize + 'vw';
             }
             
+            // Загружаем текст
             if (data.raw) {
                 const input = document.getElementById('mainInput');
                 if (input) input.value = data.raw;
@@ -587,6 +589,7 @@ mathKeys.forEach(function(btn) {
     });
 });
 
+// ЦВЕТА
 colorButtons.forEach(function(btn) {
     btn.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -604,6 +607,7 @@ colorButtons.forEach(function(btn) {
     });
 });
 
+// РАЗМЕР
 sizeSlider.addEventListener('input', function() {
     currentSize = parseInt(this.value);
     scrollingText.style.fontSize = currentSize + 'vw';
@@ -611,6 +615,7 @@ sizeSlider.addEventListener('input', function() {
     saveData({});
 });
 
+// СКОРОСТЬ
 speedSlider.addEventListener('input', function() {
     currentSpeed = parseInt(this.value);
     speedValue.textContent = currentSpeed + ' сек';
