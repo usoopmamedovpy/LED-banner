@@ -7,24 +7,26 @@
     <meta name="color-scheme" content="dark">
     <title>LED Banner Math</title>
     
-    <!-- MathQuill -->
+    <!-- MathQuill для красивых формул -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.css">
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.min.js"></script>
     
-    <!-- MathJax -->
+    <!-- MathJax для отображения на LED-экране -->
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
     
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app-container">
+        <!-- Крестик для показа/скрытия элементов -->
         <button class="reset-btn" id="resetBtn">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M18 6L6 18M6 6L18 18" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
             </svg>
         </button>
 
+        <!-- Шестеренка для настроек -->
         <button class="settings-btn" id="settingsBtn">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="white" stroke-width="2"/>
@@ -32,6 +34,7 @@
             </svg>
         </button>
 
+        <!-- Окно настроек -->
         <div class="settings-panel" id="settingsPanel">
             <div class="settings-content">
                 <h3>Настройки</h3>
@@ -65,18 +68,25 @@
             </div>
         </div>
 
+        <!-- Основной экран -->
         <div class="mobile-view">
             <div class="banner-area">
                 <div class="scrolling-text" id="scrollingText">\(LED бегущая строка\)</div>
             </div>
             
+            <!-- Контейнер для ввода -->
             <div class="input-container">
                 <div class="input-area" id="inputArea">
+                    <!-- MATH кнопка -->
                     <button class="math-btn" id="mathBtn">MATH</button>
+                    
+                    <!-- MathQuill поле для формул (будет заменено на input в JS) -->
                     <div class="math-field" id="mathField"></div>
+                    
                     <button class="run-btn" id="runBtn">RUN</button>
                 </div>
                 
+                <!-- Математическая клавиатура -->
                 <div class="math-keyboard" id="mathKeyboard">
                     <div class="keyboard-tabs">
                         <button class="tab-btn active" id="tabFunctions">ƒ(x)</button>
@@ -84,6 +94,7 @@
                         <button class="tab-btn" id="tabSymbols">∫∑</button>
                     </div>
                     
+                    <!-- Раздел функций -->
                     <div class="tab-content active" id="functionsTab">
                         <div class="keyboard-grid">
                             <button class="math-key" data-cmd="\sin">sin</button>
@@ -113,6 +124,7 @@
                         </div>
                     </div>
                     
+                    <!-- Раздел греческих букв (С ДЕЛЬТОЙ) -->
                     <div class="tab-content" id="greekTab">
                         <div class="keyboard-grid">
                             <button class="math-key" data-cmd="\alpha">α</button>
@@ -138,9 +150,11 @@
                             <button class="math-key" data-cmd="\chi">χ</button>
                             <button class="math-key" data-cmd="\psi">ψ</button>
                             <button class="math-key" data-cmd="\omega">ω</button>
+                            <button class="math-key" data-cmd="\Delta">Δ</button>
                         </div>
                     </div>
                     
+                    <!-- Раздел символов -->
                     <div class="tab-content" id="symbolsTab">
                         <div class="keyboard-grid">
                             <button class="math-key" data-cmd="\infty">∞</button>
@@ -169,6 +183,7 @@
         </div>
     </div>
 
+    <!-- Telegram Mini App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="script.js"></script>
 </body>
