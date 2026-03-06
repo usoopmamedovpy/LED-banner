@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - АБСОЛЮТНО ФИНАЛЬНАЯ ВЕРСИЯ 10.0
+// LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ 11.0 (SVG + TRANSFORM)
 // ============================================
 
 // Telegram
@@ -262,45 +262,37 @@ function parseToLaTeX(text) {
 }
 
 // ============================================
-// ПРИМЕНЕНИЕ ЦВЕТА
+// ПРИМЕНЕНИЕ ЦВЕТА - SVG версия (БЕЗ АРТЕФАКТОВ)
 // ============================================
 function applyColorToMath() {
-    console.log('Применяем цвет к математике:', currentColor);
+    console.log('Применяем цвет к математике (SVG):', currentColor);
     
     const color = colorMap[currentColor];
     scrollingText.style.color = color;
     
-    const mathElements = scrollingText.querySelectorAll('mjx-container, mjx-math, mjx-mi, mjx-mo, mjx-mn, mjx-msup, mjx-mfrac, mjx-sqrt');
-    mathElements.forEach(el => {
+    // Для MathJax SVG: цвет через currentColor
+    scrollingText.querySelectorAll('mjx-container, mjx-container svg').forEach(el => {
         el.style.color = color;
+        el.style.fill = 'currentColor';
     });
-    
-    const style = document.createElement('style');
-    style.textContent = `
-        #scrollingText, 
-        #scrollingText mjx-container,
-        #scrollingText mjx-math,
-        #scrollingText mjx-mi,
-        #scrollingText mjx-mo,
-        #scrollingText mjx-mn,
-        #scrollingText mjx-msup,
-        #scrollingText mjx-mfrac,
-        #scrollingText mjx-sqrt {
-            color: ${color} !important;
-        }
-    `;
     
     const oldStyle = document.getElementById('mathColorStyle');
     if (oldStyle) oldStyle.remove();
     
+    const style = document.createElement('style');
     style.id = 'mathColorStyle';
+    style.textContent = `
+      #scrollingText, 
+      #scrollingText mjx-container,
+      #scrollingText mjx-container svg {
+        color: ${color} !important;
+        fill: currentColor !important;
+      }
+    `;
     document.head.appendChild(style);
     
     colorButtons.forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.classList.contains(currentColor)) {
-            btn.classList.add('active');
-        }
+        btn.classList.toggle('active', btn.classList.contains(currentColor));
     });
 }
 
@@ -664,4 +656,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ АБСОЛЮТНО ФИНАЛЬНАЯ ВЕРСИЯ 10.0: пробелы работают!');
+console.log('✅ АБСОЛЮТНО ФИНАЛЬНАЯ ВЕРСИЯ 11.0: SVG + TRANSFORM!');
