@@ -7,13 +7,25 @@
     <meta name="color-scheme" content="dark">
     <title>LED Banner Math</title>
     
-    <!-- MathQuill для красивых формул -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.css">
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.min.js"></script>
+    <!-- MathJax для отображения на LED-экране (SVG версия - без артефактов) -->
+    <script>
+        window.MathJax = {
+            tex: { 
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            },
+            svg: { 
+                fontCache: 'none'  // Уменьшает артефакты в iOS
+            },
+            options: {
+                enableMenu: false
+            }
+        };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
     
-    <!-- MathJax для отображения на LED-экране -->
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <!-- MathQuill для редактирования формул (оставляем, но не используем) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.css">
     
     <link rel="stylesheet" href="style.css">
 </head>
@@ -70,8 +82,11 @@
 
         <!-- Основной экран -->
         <div class="mobile-view">
+            <!-- Зона с бегущей строкой - НОВАЯ СТРУКТУРА -->
             <div class="banner-area">
-                <div class="scrolling-text" id="scrollingText">\(LED бегущая строка\)</div>
+                <div class="scrolling-wrapper">
+                    <div class="scrolling-text" id="scrollingText">\(LED бегущая строка\)</div>
+                </div>
             </div>
             
             <!-- Контейнер для ввода -->
@@ -80,8 +95,8 @@
                     <!-- MATH кнопка -->
                     <button class="math-btn" id="mathBtn">MATH</button>
                     
-                    <!-- MathQuill поле для формул (будет заменено на input в JS) -->
-                    <div class="math-field" id="mathField"></div>
+                    <!-- Поле для ввода - ВАЖНО: id должно быть mainInput! -->
+                    <input type="text" class="text-input" id="mainInput" placeholder="√[x+1] или /3/√[x] или (a)/(b) или {вектор}" value="LED бегущая строка">
                     
                     <button class="run-btn" id="runBtn">RUN</button>
                 </div>
