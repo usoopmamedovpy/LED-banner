@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ 11.0 (SVG + TRANSFORM)
+// LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ 12.0 (БЕЗ АРТЕФАКТОВ)
 // ============================================
 
 // Telegram
@@ -71,15 +71,31 @@ window.addEventListener('load', function() {
     setTimeout(applyColorToMath, 500);
     scrollingText.style.textShadow = 'none';
     
-    fixWhitePixels();
+    // Новая безопасная защита от артефактов
+    setTimeout(fixWhitePixels, 100);
+    setTimeout(fixWhitePixels, 500);
 });
 
+// ============================================
+// БЕЗОПАСНАЯ ЗАЩИТА ОТ АРТЕФАКТОВ
+// ============================================
 function fixWhitePixels() {
-    document.querySelectorAll('.math-btn, .run-btn, .reset-btn, .settings-btn, .tab-btn, .math-key, .color-btn, .text-input').forEach(el => {
-        el.style.webkitBackfaceVisibility = 'hidden';
-        el.style.backfaceVisibility = 'hidden';
-        el.style.transform = 'translateZ(0)';
-    });
+  // Продвигаем только анимированную область, не все элементы
+  const banner = document.querySelector('.banner-area');
+  const wrapper = document.querySelector('.scrolling-wrapper');
+  const text = document.getElementById('scrollingText');
+
+  [banner, wrapper, text].forEach(el => {
+    if (!el) return;
+    el.style.webkitBackfaceVisibility = 'hidden';
+    el.style.backfaceVisibility = 'hidden';
+    el.style.webkitTransform = el.style.webkitTransform || 'translate3d(0,0,0)';
+    el.style.transform = el.style.transform || 'translate3d(0,0,0)';
+    el.style.willChange = 'transform';
+  });
+
+  // Маленький хак, который часто убивает 1px швы в Telegram iOS
+  if (text) text.style.outline = '1px solid transparent';
 }
 
 // ============================================
@@ -262,7 +278,7 @@ function parseToLaTeX(text) {
 }
 
 // ============================================
-// ПРИМЕНЕНИЕ ЦВЕТА - SVG версия (БЕЗ АРТЕФАКТОВ)
+// ПРИМЕНЕНИЕ ЦВЕТА - SVG версия
 // ============================================
 function applyColorToMath() {
     console.log('Применяем цвет к математике (SVG):', currentColor);
@@ -297,7 +313,7 @@ function applyColorToMath() {
 }
 
 // ============================================
-// СОХРАНЕНИЕ (РАЗМЕР, СКОРОСТЬ, ЦВЕТ)
+// СОХРАНЕНИЕ
 // ============================================
 function loadSavedData() {
     try {
@@ -305,20 +321,17 @@ function loadSavedData() {
         if (saved) {
             const data = JSON.parse(saved);
             
-            // Загружаем цвет
             if (data.color) {
                 currentColor = data.color;
                 setTimeout(() => applyColorToMath(), 100);
             }
             
-            // Загружаем скорость
             if (data.speed) {
                 currentSpeed = data.speed;
                 speedSlider.value = currentSpeed;
                 speedValue.textContent = currentSpeed + ' сек';
             }
             
-            // Загружаем размер
             if (data.size) {
                 currentSize = data.size;
                 sizeSlider.value = currentSize;
@@ -326,7 +339,6 @@ function loadSavedData() {
                 scrollingText.style.fontSize = currentSize + 'vw';
             }
             
-            // Загружаем текст
             if (data.raw) {
                 const input = document.getElementById('mainInput');
                 if (input) input.value = data.raw;
@@ -656,4 +668,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ АБСОЛЮТНО ФИНАЛЬНАЯ ВЕРСИЯ 11.0: SVG + TRANSFORM!');
+console.log('✅ АБСОЛЮТНО ФИНАЛЬНАЯ ВЕРСИЯ 12.0: БЕЗ АРТЕФАКТОВ!');
