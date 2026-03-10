@@ -7,6 +7,11 @@
     <meta name="color-scheme" content="dark">
     <title>LED Banner Math</title>
     
+    <!-- MathQuill для красивых формул -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.css">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.min.js"></script>
+    
     <!-- MathJax для отображения на LED-экране (SVG версия - без артефактов) -->
     <script>
         window.MathJax = {
@@ -15,7 +20,7 @@
                 displayMath: [['\\[', '\\]']]
             },
             svg: { 
-                fontCache: 'none'  // Уменьшает артефакты в iOS
+                fontCache: 'none'  // Уменьшает артефакты в Android
             },
             options: {
                 enableMenu: false
@@ -23,9 +28,6 @@
         };
     </script>
     <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
-    
-    <!-- MathQuill для редактирования формул (оставляем, но не используем) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.css">
     
     <link rel="stylesheet" href="style.css">
 </head>
@@ -82,7 +84,7 @@
 
         <!-- Основной экран -->
         <div class="mobile-view">
-            <!-- Зона с бегущей строкой - НОВАЯ СТРУКТУРА -->
+            <!-- Зона с бегущей строкой - НОВАЯ СТРУКТУРА (wrapper) -->
             <div class="banner-area">
                 <div class="scrolling-wrapper">
                     <div class="scrolling-text" id="scrollingText">\(LED бегущая строка\)</div>
@@ -95,8 +97,8 @@
                     <!-- MATH кнопка -->
                     <button class="math-btn" id="mathBtn">MATH</button>
                     
-                    <!-- Поле для ввода - ВАЖНО: id должно быть mainInput! -->
-                    <input type="text" class="text-input" id="mainInput" placeholder="√[x+1] или /3/√[x] или (a)/(b) или {вектор}" value="LED бегущая строка">
+                    <!-- MathQuill поле для формул (будет заменено на input в JS) -->
+                    <div class="math-field" id="mathField"></div>
                     
                     <button class="run-btn" id="runBtn">RUN</button>
                 </div>
