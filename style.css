@@ -29,8 +29,8 @@ html, body {
 
 body {
     min-height: 100dvh;
-    display: block;           /* НИКАКОГО flex здесь */
-    overflow: hidden;         /* режем всё за краями */
+    display: block;
+    overflow: hidden;
 }
 
 .app-container {
@@ -42,7 +42,7 @@ body {
     display: flex;
     flex-direction: column;
     position: relative;
-    overflow: hidden;         /* тоже режем всё лишнее */
+    overflow: hidden;
 }
 
 /* ============================================ */
@@ -171,11 +171,11 @@ body {
     to   { transform: translateX(calc(-100% - 50px)); }
 }
 
-/* MathJax стили */
-.scrolling-text mjx-container,
-.scrolling-text mjx-container svg {
+/* MathJax стили - CHTML версия */
+.scrolling-text mjx-container {
     text-shadow: none !important;
     box-shadow: none !important;
+    background: transparent !important;
 }
 
 /* Контейнер для ввода */
@@ -270,20 +270,19 @@ body {
 }
 
 /* ============================================ */
-/* МАТЕМАТИЧЕСКАЯ КЛАВИАТУРА - НОВАЯ РЕАЛИЗАЦИЯ */
+/* МАТЕМАТИЧЕСКАЯ КЛАВИАТУРА */
 /* ============================================ */
 
 .math-keyboard {
-    position: fixed;                 /* привязка к экрану, а не к контейнеру */
+    position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
     background: #111111;
-    /* border-top: 2px solid #ffffff;  ← временно убрано для проверки */
     border-top-left-radius: 30px;
     border-top-right-radius: 30px;
     padding: 20px 15px 30px 15px;
-    transform: translateY(100%);     /* спрятана за экраном */
+    transform: translateY(100%);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 2000;
     max-height: 450px;
@@ -292,7 +291,7 @@ body {
 }
 
 .math-keyboard.show {
-    transform: translateY(0);        /* выезжает вверх */
+    transform: translateY(0);
 }
 
 /* Вкладки клавиатуры */
