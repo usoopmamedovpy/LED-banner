@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - ОПТИМИЗИРОВАНО ДЛЯ ANDROID
+// LED BANNER - ОПТИМИЗИРОВАНО ДЛЯ ANDROID (БЕЗ fixWhitePixels)
 // ============================================
 
 // Telegram
@@ -71,26 +71,16 @@ window.addEventListener('load', function() {
     setTimeout(applyColorToMath, 500);
     scrollingText.style.textShadow = 'none';
     
-    // Безопасная защита от артефактов - только для анимированной области
-    fixWhitePixels();
+    // fixWhitePixels ПОЛНОСТЬЮ ОТКЛЮЧЕН - он вызывает артефакты на Android
+    console.log('fixWhitePixels отключен для Android');
 });
 
 // ============================================
-// БЕЗОПАСНАЯ ЗАЩИТА ОТ АРТЕФАКТОВ (ТОЛЬКО ДЛЯ БАННЕРА)
+// fixWhitePixels ПОЛНОСТЬЮ ОТКЛЮЧЕН
 // ============================================
-function fixWhitePixels() {
-    const banner = document.querySelector('.banner-area');
-    const text = document.getElementById('scrollingText');
-
-    [banner, text].forEach(el => {
-        if (!el) return;
-        el.style.webkitBackfaceVisibility = 'hidden';
-        el.style.backfaceVisibility = 'hidden';
-        el.style.willChange = 'transform';
-        // маленький хак, который помогает убить 1-пиксельные точки на некоторых GPU
-        el.style.outline = '1px solid transparent';
-    });
-}
+// function fixWhitePixels() {
+//     // ОТКЛЮЧЕНО: на Android/Telegram даёт артефакты 1px
+// }
 
 // ============================================
 // ЕДИНЫЙ ИНТЕРФЕЙС
@@ -662,4 +652,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ LED BANNER - ОПТИМИЗИРОВАНО ДЛЯ ANDROID!');
+console.log('✅ LED BANNER - ОПТИМИЗИРОВАНО ДЛЯ ANDROID (fixWhitePixels отключен)');
