@@ -12,22 +12,23 @@
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.min.js"></script>
     
-    <!-- MathJax для отображения на LED-экране (SVG версия - без артефактов) -->
+    <!-- MathJax для отображения на LED-экране (CHTML версия - меньше артефактов) -->
     <script>
         window.MathJax = {
             tex: { 
                 inlineMath: [['\\(', '\\)']],
                 displayMath: [['\\[', '\\]']]
             },
-            svg: { 
-                fontCache: 'none'  // Уменьшает артефакты в Android
+            chtml: {
+                scale: 1,
+                adaptiveCSS: true
             },
             options: {
                 enableMenu: false
             }
         };
     </script>
-    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
     
     <link rel="stylesheet" href="style.css">
 </head>
