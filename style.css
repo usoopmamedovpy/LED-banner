@@ -46,6 +46,18 @@ body {
     pointer-events: none;
 }
 
+/* СПЕЦИАЛЬНЫЙ ФИКС ДЛЯ УГЛОВОГО ПИКСЕЛЯ */
+.corner-pixel-fix {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 4px;
+    background: #000000;
+    z-index: 9999;
+    pointer-events: none;
+}
+
 .app-container {
     width: 100%;
     max-width: 100%;
