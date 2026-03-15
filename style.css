@@ -91,8 +91,7 @@ body {
     transform: translateZ(0);
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    /* ИСПОЛЬЗУЕМ SAFE AREA INSET ОТ TELEGRAM */
-    top: calc(12px + var(--tg-safe-area-inset-top, env(safe-area-inset-top, 20px)));
+    /* top будет задан через JavaScript */
 }
 
 /* Только горизонтальное расположение */
@@ -167,7 +166,7 @@ body {
     .reset-btn, .settings-btn, .donate-btn {
         width: 40px;
         height: 40px;
-        top: calc(12px + var(--tg-safe-area-inset-top, env(safe-area-inset-top, 20px)));
+        /* top будет задан через JavaScript */
     }
 
     .reset-btn { right: 16px; }
