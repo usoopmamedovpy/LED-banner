@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ С ДОНАТ-КНОПКОЙ
+// LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ С SAFE AREA
 // ============================================
 
 // Telegram
@@ -26,6 +26,26 @@ tg.setBackgroundColor('#000000');
 document.documentElement.style.backgroundColor = '#000000';
 document.body.style.backgroundColor = '#000000';
 document.body.style.color = '#ffffff';
+
+// ============================================
+// SAFE AREA INSET - точное позиционирование
+// ============================================
+
+// Функция для обновления позиции кнопок
+function updateButtonPositions() {
+    // Получаем safe area inset из Telegram
+    const topInset = tg.safeAreaInset?.top || tg.contentSafeAreaInset?.top || 0;
+    console.log('Safe area top inset:', topInset);
+    
+    // Применяем к кнопкам
+    const buttons = document.querySelectorAll('.reset-btn, .settings-btn, .donate-btn');
+    buttons.forEach(btn => {
+        if (btn) {
+            // 12px - небольшой отступ, чтобы не прилипали вплотную
+            btn.style.top = (topInset + 12) + 'px';
+        }
+    });
+}
 
 // ============================================
 // ПОЛУЧАЕМ ЭЛЕМЕНТЫ
@@ -85,7 +105,16 @@ window.addEventListener('load', function() {
     setTimeout(applyColorToMath, 500);
     scrollingText.style.textShadow = 'none';
     
+    // Обновляем позицию кнопок
+    setTimeout(updateButtonPositions, 100);
+    setTimeout(updateButtonPositions, 300);
+    
     console.log('fixWhitePixels отключен для Android');
+});
+
+// Также обновляем при изменении размера окна (например, при повороте)
+window.addEventListener('resize', function() {
+    updateButtonPositions();
 });
 
 // ============================================
@@ -658,4 +687,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ LED BANNER - FINAL VERSION WITH DONATE BUTTON');
+console.log('✅ LED BANNER - FINAL VERSION WITH SAFE AREA');
