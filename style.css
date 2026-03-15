@@ -1,5 +1,5 @@
 /* ============================================ */
-/* LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ С ЭМОДЗИ */
+/* LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ С FULLSCREEN */
 /* ============================================ */
 
 /* Мягкий сброс */
@@ -71,9 +71,9 @@ body {
 }
 
 /* ============================================ */
-/* КНОПКИ УПРАВЛЕНИЯ (КРЕСТИК И ШЕСТЕРЕНКА) */
+/* КНОПКИ УПРАВЛЕНИЯ (КРЕСТИК, ДОНАТ, ШЕСТЕРЕНКА) */
 /* ============================================ */
-.reset-btn, .settings-btn {
+.reset-btn, .settings-btn, .donate-btn {
     position: absolute;
     width: 48px;
     height: 48px;
@@ -94,13 +94,18 @@ body {
 }
 
 .reset-btn {
-    top: 16px;
+    top: calc(16px + var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)));
     right: 16px;
 }
 
 .settings-btn {
-    top: 16px;
+    top: calc(16px + var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)));
     right: 80px;
+}
+
+.donate-btn {
+    top: calc(16px + var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)));
+    right: 144px;
 }
 
 .reset-btn svg {
@@ -124,7 +129,21 @@ body {
     transition: transform 0.2s ease, filter 0.2s ease;
 }
 
-.reset-btn:active, .settings-btn:active {
+/* Стили для донат эмодзи */
+.donate-emoji {
+    font-size: 24px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.5));
+    transform: scale(1);
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.reset-btn:active, .settings-btn:active, .donate-btn:active {
     background: #ffffff;
     transform: scale(0.95);
 }
@@ -138,6 +157,11 @@ body {
     filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5));
 }
 
+.donate-btn:active .donate-emoji {
+    transform: scale(0.9);
+    filter: drop-shadow(0 0 4px rgba(255, 0, 0, 0.5));
+}
+
 .settings-btn.active {
     background: #ffffff;
 }
@@ -146,15 +170,36 @@ body {
     filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.8));
 }
 
-@supports (padding-top: env(safe-area-inset-top)) {
+/* Адаптация для мобилок */
+@media (max-width: 480px) {
+    .reset-btn, .settings-btn, .donate-btn {
+        width: 40px;
+        height: 40px;
+    }
+    
     .reset-btn {
-        top: calc(16px + env(safe-area-inset-top));
-        right: calc(16px + env(safe-area-inset-right));
+        right: 16px;
     }
     
     .settings-btn {
-        top: calc(16px + env(safe-area-inset-top));
-        right: calc(80px + env(safe-area-inset-right));
+        right: 70px;
+    }
+    
+    .donate-btn {
+        right: 124px;
+    }
+    
+    .reset-btn svg, .settings-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .donate-emoji {
+        font-size: 20px;
+    }
+    
+    .settings-emoji {
+        font-size: 24px;
     }
 }
 
@@ -541,24 +586,6 @@ body {
 /* АДАПТАЦИЯ ПОД МОБИЛКИ */
 /* ============================================ */
 @media (max-width: 480px) {
-    .reset-btn, .settings-btn {
-        width: 40px;
-        height: 40px;
-    }
-    
-    .settings-btn {
-        right: 70px;
-    }
-    
-    .reset-btn svg, .settings-btn svg {
-        width: 20px;
-        height: 20px;
-    }
-    
-    .settings-emoji {
-        font-size: 24px;
-    }
-    
     .math-btn {
         width: 60px;
         height: 50px;
@@ -613,7 +640,7 @@ body, html, .app-container, .mobile-view, .banner-area,
 }
 
 .math-btn, .run-btn, .reset-btn, .settings-btn, 
-.tab-btn, .math-key, .color-btn, .text-input {
+.tab-btn, .math-key, .color-btn, .text-input, .donate-btn {
     border-color: #ffffff;
     color: #ffffff;
 }
@@ -637,7 +664,7 @@ body, html, .app-container, .mobile-view, .banner-area,
 }
 
 .math-key:active, .run-btn:active, .reset-btn:active, 
-.settings-btn:active, .tab-btn:active {
+.settings-btn:active, .tab-btn:active, .donate-btn:active {
     background: #ffffff;
     color: #000000;
     transform: scale(0.95);
