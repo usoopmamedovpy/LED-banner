@@ -19,22 +19,14 @@
     transform: translateZ(0);
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
+    /* ОДИН общий top для всех трёх кнопок */
+    top: calc(16px + var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + 70px);
 }
 
-.reset-btn {
-    top: calc(16px + var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + 10px);
-    right: 16px;
-}
-
-.settings-btn {
-    top: calc(16px + var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + 10px);
-    right: 80px;
-}
-
-.donate-btn {
-    top: calc(16px + var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + 10px);
-    right: 144px;
-}
+/* Только горизонтальное расположение */
+.reset-btn { right: 16px; }
+.settings-btn { right: 80px; }
+.donate-btn { right: 144px; }
 
 .reset-btn svg {
     width: 24px;
@@ -103,33 +95,18 @@
     .reset-btn, .settings-btn, .donate-btn {
         width: 40px;
         height: 40px;
+        top: calc(16px + var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + 70px);
     }
-    
-    .reset-btn {
-        top: calc(16px + var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + 10px);
-        right: 16px;
-    }
-    
-    .settings-btn {
-        top: calc(16px + var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + 10px);
-        right: 70px;
-    }
-    
-    .donate-btn {
-        top: calc(16px + var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + 10px);
-        right: 124px;
-    }
-    
+
+    .reset-btn { right: 16px; }
+    .settings-btn { right: 70px; }
+    .donate-btn { right: 124px; }
+
     .reset-btn svg, .settings-btn svg {
         width: 20px;
         height: 20px;
     }
-    
-    .donate-emoji {
-        font-size: 20px;
-    }
-    
-    .settings-emoji {
-        font-size: 24px;
-    }
+
+    .donate-emoji { font-size: 20px; }
+    .settings-emoji { font-size: 24px; }
 }
