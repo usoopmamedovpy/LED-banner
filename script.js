@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ С FULLSCREEN API
+// LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ С ДОНАТ-КНОПКОЙ
 // ============================================
 
 // Telegram
@@ -34,6 +34,7 @@ const scrollingText = document.getElementById('scrollingText');
 const runBtn = document.getElementById('runBtn');
 const resetBtn = document.getElementById('resetBtn');
 const settingsBtn = document.getElementById('settingsBtn');
+const donateBtn = document.getElementById('donateBtn');
 const settingsPanel = document.getElementById('settingsPanel');
 const inputArea = document.getElementById('inputArea');
 const mathBtn = document.getElementById('mathBtn');
@@ -84,7 +85,6 @@ window.addEventListener('load', function() {
     setTimeout(applyColorToMath, 500);
     scrollingText.style.textShadow = 'none';
     
-    // fixWhitePixels ПОЛНОСТЬЮ ОТКЛЮЧЕН - он вызывает артефакты на Android
     console.log('fixWhitePixels отключен для Android');
 });
 
@@ -132,8 +132,8 @@ function createUnifiedInterface() {
     textInput.type = 'text';
     textInput.id = 'mainInput';
     textInput.className = 'text-input';
-    textInput.placeholder = '√[x+1] или /3/√[x] или (a)/(b) или {вектор}';
-    textInput.value = 'LED бегущая строка';
+    textInput.placeholder = '√[x+1] or /3/√[x] or (a)/(b) or {vector}';
+    textInput.value = 'LED banner';
     textInput.style.flex = '1';
     textInput.style.minWidth = '0';
     textInput.style.background = '#111111';
@@ -165,7 +165,7 @@ function createUnifiedInterface() {
     inputArea.appendChild(textInput);
     inputArea.appendChild(runButton);
     
-    console.log('Интерфейс создан: MATH + текстовое поле + RUN');
+    console.log('Interface created: MATH + input + RUN');
     
     mathButton.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -202,14 +202,14 @@ function createUnifiedInterface() {
 }
 
 // ============================================
-// УМНЫЙ ПАРСЕР - С ПОДДЕРЖКОЙ ПРОБЕЛОВ
+// УМНЫЙ ПАРСЕР
 // ============================================
 function parseToLaTeX(text) {
     if (!text) return '';
     
     let result = text;
     
-    // 0. Сохраняем пробелы (заменяем на \ )
+    // 0. Сохраняем пробелы
     result = result.replace(/ /g, '\\ ');
     
     // 1. Векторы
@@ -219,17 +219,17 @@ function parseToLaTeX(text) {
     result = result.replace(/\(([^)]+)\)\s*\/\s*\(([^)]+)\)/g, '\\frac{$1}{$2}');
     result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
     
-    // 3. КОРЕНЬ n-Й СТЕПЕНИ: /число/√[выражение] → \sqrt[число]{выражение}
+    // 3. КОРЕНЬ n-Й СТЕПЕНИ
     result = result.replace(/\/(\d+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
     result = result.replace(/\/([a-zA-Zα-ω]+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
     
-    // 4. КУБИЧЕСКИЙ КОРЕНЬ: ∛[выражение] → \sqrt[3]{выражение}
+    // 4. КУБИЧЕСКИЙ КОРЕНЬ
     result = result.replace(/∛\[([^\]]+)\]/g, '\\sqrt[3]{$1}');
     
-    // 5. КОРЕНЬ 4-Й СТЕПЕНИ: ∜[выражение] → \sqrt[4]{выражение}
+    // 5. КОРЕНЬ 4-Й СТЕПЕНИ
     result = result.replace(/∜\[([^\]]+)\]/g, '\\sqrt[4]{$1}');
     
-    // 6. ОБЫЧНЫЙ КОРЕНЬ: √[выражение] → \sqrt{выражение}
+    // 6. ОБЫЧНЫЙ КОРЕНЬ
     result = result.replace(/√\[([^\]]+)\]/g, '\\sqrt{$1}');
     
     // 7. Степени и индексы
@@ -238,7 +238,7 @@ function parseToLaTeX(text) {
     result = result.replace(/([a-zA-Z0-9α-ω])_\(([^)]+)\)/g, '$1_{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])_([a-zA-Z0-9α-ω])/g, '$1_{$2}');
     
-    // 8. Греческие буквы (ВКЛЮЧАЯ ДЕЛЬТУ)
+    // 8. Греческие буквы
     const greekMap = {
         'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
         'ε': '\\epsilon', 'ζ': '\\zeta', 'η': '\\eta', 'θ': '\\theta',
@@ -268,15 +268,14 @@ function parseToLaTeX(text) {
 }
 
 // ============================================
-// ПРИМЕНЕНИЕ ЦВЕТА - CHTML версия
+// ПРИМЕНЕНИЕ ЦВЕТА
 // ============================================
 function applyColorToMath() {
-    console.log('Применяем цвет к математике (CHTML):', currentColor);
+    console.log('Applying color (CHTML):', currentColor);
     
     const color = colorMap[currentColor];
     scrollingText.style.color = color;
     
-    // Для MathJax CHTML: цвет через currentColor
     scrollingText.querySelectorAll('mjx-container').forEach(el => {
         el.style.color = color;
     });
@@ -288,14 +287,7 @@ function applyColorToMath() {
     style.id = 'mathColorStyle';
     style.textContent = `
       #scrollingText, 
-      #scrollingText mjx-container,
-      #scrollingText mjx-math,
-      #scrollingText mjx-mi,
-      #scrollingText mjx-mo,
-      #scrollingText mjx-mn,
-      #scrollingText mjx-msup,
-      #scrollingText mjx-mfrac,
-      #scrollingText mjx-sqrt {
+      #scrollingText mjx-container {
         color: ${color} !important;
       }
     `;
@@ -323,7 +315,7 @@ function loadSavedData() {
             if (data.speed) {
                 currentSpeed = data.speed;
                 speedSlider.value = currentSpeed;
-                speedValue.textContent = currentSpeed + ' сек';
+                speedValue.textContent = currentSpeed + ' sec';
             }
             
             if (data.size) {
@@ -409,16 +401,18 @@ function toggleRun() {
     if (isRunning) {
         inputArea.style.display = 'flex';
         settingsBtn.style.display = 'flex';
+        donateBtn.style.display = 'flex';
         isRunning = false;
     } else {
         scrollingText.style.fontSize = currentSize + 'vw';
         sizeValue.textContent = currentSize + 'vw';
-        speedValue.textContent = currentSpeed + ' сек';
+        speedValue.textContent = currentSpeed + ' sec';
         restartAnimation();
         applyColorToMath();
         
         inputArea.style.display = 'none';
         settingsBtn.style.display = 'none';
+        donateBtn.style.display = 'none';
         isRunning = true;
         closeKeyboard();
         saveData({});
@@ -432,6 +426,7 @@ function handleReset() {
     if (isRunning) {
         inputArea.style.display = 'flex';
         settingsBtn.style.display = 'flex';
+        donateBtn.style.display = 'flex';
         isRunning = false;
         
         const input = document.getElementById('mainInput');
@@ -442,9 +437,9 @@ function handleReset() {
         }
     } else {
         const input = document.getElementById('mainInput');
-        if (input) input.value = 'LED бегущая строка';
+        if (input) input.value = 'LED banner';
         
-        scrollingText.innerHTML = '\\(LED\\ бегущая\\ строка\\)';
+        scrollingText.innerHTML = '\\(LED\\ banner\\)';
         if (window.MathJax) {
             MathJax.typesetPromise([scrollingText]).then(() => {
                 applyColorToMath();
@@ -458,13 +453,13 @@ function handleReset() {
         sizeSlider.value = 15;
         speedSlider.value = 15;
         sizeValue.textContent = '15vw';
-        speedValue.textContent = '15 сек';
+        speedValue.textContent = '15 sec';
         
         scrollingText.style.fontSize = '15vw';
         applyColorToMath();
         restartAnimation();
         
-        saveData({ latex: 'LED\\ бегущая\\ строка', raw: 'LED бегущая строка' });
+        saveData({ latex: 'LED\\ banner', raw: 'LED banner' });
     }
     
     closeKeyboard();
@@ -491,7 +486,7 @@ function insertMathSymbol(symbol) {
         insertText = '∛[]';
     } else if (symbol === '∜') {
         insertText = '∜[]';
-    } else if (symbol === 'n√' || symbol === '√[n]' || (this?.dataset?.cmd === '\\sqrt[n]')) {
+    } else if (symbol === 'n√' || symbol === '√[n]') {
         insertText = '/n/√[]';
     } else if (symbol === '→' || symbol === '\\vec' || symbol === '⃗') {
         insertText = '{}';
@@ -616,7 +611,7 @@ sizeSlider.addEventListener('input', function() {
 // СКОРОСТЬ
 speedSlider.addEventListener('input', function() {
     currentSpeed = parseInt(this.value);
-    speedValue.textContent = currentSpeed + ' сек';
+    speedValue.textContent = currentSpeed + ' sec';
     restartAnimation();
     saveData({});
 });
@@ -655,6 +650,7 @@ tg.BackButton.onClick(function() {
     } else if (isRunning) {
         inputArea.style.display = 'flex';
         settingsBtn.style.display = 'flex';
+        donateBtn.style.display = 'flex';
         isRunning = false;
     } else {
         tg.close();
@@ -662,4 +658,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ С FULLSCREEN API');
+console.log('✅ LED BANNER - FINAL VERSION WITH DONATE BUTTON');
