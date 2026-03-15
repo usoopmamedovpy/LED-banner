@@ -1,11 +1,24 @@
 // ============================================
-// LED BANNER - ОПТИМИЗИРОВАНО ДЛЯ ANDROID (БЕЗ fixWhitePixels)
+// LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ С FULLSCREEN API
 // ============================================
 
 // Telegram
 let tg = window.Telegram.WebApp;
+
+// Сначала расширяем до максимума
 tg.ready();
 tg.expand();
+
+// ЗАПРАШИВАЕМ ПОЛНОЭКРАННЫЙ РЕЖИМ (для новых версий Telegram)
+if (tg.isVersionAtLeast && tg.isVersionAtLeast('8.0')) {
+    try {
+        tg.requestFullscreen();
+        console.log('✅ Fullscreen mode activated');
+    } catch (e) {
+        console.log('❌ Fullscreen not supported');
+    }
+}
+
 tg.setHeaderColor('#000000');
 tg.setBackgroundColor('#000000');
 
@@ -74,13 +87,6 @@ window.addEventListener('load', function() {
     // fixWhitePixels ПОЛНОСТЬЮ ОТКЛЮЧЕН - он вызывает артефакты на Android
     console.log('fixWhitePixels отключен для Android');
 });
-
-// ============================================
-// fixWhitePixels ПОЛНОСТЬЮ ОТКЛЮЧЕН
-// ============================================
-// function fixWhitePixels() {
-//     // ОТКЛЮЧЕНО: на Android/Telegram даёт артефакты 1px
-// }
 
 // ============================================
 // ЕДИНЫЙ ИНТЕРФЕЙС
@@ -262,18 +268,17 @@ function parseToLaTeX(text) {
 }
 
 // ============================================
-// ПРИМЕНЕНИЕ ЦВЕТА - SVG версия
+// ПРИМЕНЕНИЕ ЦВЕТА - CHTML версия
 // ============================================
 function applyColorToMath() {
-    console.log('Применяем цвет к математике (SVG):', currentColor);
+    console.log('Применяем цвет к математике (CHTML):', currentColor);
     
     const color = colorMap[currentColor];
     scrollingText.style.color = color;
     
-    // Для MathJax SVG: цвет через currentColor
-    scrollingText.querySelectorAll('mjx-container, mjx-container svg').forEach(el => {
+    // Для MathJax CHTML: цвет через currentColor
+    scrollingText.querySelectorAll('mjx-container').forEach(el => {
         el.style.color = color;
-        el.style.fill = 'currentColor';
     });
     
     const oldStyle = document.getElementById('mathColorStyle');
@@ -284,9 +289,14 @@ function applyColorToMath() {
     style.textContent = `
       #scrollingText, 
       #scrollingText mjx-container,
-      #scrollingText mjx-container svg {
+      #scrollingText mjx-math,
+      #scrollingText mjx-mi,
+      #scrollingText mjx-mo,
+      #scrollingText mjx-mn,
+      #scrollingText mjx-msup,
+      #scrollingText mjx-mfrac,
+      #scrollingText mjx-sqrt {
         color: ${color} !important;
-        fill: currentColor !important;
       }
     `;
     document.head.appendChild(style);
@@ -652,4 +662,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ LED BANNER - ОПТИМИЗИРОВАНО ДЛЯ ANDROID (fixWhitePixels отключен)');
+console.log('✅ LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ С FULLSCREEN API');
