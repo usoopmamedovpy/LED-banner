@@ -47,7 +47,12 @@
             </svg>
         </button>
 
-        <!-- Шестеренка для настроек с эмодзи -->
+        <!-- Кнопка доната -->
+        <button class="donate-btn" id="donateBtn" onclick="window.open('https://www.donationalerts.com/r/usoopmamedovpy', '_blank')">
+            <span class="donate-emoji">❤️</span>
+        </button>
+
+        <!-- Шестеренка для настроек -->
         <button class="settings-btn" id="settingsBtn">
             <span class="settings-emoji">⚙️</span>
         </button>
@@ -55,10 +60,10 @@
         <!-- Окно настроек -->
         <div class="settings-panel" id="settingsPanel">
             <div class="settings-content">
-                <h3>Настройки</h3>
+                <h3>Settings</h3>
                 
                 <div class="setting-item">
-                    <label>Размер текста (8-40)</label>
+                    <label>Text size (8-40)</label>
                     <div class="slider-container">
                         <input type="range" id="sizeSlider" min="8" max="40" value="15" step="1" class="slider">
                         <span class="value-display" id="sizeValue">15vw</span>
@@ -66,15 +71,15 @@
                 </div>
 
                 <div class="setting-item">
-                    <label>Скорость (2-30 сек)</label>
+                    <label>Speed (2-30 sec)</label>
                     <div class="slider-container">
                         <input type="range" id="speedSlider" min="2" max="30" value="15" step="1" class="slider">
-                        <span class="value-display" id="speedValue">15 сек</span>
+                        <span class="value-display" id="speedValue">15 sec</span>
                     </div>
                 </div>
 
                 <div class="setting-item">
-                    <label>Цвет текста</label>
+                    <label>Text color</label>
                     <div class="color-buttons">
                         <button class="color-btn white active"></button>
                         <button class="color-btn red"></button>
