@@ -1,5 +1,5 @@
 /* ============================================ */
-/* LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ С SAFE AREA */
+/* LED BANNER - WYSIWYG MATH EDITOR */
 /* ============================================ */
 
 /* Мягкий сброс */
@@ -34,7 +34,7 @@ body {
     position: relative;
 }
 
-/* Фоновая подложка - закрывает щели */
+/* Фоновая подложка */
 .app-bg-fix {
     position: fixed;
     top: 0;
@@ -46,7 +46,7 @@ body {
     pointer-events: none;
 }
 
-/* СПЕЦИАЛЬНЫЙ ФИКС ДЛЯ УГЛОВОГО ПИКСЕЛЯ */
+/* Фикс углового пикселя */
 .corner-pixel-fix {
     position: fixed;
     top: 0;
@@ -71,7 +71,7 @@ body {
 }
 
 /* ============================================ */
-/* КНОПКИ УПРАВЛЕНИЯ (КРЕСТИК, ДОНАТ, ШЕСТЕРЕНКА) */
+/* КНОПКИ УПРАВЛЕНИЯ */
 /* ============================================ */
 .reset-btn, .settings-btn, .donate-btn {
     position: absolute;
@@ -91,10 +91,9 @@ body {
     transform: translateZ(0);
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    /* top будет задан через JavaScript */
+    top: calc(16px + var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + 30px);
 }
 
-/* Только горизонтальное расположение */
 .reset-btn { right: 16px; }
 .settings-btn { right: 80px; }
 .donate-btn { right: 144px; }
@@ -103,35 +102,18 @@ body {
     width: 24px;
     height: 24px;
     stroke: #ffffff;
-    transition: all 0.2s ease;
 }
 
-/* Стили для эмодзи шестеренки */
 .settings-emoji {
     font-size: 28px;
     line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
     filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.5));
-    transform: scale(1);
-    transition: transform 0.2s ease, filter 0.2s ease;
 }
 
-/* Стили для донат эмодзи */
 .donate-emoji {
     font-size: 24px;
     line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
     filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.5));
-    transform: scale(1);
-    transition: transform 0.2s ease, filter 0.2s ease;
 }
 
 .reset-btn:active, .settings-btn:active, .donate-btn:active {
@@ -143,43 +125,12 @@ body {
     stroke: #000000;
 }
 
-.settings-btn:active .settings-emoji {
-    transform: scale(0.9);
-    filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5));
-}
-
-.donate-btn:active .donate-emoji {
-    transform: scale(0.9);
-    filter: drop-shadow(0 0 4px rgba(255, 0, 0, 0.5));
-}
-
 .settings-btn.active {
     background: #ffffff;
 }
 
 .settings-btn.active .settings-emoji {
     filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.8));
-}
-
-/* Адаптация для мобилок */
-@media (max-width: 480px) {
-    .reset-btn, .settings-btn, .donate-btn {
-        width: 40px;
-        height: 40px;
-        /* top будет задан через JavaScript */
-    }
-
-    .reset-btn { right: 16px; }
-    .settings-btn { right: 70px; }
-    .donate-btn { right: 124px; }
-
-    .reset-btn svg, .settings-btn svg {
-        width: 20px;
-        height: 20px;
-    }
-
-    .donate-emoji { font-size: 20px; }
-    .settings-emoji { font-size: 24px; }
 }
 
 /* ============================================ */
@@ -196,7 +147,7 @@ body {
 }
 
 /* ============================================ */
-/* АНИМАЦИЯ - 2D, БЕЗ 3D */
+/* БЕГУЩАЯ СТРОКА */
 /* ============================================ */
 
 .banner-area {
@@ -226,11 +177,9 @@ body {
     position: relative;
     left: 0;
     top: 0;
-
     padding-right: 50px;
     font-size: 15vw;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-
     transform: translateX(100vw);
     animation: scrollText linear infinite;
     animation-duration: 15s;
@@ -241,21 +190,16 @@ body {
     to   { transform: translateX(calc(-100% - 50px)); }
 }
 
-/* MathJax стили - CHTML версия */
-.scrolling-text mjx-container {
-    text-shadow: none !important;
-    box-shadow: none !important;
-    background: transparent !important;
-}
+/* ============================================ */
+/* MATHQUILL РЕДАКТОР */
+/* ============================================ */
 
-/* Контейнер для ввода */
 .input-container {
     width: 100%;
     position: relative;
     z-index: 100;
 }
 
-/* Область ввода */
 .input-area {
     display: flex;
     gap: 10px;
@@ -269,7 +213,6 @@ body {
     z-index: 101;
 }
 
-/* MATH кнопка */
 .math-btn {
     width: 70px;
     height: 60px;
@@ -281,10 +224,7 @@ body {
     font-size: 18px;
     cursor: pointer;
     transition: all 0.2s ease;
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
+    flex-shrink: 0;
 }
 
 .math-btn.active {
@@ -298,29 +238,62 @@ body {
     transform: scale(0.95);
 }
 
-/* Поле ввода */
-.text-input {
+/* MathQuill редактор */
+.mathquill-editor {
     flex: 1;
+    min-height: 60px;
+    max-height: 150px;
+    overflow-y: auto;
     background: #111111;
     border: 2px solid #ffffff;
     border-radius: 30px;
-    padding: 16px 20px;
-    font-size: 18px;
-    color: #ffffff;
-    outline: none;
-    transition: all 0.2s ease;
+    padding: 12px 20px;
+    font-size: 20px;
+    cursor: text;
 }
 
-.text-input:focus {
-    outline: none;
-    border-color: #ffffff;
+/* Стили MathQuill внутри редактора */
+.mq-editable-field {
+    width: 100% !important;
+    background: transparent !important;
+    color: #ffffff !important;
+    border: none !important;
+    min-height: 40px;
 }
 
-.text-input::placeholder {
-    color: rgba(255, 255, 255, 0.5);
+.mq-editable-field .mq-root-block {
+    color: #ffffff !important;
+    padding: 5px 0;
 }
 
-/* RUN кнопка */
+.mq-editable-field .mq-cursor {
+    border-left-color: #ffffff !important;
+    border-left-width: 2px !important;
+}
+
+.mq-editable-field.mq-focused {
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.mq-math-mode .mq-sqrt {
+    /* Корни с длинными шапочками */
+    border-top: 2px solid #ffffff !important;
+}
+
+.mq-math-mode .mq-fraction {
+    /* Дроби с горизонтальной чертой */
+    border-top: 2px solid #ffffff !important;
+    border-bottom: 2px solid #ffffff !important;
+}
+
+.mq-math-mode .mq-vector {
+    /* Векторы со стрелкой */
+    text-decoration: overline;
+    text-decoration-style: solid;
+    text-decoration-color: #ffffff;
+}
+
 .run-btn {
     width: 70px;
     height: 60px;
@@ -335,10 +308,7 @@ body {
     text-transform: uppercase;
     letter-spacing: 2px;
     transition: all 0.2s ease;
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
+    flex-shrink: 0;
 }
 
 .run-btn:active {
@@ -372,7 +342,6 @@ body {
     transform: translateY(0);
 }
 
-/* Вкладки клавиатуры */
 .keyboard-tabs {
     display: flex;
     gap: 10px;
@@ -403,7 +372,6 @@ body {
     transform: scale(0.95);
 }
 
-/* Содержимое вкладок */
 .tab-content {
     display: none;
 }
@@ -412,7 +380,6 @@ body {
     display: block;
 }
 
-/* Сетка кнопок */
 .keyboard-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -438,7 +405,10 @@ body {
     transform: scale(0.95);
 }
 
-/* Панель настроек */
+/* ============================================ */
+/* ПАНЕЛЬ НАСТРОЕК */
+/* ============================================ */
+
 .settings-panel {
     position: absolute;
     top: 0;
@@ -470,8 +440,8 @@ body {
     font-size: 24px;
     margin-bottom: 20px;
     text-align: center;
-    padding-bottom: 10px;
     border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 10px;
 }
 
 .setting-item {
@@ -505,7 +475,6 @@ body {
     -webkit-appearance: none;
     background: #333333;
     border-radius: 3px;
-    outline: none;
 }
 
 .slider::-webkit-slider-thumb {
@@ -529,7 +498,6 @@ body {
     font-weight: bold;
 }
 
-/* Кнопки цвета */
 .color-buttons {
     display: flex;
     gap: 12px;
@@ -538,7 +506,6 @@ body {
     background: #1a1a1a;
     padding: 15px;
     border-radius: 30px;
-    margin-top: 5px;
 }
 
 .color-btn {
@@ -565,6 +532,24 @@ body {
 /* АДАПТАЦИЯ ПОД МОБИЛКИ */
 /* ============================================ */
 @media (max-width: 480px) {
+    .reset-btn, .settings-btn, .donate-btn {
+        width: 40px;
+        height: 40px;
+        top: calc(16px + var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + 30px);
+    }
+
+    .reset-btn { right: 16px; }
+    .settings-btn { right: 70px; }
+    .donate-btn { right: 124px; }
+
+    .reset-btn svg, .settings-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .donate-emoji { font-size: 20px; }
+    .settings-emoji { font-size: 24px; }
+    
     .math-btn {
         width: 60px;
         height: 50px;
@@ -577,9 +562,10 @@ body {
         font-size: 16px;
     }
     
-    .text-input {
-        padding: 12px 16px;
-        font-size: 16px;
+    .mathquill-editor {
+        padding: 10px 15px;
+        font-size: 18px;
+        min-height: 50px;
     }
     
     .math-keyboard {
@@ -599,15 +585,6 @@ body {
         height: 40px;
         font-size: 14px;
     }
-    
-    .color-btn {
-        width: 40px;
-        height: 40px;
-    }
-    
-    .settings-content {
-        padding: 20px;
-    }
 }
 
 /* ============================================ */
@@ -619,27 +596,19 @@ body, html, .app-container, .mobile-view, .banner-area,
 }
 
 .math-btn, .run-btn, .reset-btn, .settings-btn, 
-.tab-btn, .math-key, .color-btn, .text-input, .donate-btn {
+.tab-btn, .math-key, .color-btn, .donate-btn,
+.mathquill-editor {
     border-color: #ffffff;
     color: #ffffff;
 }
 
-.text-input {
+.mathquill-editor {
     background: #111111;
-    color: #ffffff;
-}
-
-.text-input::placeholder {
-    color: rgba(255, 255, 255, 0.5);
 }
 
 .math-btn.active, .tab-btn.active, .settings-btn.active {
     background: #ffffff;
     color: #000000;
-}
-
-.math-btn.active svg, .settings-btn.active svg {
-    stroke: #000000;
 }
 
 .math-key:active, .run-btn:active, .reset-btn:active, 
