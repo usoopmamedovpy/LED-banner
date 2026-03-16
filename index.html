@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
     <meta name="color-scheme" content="dark">
-    <title>LED Banner Math</title>
+    <title>LED Banner Math - WYSIWYG</title>
     
-    <!-- MathQuill для красивых формул -->
+    <!-- MathQuill для редактирования формул -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.css">
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.min.js"></script>
     
-    <!-- MathJax для отображения на LED-экране (CHTML версия) -->
+    <!-- MathJax для отображения на LED-экране -->
     <script>
         window.MathJax = {
             tex: { 
@@ -96,7 +96,7 @@
             <!-- Зона с бегущей строкой -->
             <div class="banner-area">
                 <div class="scrolling-wrapper">
-                    <div class="scrolling-text" id="scrollingText">\(LED бегущая строка\)</div>
+                    <div class="scrolling-text" id="scrollingText">\(LED banner\)</div>
                 </div>
             </div>
             
@@ -106,13 +106,13 @@
                     <!-- MATH кнопка -->
                     <button class="math-btn" id="mathBtn">MATH</button>
                     
-                    <!-- MathQuill поле для формул -->
-                    <div class="math-field" id="mathField"></div>
+                    <!-- MathQuill редактор формул (WYSIWYG) -->
+                    <div class="mathquill-editor" id="mathEditor"></div>
                     
                     <button class="run-btn" id="runBtn">RUN</button>
                 </div>
                 
-                <!-- Математическая клавиатура -->
+                <!-- Математическая клавиатура (помощник для ввода) -->
                 <div class="math-keyboard" id="mathKeyboard">
                     <div class="keyboard-tabs">
                         <button class="tab-btn active" id="tabFunctions">ƒ(x)</button>
@@ -127,30 +127,25 @@
                             <button class="math-key" data-cmd="\cos">cos</button>
                             <button class="math-key" data-cmd="\tan">tan</button>
                             <button class="math-key" data-cmd="\cot">cot</button>
-                            <button class="math-key" data-cmd="\arcsin">arcsin</button>
-                            <button class="math-key" data-cmd="\arccos">arccos</button>
-                            <button class="math-key" data-cmd="\arctan">arctan</button>
-                            <button class="math-key" data-cmd="\arccot">arccot</button>
                             <button class="math-key" data-cmd="\log">log</button>
                             <button class="math-key" data-cmd="\ln">ln</button>
-                            <button class="math-key" data-cmd="\lg">lg</button>
-                            <button class="math-key" data-cmd="\exp">exp</button>
                             <button class="math-key" data-cmd="\sqrt">√</button>
                             <button class="math-key" data-cmd="\sqrt[3]">∛</button>
-                            <button class="math-key" data-cmd="\sqrt[4]">∜</button>
                             <button class="math-key" data-cmd="\sqrt[n]">n√</button>
                             <button class="math-key" data-cmd="\frac">a/b</button>
                             <button class="math-key" data-cmd="^">xⁿ</button>
                             <button class="math-key" data-cmd="_">xₙ</button>
-                            <button class="math-key" data-cmd="\vec">⃗</button>
                             <button class="math-key" data-cmd="\int">∫</button>
                             <button class="math-key" data-cmd="\sum">∑</button>
                             <button class="math-key" data-cmd="\prod">∏</button>
                             <button class="math-key" data-cmd="\lim">lim</button>
+                            <button class="math-key" data-cmd="\infty">∞</button>
+                            <button class="math-key" data-cmd="\partial">∂</button>
+                            <button class="math-key" data-cmd="\nabla">∇</button>
                         </div>
                     </div>
                     
-                    <!-- Раздел греческих букв (С ДЕЛЬТОЙ) -->
+                    <!-- Раздел греческих букв -->
                     <div class="tab-content" id="greekTab">
                         <div class="keyboard-grid">
                             <button class="math-key" data-cmd="\alpha">α</button>
@@ -183,17 +178,6 @@
                     <!-- Раздел символов -->
                     <div class="tab-content" id="symbolsTab">
                         <div class="keyboard-grid">
-                            <button class="math-key" data-cmd="\infty">∞</button>
-                            <button class="math-key" data-cmd="\partial">∂</button>
-                            <button class="math-key" data-cmd="\nabla">∇</button>
-                            <button class="math-key" data-cmd="\forall">∀</button>
-                            <button class="math-key" data-cmd="\exists">∃</button>
-                            <button class="math-key" data-cmd="\in">∈</button>
-                            <button class="math-key" data-cmd="\notin">∉</button>
-                            <button class="math-key" data-cmd="\subset">⊂</button>
-                            <button class="math-key" data-cmd="\supset">⊃</button>
-                            <button class="math-key" data-cmd="\cup">∪</button>
-                            <button class="math-key" data-cmd="\cap">∩</button>
                             <button class="math-key" data-cmd="\pm">±</button>
                             <button class="math-key" data-cmd="\times">×</button>
                             <button class="math-key" data-cmd="\div">÷</button>
@@ -202,6 +186,14 @@
                             <button class="math-key" data-cmd="\geq">≥</button>
                             <button class="math-key" data-cmd="\approx">≈</button>
                             <button class="math-key" data-cmd="\propto">∝</button>
+                            <button class="math-key" data-cmd="\in">∈</button>
+                            <button class="math-key" data-cmd="\notin">∉</button>
+                            <button class="math-key" data-cmd="\subset">⊂</button>
+                            <button class="math-key" data-cmd="\supset">⊃</button>
+                            <button class="math-key" data-cmd="\cup">∪</button>
+                            <button class="math-key" data-cmd="\cap">∩</button>
+                            <button class="math-key" data-cmd="\rightarrow">→</button>
+                            <button class="math-key" data-cmd="\leftarrow">←</button>
                         </div>
                     </div>
                 </div>
