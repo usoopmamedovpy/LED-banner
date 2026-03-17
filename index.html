@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
     <meta name="color-scheme" content="dark">
-    <title>LED Banner - Наложение</title>
+    <title>LED Banner - Идеальный</title>
     
     <!-- MathQuill для рендера -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.css">
@@ -63,13 +63,13 @@
 
         <!-- Основной экран -->
         <div class="mobile-view">
-            <!-- Бегущая строка (наверху) -->
+            <!-- Бегущая строка (во всю ширину) -->
             <div class="banner-area">
                 <div class="scrolling-text" id="scrollingText">\(LED\)</div>
             </div>
             
             <!-- Контейнер с наложением (по центру) -->
-            <div class="overlay-container">
+            <div class="overlay-container" id="overlayContainer">
                 <!-- Задний план: красивый рендер MathQuill -->
                 <div class="render-layer" id="renderLayer"></div>
                 
@@ -83,8 +83,9 @@
                 >
             </div>
             
-            <!-- Кнопка RUN (внизу) -->
-            <div class="run-container">
+            <!-- Нижняя панель с MATH и RUN -->
+            <div class="bottom-panel">
+                <button class="math-btn" id="mathBtn">MATH</button>
                 <button class="run-btn" id="runBtn">RUN</button>
             </div>
             
