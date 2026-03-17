@@ -151,60 +151,48 @@ body {
     font-size: 20px;
 }
 
-.mq-editable-field {
-    width: 100% !important;
+/* ============================================ */
+/* ФИНАЛЬНЫЕ ФИКСЫ MATHQUILL - ВСЁ БЕЛОЕ */
+/* ============================================ */
+
+/* Принудительно делаем весь MathQuill видимым */
+.mathquill-editor,
+.mathquill-editor .mq-math-mode,
+.mathquill-editor .mq-editable-field,
+.mathquill-editor .mq-editable-field .mq-root-block {
+    color: #ffffff !important;
     background: transparent !important;
-    color: #ffffff !important;
-    border: none !important;
 }
 
-.mq-editable-field .mq-root-block {
-    color: #ffffff !important;
-    padding: 5px 0;
-}
-
-/* ============================================ */
-/* ФИКСЫ ДЛЯ MATHQUILL - БЕЛЫЙ ТЕКСТ */
-/* ============================================ */
-
-/* Основной текст в редакторе */
-.mq-editable-field.mq-math-mode,
-.mq-editable-field.mq-math-mode .mq-root-block,
-.mq-editable-field.mq-math-mode .mq-root-block * {
+.mathquill-editor .mq-math-mode * {
     color: #ffffff !important;
     fill: #ffffff !important;
     stroke: #ffffff !important;
 }
 
-/* Числа, буквы, символы */
-.mq-editable-field.mq-math-mode .mq-numeric,
-.mq-editable-field.mq-math-mode .mq-operator,
-.mq-editable-field.mq-math-mode .mq-symbol,
-.mq-editable-field.mq-math-mode .mq-binary-operator {
-    color: #ffffff !important;
-}
-
-/* Курсор */
-.mq-editable-field.mq-math-mode .mq-cursor {
+.mathquill-editor .mq-cursor {
     border-left-color: #ffffff !important;
     border-left-width: 2px !important;
 }
 
-/* Выделение текста */
-.mq-editable-field.mq-math-mode .mq-selection,
-.mq-editable-field.mq-math-mode .mq-selection .mq-root-block {
-    background: rgba(255, 255, 255, 0.2) !important;
+/* Убеждаемся, что числа и буквы видны */
+.mathquill-editor .mq-numeric,
+.mathquill-editor .mq-operator,
+.mathquill-editor .mq-symbol,
+.mathquill-editor .mq-binary-operator {
+    color: #ffffff !important;
 }
 
-/* Линии в корнях и дробях */
-.mq-math-mode .mq-sqrt-stem,
-.mq-math-mode .mq-fraction .mq-line {
+/* Линии корней и дробей */
+.mathquill-editor .mq-sqrt-stem,
+.mathquill-editor .mq-fraction .mq-line {
     border-color: #ffffff !important;
 }
 
-/* Стрелка вектора */
-.mq-math-mode .mq-vec {
-    text-decoration-color: #ffffff !important;
+/* Выделение */
+.mathquill-editor .mq-selection,
+.mathquill-editor .mq-selection .mq-root-block {
+    background: rgba(255, 255, 255, 0.2) !important;
 }
 
 /* Математическая клавиатура */
