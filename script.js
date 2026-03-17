@@ -71,19 +71,28 @@ function initMathQuill() {
             }
         });
         
-        // Пустое поле при старте
-        mathField.latex('');
-        
-        // Разрешаем ввод с обычной клавиатуры
-        editorElement.addEventListener('click', () => {
-            mathField.focus();
-        });
-        
-        editorElement.addEventListener('touchstart', (e) => {
+        // ВАЖНО: фокус по тапу для мобилок
+        editorElement.addEventListener('pointerdown', (e) => {
             e.preventDefault();
-            mathField.focus();
+            try { 
+                mathField.focus(); 
+                console.log('Editor focused');
+            } catch (e) {
+                console.log('Focus error:', e);
+            }
         });
         
+        // Защита от удаления последнего символа
+        editorElement.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' || e.key === 'Delete') {
+                const latex = mathField.latex();
+                if (latex === 'LED' || latex === 'L' || latex === '') {
+                    e.preventDefault();
+                }
+            }
+        });
+        
+        mathField.latex('LED');
         loadSettings();
         console.log('MathQuill ready');
         
@@ -232,9 +241,9 @@ function handleReset() {
         isRunning = false;
         if (mathField) saveData({ latex: mathField.latex() });
     } else {
-        if (mathField) mathField.latex('');
+        if (mathField) mathField.latex('LED');
         
-        scrollingText.innerHTML = '';
+        scrollingText.innerHTML = '\\(LED\\)';
         if (window.MathJax) {
             MathJax.typesetPromise([scrollingText]).then(applyColorToMath);
         }
@@ -252,7 +261,7 @@ function handleReset() {
         applyColorToMath();
         restartAnimation();
         
-        saveData({ latex: '' });
+        saveData({ latex: 'LED' });
     }
     
     closeKeyboard();
@@ -261,12 +270,14 @@ function handleReset() {
 }
 
 // ============================================
-// ВСТАВКА В MATHQUILL
+// ВСТАВКА В MATHQUILL - ИСПРАВЛЕНО
 // ============================================
 function insertMathCommand(latexCmd) {
     if (!mathField || !latexCmd) return;
     
     try {
+        console.log('Inserting:', latexCmd);
+        
         if (latexCmd === '\\frac') {
             mathField.cmd('\\frac');
         } else if (latexCmd === '\\sqrt') {
@@ -280,8 +291,7 @@ function insertMathCommand(latexCmd) {
         } else if (latexCmd === '^' || latexCmd === '_') {
             mathField.cmd(latexCmd);
         } else if (latexCmd === '\\vec') {
-            mathField.typedText('\\vec{}');
-            mathField.keystroke('Left');
+            mathField.cmd('\\vec');
         } else {
             mathField.cmd(latexCmd);
         }
@@ -402,4 +412,4 @@ tg.BackButton.onClick(() => {
 });
 tg.BackButton.show();
 
-console.log('✅ ЧИСТЫЙ MATHQUILL ГОТОВ!');
+console.log('✅ ЧИСТЫЙ MATHQUILL С ФИКСАМИ ГОТОВ!');
