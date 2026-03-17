@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - ЧИСТЫЙ MATHQUILL (ИСПРАВЛЕННЫЙ)
+// LED BANNER - ЧИСТЫЙ MATHQUILL (ФИНАЛЬНЫЙ)
 // ============================================
 
 // Telegram
@@ -71,16 +71,28 @@ function initMathQuill() {
             }
         });
         
-        // ВАЖНО: фокус по тапу для мобилок
-        editorElement.addEventListener('pointerdown', (e) => {
-            e.preventDefault();
-            try { 
-                mathField.focus(); 
-                console.log('Editor focused');
-            } catch (e) {
-                console.log('Focus error:', e);
+        // ВАЖНО: фокус по тапу для мобилок (усиленная версия)
+        editorElement.addEventListener('mousedown', () => {
+            if (mathField) {
+                mathField.focus();
+                console.log('Focus via mousedown');
             }
         });
+        
+        editorElement.addEventListener('touchstart', () => {
+            if (mathField) {
+                mathField.focus();
+                console.log('Focus via touchstart');
+            }
+        }, { passive: true });
+        
+        // Сразу фокусируем при загрузке
+        setTimeout(() => {
+            if (mathField) {
+                mathField.focus();
+                console.log('Initial focus');
+            }
+        }, 500);
         
         // Защита от удаления последнего символа
         editorElement.addEventListener('keydown', (e) => {
