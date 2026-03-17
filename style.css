@@ -1,5 +1,5 @@
 /* ============================================ */
-/* LED BANNER - ЧИСТЫЙ MATHQUILL */
+/* LED BANNER - ГИБРИДНЫЙ РЕДАКТОР */
 /* ============================================ */
 
 * {
@@ -109,6 +109,64 @@ body {
     to { transform: translateX(calc(-100% - 50px)); }
 }
 
+/* ГИБРИДНЫЙ РЕДАКТОР */
+.hybrid-editor-container {
+    position: relative;
+    width: 100%;
+    height: 80px;
+    margin-bottom: 10px;
+    z-index: 10;
+}
+
+/* Верхний слой: текстовое поле (ввод) */
+.text-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: 2px solid #ffffff;
+    border-radius: 30px;
+    padding: 20px;
+    font-size: 20px;
+    color: #ffffff;
+    z-index: 20;
+    caret-color: #ffffff;
+}
+
+.text-input:focus {
+    outline: none;
+    border-color: #ffffff;
+}
+
+/* Нижний слой: MathQuill (отображение) */
+.mathquill-display {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #111111;
+    border: 2px solid #ffffff;
+    border-radius: 30px;
+    padding: 20px;
+    font-size: 20px;
+    z-index: 10;
+    pointer-events: none; /* Не перехватывает клики */
+}
+
+.mathquill-display .mq-math-mode,
+.mathquill-display .mq-editable-field,
+.mathquill-display .mq-editable-field .mq-root-block {
+    background: transparent !important;
+    color: #ffffff !important;
+}
+
+.mathquill-display .mq-math-mode * {
+    color: #ffffff !important;
+}
+
 /* Область ввода */
 .input-area {
     display: flex;
@@ -138,62 +196,6 @@ body {
 
 .math-btn.active { background: #ffffff; color: #000000; }
 .math-btn:active, .run-btn:active { background: #ffffff; color: #000000; transform: scale(0.95); }
-
-/* MathQuill редактор */
-.mathquill-editor {
-    flex: 1;
-    min-height: 60px;
-    max-height: 150px;
-    background: #111111;
-    border: 2px solid #ffffff !important;
-    border-radius: 30px;
-    padding: 12px 20px;
-    font-size: 20px;
-}
-
-/* ============================================ */
-/* ФИНАЛЬНЫЕ ФИКСЫ MATHQUILL - ВСЁ БЕЛОЕ */
-/* ============================================ */
-
-/* Принудительно делаем весь MathQuill видимым */
-.mathquill-editor,
-.mathquill-editor .mq-math-mode,
-.mathquill-editor .mq-editable-field,
-.mathquill-editor .mq-editable-field .mq-root-block {
-    color: #ffffff !important;
-    background: transparent !important;
-}
-
-.mathquill-editor .mq-math-mode * {
-    color: #ffffff !important;
-    fill: #ffffff !important;
-    stroke: #ffffff !important;
-}
-
-.mathquill-editor .mq-cursor {
-    border-left-color: #ffffff !important;
-    border-left-width: 2px !important;
-}
-
-/* Убеждаемся, что числа и буквы видны */
-.mathquill-editor .mq-numeric,
-.mathquill-editor .mq-operator,
-.mathquill-editor .mq-symbol,
-.mathquill-editor .mq-binary-operator {
-    color: #ffffff !important;
-}
-
-/* Линии корней и дробей */
-.mathquill-editor .mq-sqrt-stem,
-.mathquill-editor .mq-fraction .mq-line {
-    border-color: #ffffff !important;
-}
-
-/* Выделение */
-.mathquill-editor .mq-selection,
-.mathquill-editor .mq-selection .mq-root-block {
-    background: rgba(255, 255, 255, 0.2) !important;
-}
 
 /* Математическая клавиатура */
 .math-keyboard {
@@ -274,28 +276,16 @@ body {
     border-radius: 30px;
 }
 
-.slider {
-    flex: 1;
-    height: 6px;
-    -webkit-appearance: none;
-    background: #333;
-    border-radius: 3px;
-}
-
+.slider { flex: 1; height: 6px; -webkit-appearance: none; background: #333; border-radius: 3px; }
 .slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 24px;
-    height: 24px;
+    width: 24px; height: 24px;
     background: #fff;
     border-radius: 50%;
     border: 2px solid #000;
 }
 
-.value-display {
-    color: #fff;
-    min-width: 60px;
-    text-align: right;
-}
+.value-display { color: #fff; min-width: 60px; text-align: right; }
 
 .color-buttons {
     display: flex;
@@ -308,18 +298,13 @@ body {
 }
 
 .color-btn {
-    width: 45px;
-    height: 45px;
+    width: 45px; height: 45px;
     border-radius: 50%;
     border: 3px solid #fff;
     cursor: pointer;
 }
 
-.color-btn.active {
-    border-width: 4px;
-    transform: scale(1.1);
-}
-
+.color-btn.active { border-width: 4px; transform: scale(1.1); }
 .color-btn.white { background: #fff; }
 .color-btn.red { background: #ff3b30; }
 .color-btn.blue { background: #007aff; }
@@ -329,8 +314,7 @@ body {
 /* Адаптация под мобилки */
 @media (max-width: 480px) {
     .reset-btn, .settings-btn, .donate-btn {
-        width: 40px;
-        height: 40px;
+        width: 40px; height: 40px;
         top: calc(16px + env(safe-area-inset-top, 0px) + 30px);
     }
     .reset-btn { right: 16px; }
@@ -339,6 +323,6 @@ body {
     .donate-emoji { font-size: 20px; }
     .settings-emoji { font-size: 24px; }
     .math-btn, .run-btn { width: 60px; height: 50px; font-size: 16px; }
-    .mathquill-editor { padding: 10px 15px; font-size: 18px; }
+    .text-input, .mathquill-display { font-size: 16px; padding: 15px; }
     .math-key { height: 45px; font-size: 14px; }
 }
