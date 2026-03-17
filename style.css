@@ -1,5 +1,5 @@
 /* ============================================ */
-/* LED BANNER - ИДЕАЛЬНОЕ НАЛОЖЕНИЕ */
+/* LED BANNER - МНОГОСТРОЧНЫЙ РЕДАКТОР */
 /* ============================================ */
 
 * {
@@ -7,16 +7,20 @@
     padding: 0;
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
+    text-shadow: none !important;
+    box-shadow: none !important;
 }
 
 html, body {
     height: 100%;
     background: #000000;
-    font-family: monospace;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     color: #ffffff;
 }
 
 body {
+    min-height: 100dvh;
+    display: block;
     overflow: hidden;
 }
 
@@ -29,11 +33,11 @@ body {
     position: relative;
 }
 
-/* ========== КНОПКИ УПРАВЛЕНИЯ ========== */
+/* Кнопки управления */
 .reset-btn, .settings-btn, .donate-btn {
     position: absolute;
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     background: #000000;
     border: 2px solid #ffffff;
@@ -42,23 +46,28 @@ body {
     justify-content: center;
     cursor: pointer;
     z-index: 1000;
-    font-size: 20px;
+    transition: all 0.2s ease;
     top: calc(16px + env(safe-area-inset-top, 0px) + 30px);
 }
 
 .reset-btn { right: 16px; }
-.settings-btn { right: 70px; }
-.donate-btn { right: 124px; }
+.settings-btn { right: 80px; }
+.donate-btn { right: 144px; }
+
+.reset-btn svg { width: 24px; height: 24px; stroke: #ffffff; }
+.settings-emoji { font-size: 28px; }
+.donate-emoji { font-size: 24px; }
 
 .reset-btn:active, .settings-btn:active, .donate-btn:active {
     background: #ffffff;
-    color: #000000;
     transform: scale(0.95);
 }
 
-.settings-btn.active { background: #ffffff; color: #000000; }
+.reset-btn:active svg { stroke: #000000; }
+.settings-btn.active { background: #ffffff; }
+.settings-btn.active .settings-emoji { filter: invert(1); }
 
-/* ========== БЕГУЩАЯ СТРОКА ========== */
+/* Основной экран */
 .mobile-view {
     display: flex;
     flex-direction: column;
@@ -68,6 +77,7 @@ body {
     position: relative;
 }
 
+/* Бегущая строка */
 .banner-area {
     flex: 1;
     width: 100%;
@@ -76,54 +86,40 @@ body {
     padding: 20px;
 }
 
-.scrolling-text {
+.scrolling-wrapper {
     position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.scrolling-text {
     font-weight: bold;
     white-space: nowrap;
+    position: relative;
     font-size: 15vw;
-    font-family: monospace;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     transform: translateX(100vw);
     animation: scrollText linear infinite;
     animation-duration: 15s;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%) translateX(100vw);
 }
 
 @keyframes scrollText {
-    from { transform: translateY(-50%) translateX(100vw); }
-    to { transform: translateY(-50%) translateX(calc(-100% - 50px)); }
+    from { transform: translateX(100vw); }
+    to { transform: translateX(calc(-100% - 50px)); }
 }
 
-/* ========== КОНТЕЙНЕР С НАЛОЖЕНИЕМ ========== */
-.overlay-container {
+/* МНОГОСТРОЧНЫЙ РЕДАКТОР */
+.multiline-editor-container {
     position: relative;
     width: 100%;
-    height: 80px;
-    margin: 10px 0;
-    flex-shrink: 0;
+    min-height: 120px;
+    margin-bottom: 10px;
+    z-index: 10;
 }
 
-/* Задний план: красивый рендер */
-.render-layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: #111111;
-    border: 2px solid #ffffff;
-    border-radius: 40px;
-    padding: 0 20px;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    pointer-events: none;
-    font-size: 24px;
-}
-
-/* Передний план: поле ввода (текст виден) */
-.input-layer {
+/* Невидимое текстовое поле */
+.hidden-textarea {
     position: absolute;
     top: 0;
     left: 0;
@@ -131,57 +127,102 @@ body {
     height: 100%;
     background: transparent;
     border: 2px solid #ffffff;
-    border-radius: 40px;
-    padding: 0 20px;
-    z-index: 2;
-    font-size: 24px;
-    color: #ffffff;
-    caret-color: #ffffff;
+    border-radius: 30px;
+    padding: 20px;
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.01); /* Почти невидимый текст */
+    caret-color: #ffffff; /* Курсор виден */
+    z-index: 20;
+    resize: none;
+    overflow: hidden;
+    line-height: 1.5;
     font-family: monospace;
 }
 
-.input-layer:focus {
+.hidden-textarea:focus {
     outline: none;
     border-color: #ffffff;
 }
 
-/* ========== RUN КНОПКА ========== */
-.run-container {
+/* Визуальный слой с MathQuill */
+.visual-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
+    min-height: 100%;
+    background: #111111;
+    border: 2px solid #ffffff;
+    border-radius: 30px;
+    padding: 20px;
+    font-size: 20px;
+    z-index: 10;
+    pointer-events: none; /* Не перехватывает клики */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Стили для MathQuill в визуальном слое */
+.visual-layer .mq-math-mode,
+.visual-layer .mq-editable-field,
+.visual-layer .mq-editable-field .mq-root-block {
+    background: transparent !important;
+    color: #ffffff !important;
+}
+
+.visual-layer .mq-math-mode * {
+    color: #ffffff !important;
+}
+
+/* Дробная черта */
+.visual-layer .mq-fraction-line {
+    border-top: 2px solid #ffffff !important;
+    margin: 5px 0 !important;
+}
+
+/* Корень */
+.visual-layer .mq-sqrt-stem {
+    border-top: 2px solid #ffffff !important;
+}
+
+/* Область ввода */
+.input-area {
+    display: flex;
+    gap: 10px;
     padding: 16px;
     padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-    display: flex;
-    justify-content: center;
+    background: #000000;
+    border-top: 2px solid rgba(255, 255, 255, 0.2);
+    width: 100%;
+    align-items: center;
+    z-index: 100;
+}
+
+.math-btn, .run-btn {
+    width: 70px;
+    height: 60px;
+    background: transparent;
+    border: 2px solid #ffffff;
+    border-radius: 30px;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
     flex-shrink: 0;
 }
 
-.run-btn {
-    width: 120px;
-    height: 50px;
-    background: transparent;
-    border: 2px solid #ffffff;
-    border-radius: 25px;
-    color: #ffffff;
-    font-weight: bold;
-    font-size: 20px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
+.math-btn.active { background: #ffffff; color: #000000; }
+.math-btn:active, .run-btn:active { background: #ffffff; color: #000000; transform: scale(0.95); }
 
-.run-btn:active {
-    background: #ffffff;
-    color: #000000;
-    transform: scale(0.95);
-}
-
-/* ========== КЛАВИАТУРА ========== */
+/* Математическая клавиатура */
 .math-keyboard {
     position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
     background: #111111;
-    border-top: 2px solid #ffffff;
     border-top-left-radius: 30px;
     border-top-right-radius: 30px;
     padding: 20px;
@@ -205,18 +246,15 @@ body {
     border: 2px solid #ffffff;
     border-radius: 25px;
     color: #ffffff;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 500;
     cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-.math-key:active {
-    background: #ffffff;
-    color: #000000;
-    transform: scale(0.95);
-}
+.math-key:active { background: #ffffff; color: #000000; transform: scale(0.95); }
 
-/* ========== НАСТРОЙКИ ========== */
+/* Панель настроек */
 .settings-panel {
     position: absolute;
     top: 0;
@@ -292,13 +330,18 @@ body {
 .color-btn.green { background: #34c759; }
 .color-btn.yellow { background: #ffcc00; }
 
-/* ========== АДАПТАЦИЯ ========== */
+/* Адаптация под мобилки */
 @media (max-width: 480px) {
     .reset-btn, .settings-btn, .donate-btn {
         width: 40px; height: 40px;
-        font-size: 18px;
+        top: calc(16px + env(safe-area-inset-top, 0px) + 30px);
     }
-    .run-btn { width: 100px; height: 45px; font-size: 18px; }
-    .render-layer, .input-layer { font-size: 20px; }
-    .math-key { height: 45px; font-size: 16px; }
+    .reset-btn { right: 16px; }
+    .settings-btn { right: 70px; }
+    .donate-btn { right: 124px; }
+    .donate-emoji { font-size: 20px; }
+    .settings-emoji { font-size: 24px; }
+    .math-btn, .run-btn { width: 60px; height: 50px; font-size: 16px; }
+    .hidden-textarea, .visual-layer { font-size: 16px; padding: 15px; }
+    .math-key { height: 45px; font-size: 14px; }
 }
