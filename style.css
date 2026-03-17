@@ -1,5 +1,5 @@
 /* ============================================ */
-/* LED BANNER - ГИБРИДНЫЙ РЕДАКТОР */
+/* LED BANNER - МНОГОСТРОЧНЫЙ РЕДАКТОР */
 /* ============================================ */
 
 * {
@@ -109,17 +109,17 @@ body {
     to { transform: translateX(calc(-100% - 50px)); }
 }
 
-/* ГИБРИДНЫЙ РЕДАКТОР */
-.hybrid-editor-container {
+/* МНОГОСТРОЧНЫЙ РЕДАКТОР */
+.multiline-editor-container {
     position: relative;
     width: 100%;
-    height: 80px;
+    min-height: 120px;
     margin-bottom: 10px;
     z-index: 10;
 }
 
-/* Верхний слой: текстовое поле (ввод) */
-.text-input {
+/* Невидимое текстовое поле */
+.hidden-textarea {
     position: absolute;
     top: 0;
     left: 0;
@@ -130,23 +130,27 @@ body {
     border-radius: 30px;
     padding: 20px;
     font-size: 20px;
-    color: #ffffff;
+    color: rgba(255, 255, 255, 0.01); /* Почти невидимый текст */
+    caret-color: #ffffff; /* Курсор виден */
     z-index: 20;
-    caret-color: #ffffff;
+    resize: none;
+    overflow: hidden;
+    line-height: 1.5;
+    font-family: monospace;
 }
 
-.text-input:focus {
+.hidden-textarea:focus {
     outline: none;
     border-color: #ffffff;
 }
 
-/* Нижний слой: MathQuill (отображение) */
-.mathquill-display {
+/* Визуальный слой с MathQuill */
+.visual-layer {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    min-height: 100%;
     background: #111111;
     border: 2px solid #ffffff;
     border-radius: 30px;
@@ -154,17 +158,32 @@ body {
     font-size: 20px;
     z-index: 10;
     pointer-events: none; /* Не перехватывает клики */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
-.mathquill-display .mq-math-mode,
-.mathquill-display .mq-editable-field,
-.mathquill-display .mq-editable-field .mq-root-block {
+/* Стили для MathQuill в визуальном слое */
+.visual-layer .mq-math-mode,
+.visual-layer .mq-editable-field,
+.visual-layer .mq-editable-field .mq-root-block {
     background: transparent !important;
     color: #ffffff !important;
 }
 
-.mathquill-display .mq-math-mode * {
+.visual-layer .mq-math-mode * {
     color: #ffffff !important;
+}
+
+/* Дробная черта */
+.visual-layer .mq-fraction-line {
+    border-top: 2px solid #ffffff !important;
+    margin: 5px 0 !important;
+}
+
+/* Корень */
+.visual-layer .mq-sqrt-stem {
+    border-top: 2px solid #ffffff !important;
 }
 
 /* Область ввода */
@@ -323,6 +342,6 @@ body {
     .donate-emoji { font-size: 20px; }
     .settings-emoji { font-size: 24px; }
     .math-btn, .run-btn { width: 60px; height: 50px; font-size: 16px; }
-    .text-input, .mathquill-display { font-size: 16px; padding: 15px; }
+    .hidden-textarea, .visual-layer { font-size: 16px; padding: 15px; }
     .math-key { height: 45px; font-size: 14px; }
 }
