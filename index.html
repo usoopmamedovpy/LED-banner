@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
     <meta name="color-scheme" content="dark">
-    <title>LED Banner Math - Многострочный</title>
+    <title>LED Banner Math - Гибрид</title>
     
     <!-- MathQuill для отображения -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.css">
@@ -81,18 +81,13 @@
                 </div>
             </div>
             
-            <!-- МНОГОСТРОЧНЫЙ РЕДАКТОР -->
-            <div class="multiline-editor-container">
-                <!-- Невидимое текстовое поле для ввода -->
-                <textarea 
-                    class="hidden-textarea" 
-                    id="hiddenTextarea" 
-                    placeholder="(a)/(b) or √[x]" 
-                    rows="1"
-                >LED</textarea>
+            <!-- ГИБРИДНЫЙ РЕДАКТОР -->
+            <div class="hybrid-editor-container">
+                <!-- Верхний слой: текстовое поле для ввода -->
+                <input type="text" class="text-input" id="textInput" placeholder="√[67] or (a)/(b)" value="LED">
                 
-                <!-- Визуальный слой с MathQuill -->
-                <div class="visual-layer" id="visualLayer"></div>
+                <!-- Нижний слой: MathQuill для отображения -->
+                <div class="mathquill-display" id="mathDisplay"></div>
             </div>
             
             <!-- Кнопка RUN -->
@@ -104,7 +99,7 @@
             <!-- Математическая клавиатура -->
             <div class="math-keyboard" id="mathKeyboard">
                 <div class="keyboard-grid">
-                    <button class="math-key" data-symbol="√[]">√</button>
+                    <button class="math-key" data-symbol="√[ ]">√</button>
                     <button class="math-key" data-symbol="(a)/(b)">a/b</button>
                     <button class="math-key" data-symbol="^">xⁿ</button>
                     <button class="math-key" data-symbol="_">xₙ</button>
