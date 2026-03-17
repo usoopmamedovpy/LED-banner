@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - ГИБРИДНАЯ ВЕРСИЯ
+// LED BANNER - МНОГОСТРОЧНАЯ ВЕРСИЯ
 // ============================================
 
 // Telegram
@@ -30,8 +30,8 @@ const settingsPanel = document.getElementById('settingsPanel');
 const mathBtn = document.getElementById('mathBtn');
 const mathKeyboard = document.getElementById('mathKeyboard');
 const mathKeys = document.querySelectorAll('.math-key');
-const textInput = document.getElementById('textInput');
-const mathDisplay = document.getElementById('mathDisplay');
+const hiddenTextarea = document.getElementById('hiddenTextarea');
+const visualLayer = document.getElementById('visualLayer');
 const sizeSlider = document.getElementById('sizeSlider');
 const sizeValue = document.getElementById('sizeValue');
 const speedSlider = document.getElementById('speedSlider');
@@ -39,18 +39,18 @@ const speedValue = document.getElementById('speedValue');
 const colorButtons = document.querySelectorAll('.color-btn');
 
 // ============================================
-// MATHQUILL ДЛЯ ОТОБРАЖЕНИЯ
+// MATHQUILL ДЛЯ ВИЗУАЛЬНОГО СЛОЯ
 // ============================================
 let mathField = null;
 let MQ = null;
 
-function initMathDisplay() {
-    if (!mathDisplay) return;
+function initVisualLayer() {
+    if (!visualLayer) return;
     
     try {
         MQ = MathQuill.getInterface(2);
         
-        mathField = MQ.MathField(mathDisplay, {
+        mathField = MQ.MathField(visualLayer, {
             spaceBehavesLikeTab: false,
             handlers: {
                 edit: function() {
@@ -60,52 +60,70 @@ function initMathDisplay() {
         });
         
         // Делаем поле только для чтения
-        mathDisplay.style.pointerEvents = 'none';
+        visualLayer.style.pointerEvents = 'none';
         
-        console.log('MathQuill display ready');
+        console.log('Visual layer ready');
     } catch (e) {
         console.error('MathQuill error:', e);
     }
 }
 
 // ============================================
-// ПАРСЕР (старый, но надёжный)
+// МНОГОСТРОЧНЫЙ ПАРСЕР
 // ============================================
-function parseToLaTeX(text) {
+function parseMultilineToLaTeX(text) {
     if (!text) return '';
     
     let result = text;
     
-    // Сохраняем пробелы
-    result = result.replace(/ /g, '\\ ');
+    // 1. Дроби: (числитель)/(знаменатель) -> \frac{числитель}{знаменатель}
+    result = result.replace(/\(([^)]+)\)\s*\/\s*\(([^)]+)\)/g, (match, num, den) => {
+        return `\\frac{${parseMultilineToLaTeX(num)}}{${parseMultilineToLaTeX(den)}}`;
+    });
     
-    // Векторы
-    result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
-    
-    // Дроби
-    result = result.replace(/\(([^)]+)\)\s*\/\s*\(([^)]+)\)/g, '\\frac{$1}{$2}');
+    // 2. Простые дроби (число/число)
     result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
     
-    // Корни
-    result = result.replace(/√\[([^\]]+)\]/g, '\\sqrt{$1}');
+    // 3. Корни: √[выражение] -> \sqrt{выражение}
+    result = result.replace(/√\[([^\]]+)\]/g, (match, expr) => {
+        return `\\sqrt{${parseMultilineToLaTeX(expr)}}`;
+    });
     
-    // Степени и индексы
-    result = result.replace(/([a-zA-Z0-9])\^\(([^)]+)\)/g, '$1^{$2}');
-    result = result.replace(/([a-zA-Z0-9])\^([a-zA-Z0-9])/g, '$1^{$2}');
-    result = result.replace(/([a-zA-Z0-9])_\(([^)]+)\)/g, '$1_{$2}');
-    result = result.replace(/([a-zA-Z0-9])_([a-zA-Z0-9])/g, '$1_{$2}');
+    // 4. Корни с индексом: √[n]{выражение} -> \sqrt[n]{выражение}
+    result = result.replace(/√\[([^\]]+)\]\{([^}]+)\}/g, (match, n, expr) => {
+        return `\\sqrt[${n}]{${parseMultilineToLaTeX(expr)}}`;
+    });
+    
+    // 5. Векторы: {выражение} -> \vec{выражение}
+    result = result.replace(/\{([^}]+)\}/g, (match, expr) => {
+        return `\\vec{${parseMultilineToLaTeX(expr)}}`;
+    });
+    
+    // 6. Степени
+    result = result.replace(/([a-zA-Z0-9α-ω])\^\(([^)]+)\)/g, (match, base, exp) => {
+        return `${base}^{${parseMultilineToLaTeX(exp)}}`;
+    });
+    
+    result = result.replace(/([a-zA-Z0-9α-ω])\^([a-zA-Z0-9α-ω])/g, '$1^{$2}');
+    
+    // 7. Индексы
+    result = result.replace(/([a-zA-Z0-9α-ω])_\(([^)]+)\)/g, (match, base, idx) => {
+        return `${base}_{${parseMultilineToLaTeX(idx)}}`;
+    });
+    
+    result = result.replace(/([a-zA-Z0-9α-ω])_([a-zA-Z0-9α-ω])/g, '$1_{$2}');
     
     return result;
 }
 
 // ============================================
-// ОБНОВЛЕНИЕ ОТОБРАЖЕНИЯ
+// ОБНОВЛЕНИЕ ВИЗУАЛЬНОГО СЛОЯ
 // ============================================
-function updateDisplay() {
+function updateVisualLayer() {
     if (!mathField) return;
     
-    const text = textInput.value;
-    const latex = parseToLaTeX(text);
+    const text = hiddenTextarea.value;
+    const latex = parseMultilineToLaTeX(text);
     
     try {
         mathField.latex(latex);
@@ -114,6 +132,11 @@ function updateDisplay() {
         if (window.MathJax) {
             MathJax.typesetPromise([scrollingText]).then(applyColorToMath);
         }
+        
+        // Автоматически регулируем высоту textarea
+        hiddenTextarea.style.height = 'auto';
+        hiddenTextarea.style.height = hiddenTextarea.scrollHeight + 'px';
+        
     } catch (e) {
         console.error('Update error:', e);
     }
@@ -162,15 +185,15 @@ function loadSettings() {
         }
         
         if (data.text) {
-            textInput.value = data.text;
-            updateDisplay();
+            hiddenTextarea.value = data.text;
+            updateVisualLayer();
         }
     } catch (e) {}
 }
 
 function saveData() {
     const data = {
-        text: textInput.value,
+        text: hiddenTextarea.value,
         color: currentColor,
         speed: currentSpeed,
         size: currentSize
@@ -228,7 +251,7 @@ function closeKeyboard() {
 
 function toggleRun() {
     if (isRunning) {
-        document.querySelector('.hybrid-editor-container').style.display = 'block';
+        document.querySelector('.multiline-editor-container').style.display = 'block';
         settingsBtn.style.display = 'flex';
         donateBtn.style.display = 'flex';
         mathBtn.style.display = 'block';
@@ -240,7 +263,7 @@ function toggleRun() {
         restartAnimation();
         applyColorToMath();
         
-        document.querySelector('.hybrid-editor-container').style.display = 'none';
+        document.querySelector('.multiline-editor-container').style.display = 'none';
         settingsBtn.style.display = 'none';
         donateBtn.style.display = 'none';
         mathBtn.style.display = 'none';
@@ -252,14 +275,14 @@ function toggleRun() {
 
 function handleReset() {
     if (isRunning) {
-        document.querySelector('.hybrid-editor-container').style.display = 'block';
+        document.querySelector('.multiline-editor-container').style.display = 'block';
         settingsBtn.style.display = 'flex';
         donateBtn.style.display = 'flex';
         mathBtn.style.display = 'block';
         isRunning = false;
     } else {
-        textInput.value = 'LED';
-        updateDisplay();
+        hiddenTextarea.value = 'LED';
+        updateVisualLayer();
         
         currentColor = 'white';
         currentSpeed = 15;
@@ -285,18 +308,25 @@ function handleReset() {
 // ВСТАВКА СИМВОЛОВ
 // ============================================
 function insertSymbol(symbol) {
-    const start = textInput.selectionStart;
-    const end = textInput.selectionEnd;
-    const text = textInput.value;
+    const start = hiddenTextarea.selectionStart;
+    const end = hiddenTextarea.selectionEnd;
+    const text = hiddenTextarea.value;
     
-    const newText = text.substring(0, start) + symbol + text.substring(end);
-    textInput.value = newText;
+    let insertText = symbol;
     
-    const newPos = start + symbol.length;
-    textInput.setSelectionRange(newPos, newPos);
-    textInput.focus();
+    // Специальные символы
+    if (symbol === '√[]') insertText = '√[]';
+    else if (symbol === '{}') insertText = '{}';
+    else if (symbol === '(a)/(b)') insertText = '(a)/(b)';
     
-    updateDisplay();
+    const newText = text.substring(0, start) + insertText + text.substring(end);
+    hiddenTextarea.value = newText;
+    
+    const newPos = start + insertText.length;
+    hiddenTextarea.setSelectionRange(newPos, newPos);
+    hiddenTextarea.focus();
+    
+    updateVisualLayer();
     saveData();
 }
 
@@ -305,15 +335,22 @@ function insertSymbol(symbol) {
 // ============================================
 
 window.addEventListener('load', () => {
-    initMathDisplay();
+    initVisualLayer();
     loadSettings();
-    updateDisplay();
+    updateVisualLayer();
     setTimeout(applyColorToMath, 500);
 });
 
-textInput.addEventListener('input', () => {
-    updateDisplay();
+hiddenTextarea.addEventListener('input', () => {
+    updateVisualLayer();
     saveData();
+});
+
+hiddenTextarea.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        // Можно добавить специальную обработку Enter
+    }
 });
 
 mathBtn.addEventListener('click', (e) => {
@@ -394,7 +431,7 @@ tg.BackButton.onClick(() => {
     } else if (keyboardVisible) {
         closeKeyboard();
     } else if (isRunning) {
-        document.querySelector('.hybrid-editor-container').style.display = 'block';
+        document.querySelector('.multiline-editor-container').style.display = 'block';
         settingsBtn.style.display = 'flex';
         donateBtn.style.display = 'flex';
         mathBtn.style.display = 'block';
@@ -405,4 +442,4 @@ tg.BackButton.onClick(() => {
 });
 tg.BackButton.show();
 
-console.log('✅ ГИБРИДНАЯ ВЕРСИЯ ГОТОВА!');
+console.log('✅ МНОГОСТРОЧНАЯ ВЕРСИЯ ГОТОВА!');
