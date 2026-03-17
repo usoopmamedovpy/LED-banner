@@ -5,24 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
     <meta name="color-scheme" content="dark">
-    <title>LED Banner Math - MathQuill Native</title>
+    <title>LED Banner Math - Гибрид</title>
     
-    <!-- MathQuill для редактирования формул -->
+    <!-- MathQuill для отображения -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.css">
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.min.js"></script>
     
-    <!-- MathJax для отображения на LED-экране -->
+    <!-- MathJax для бегущей строки -->
     <script>
         window.MathJax = {
             tex: { 
                 inlineMath: [['\\(', '\\)']],
                 displayMath: [['\\[', '\\]']]
             },
-            chtml: {
-                scale: 1,
-                adaptiveCSS: true
-            }
+            chtml: { scale: 1 }
         };
     </script>
     <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
@@ -84,29 +81,36 @@
                 </div>
             </div>
             
-            <!-- Редактор формул -->
+            <!-- ГИБРИДНЫЙ РЕДАКТОР -->
+            <div class="hybrid-editor-container">
+                <!-- Верхний слой: текстовое поле для ввода -->
+                <input type="text" class="text-input" id="textInput" placeholder="√[67] or (a)/(b)" value="LED">
+                
+                <!-- Нижний слой: MathQuill для отображения -->
+                <div class="mathquill-display" id="mathDisplay"></div>
+            </div>
+            
+            <!-- Кнопка RUN -->
             <div class="input-area" id="inputArea">
                 <button class="math-btn" id="mathBtn">MATH</button>
-                <!-- ЧИСТЫЙ MathQuill редактор -->
-                <div class="mathquill-editor" id="mathEditor"></div>
                 <button class="run-btn" id="runBtn">RUN</button>
             </div>
             
-            <!-- Простая клавиатура-помощник -->
+            <!-- Математическая клавиатура -->
             <div class="math-keyboard" id="mathKeyboard">
                 <div class="keyboard-grid">
-                    <button class="math-key" data-cmd="\sqrt">√</button>
-                    <button class="math-key" data-cmd="\frac">a/b</button>
-                    <button class="math-key" data-cmd="^">xⁿ</button>
-                    <button class="math-key" data-cmd="_">xₙ</button>
-                    <button class="math-key" data-cmd="\vec">⃗</button>
-                    <button class="math-key" data-cmd="\int">∫</button>
-                    <button class="math-key" data-cmd="\sum">∑</button>
-                    <button class="math-key" data-cmd="\alpha">α</button>
-                    <button class="math-key" data-cmd="\beta">β</button>
-                    <button class="math-key" data-cmd="\gamma">γ</button>
-                    <button class="math-key" data-cmd="\Delta">Δ</button>
-                    <button class="math-key" data-cmd="\infty">∞</button>
+                    <button class="math-key" data-symbol="√[ ]">√</button>
+                    <button class="math-key" data-symbol="(a)/(b)">a/b</button>
+                    <button class="math-key" data-symbol="^">xⁿ</button>
+                    <button class="math-key" data-symbol="_">xₙ</button>
+                    <button class="math-key" data-symbol="{}">⃗</button>
+                    <button class="math-key" data-symbol="∫">∫</button>
+                    <button class="math-key" data-symbol="∑">∑</button>
+                    <button class="math-key" data-symbol="α">α</button>
+                    <button class="math-key" data-symbol="β">β</button>
+                    <button class="math-key" data-symbol="γ">γ</button>
+                    <button class="math-key" data-symbol="Δ">Δ</button>
+                    <button class="math-key" data-symbol="∞">∞</button>
                 </div>
             </div>
         </div>
