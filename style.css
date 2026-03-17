@@ -1,5 +1,5 @@
 /* ============================================ */
-/* LED BANNER - ЧИСТЫЙ MATHQUILL С ОБВОДКОЙ */
+/* LED BANNER - ЧИСТЫЙ MATHQUILL */
 /* ============================================ */
 
 * {
@@ -33,9 +33,7 @@ body {
     position: relative;
 }
 
-/* ============================================ */
-/* КНОПКИ УПРАВЛЕНИЯ */
-/* ============================================ */
+/* Кнопки управления */
 .reset-btn, .settings-btn, .donate-btn {
     position: absolute;
     width: 48px;
@@ -56,42 +54,20 @@ body {
 .settings-btn { right: 80px; }
 .donate-btn { right: 144px; }
 
-.reset-btn svg {
-    width: 24px;
-    height: 24px;
-    stroke: #ffffff;
-}
-
-.settings-emoji {
-    font-size: 28px;
-    line-height: 1;
-}
-
-.donate-emoji {
-    font-size: 24px;
-    line-height: 1;
-}
+.reset-btn svg { width: 24px; height: 24px; stroke: #ffffff; }
+.settings-emoji { font-size: 28px; }
+.donate-emoji { font-size: 24px; }
 
 .reset-btn:active, .settings-btn:active, .donate-btn:active {
     background: #ffffff;
     transform: scale(0.95);
 }
 
-.reset-btn:active svg {
-    stroke: #000000;
-}
+.reset-btn:active svg { stroke: #000000; }
+.settings-btn.active { background: #ffffff; }
+.settings-btn.active .settings-emoji { filter: invert(1); }
 
-.settings-btn.active {
-    background: #ffffff;
-}
-
-.settings-btn.active .settings-emoji {
-    color: #000000;
-}
-
-/* ============================================ */
-/* ОСНОВНОЙ ЭКРАН */
-/* ============================================ */
+/* Основной экран */
 .mobile-view {
     display: flex;
     flex-direction: column;
@@ -101,9 +77,7 @@ body {
     position: relative;
 }
 
-/* ============================================ */
-/* БЕГУЩАЯ СТРОКА */
-/* ============================================ */
+/* Бегущая строка */
 .banner-area {
     flex: 1;
     width: 100%;
@@ -135,9 +109,7 @@ body {
     to { transform: translateX(calc(-100% - 50px)); }
 }
 
-/* ============================================ */
-/* ОБЛАСТЬ ВВОДА */
-/* ============================================ */
+/* Область ввода */
 .input-area {
     display: flex;
     gap: 10px;
@@ -164,30 +136,19 @@ body {
     flex-shrink: 0;
 }
 
-.math-btn.active {
-    background: #ffffff;
-    color: #000000;
-}
+.math-btn.active { background: #ffffff; color: #000000; }
+.math-btn:active, .run-btn:active { background: #ffffff; color: #000000; transform: scale(0.95); }
 
-.math-btn:active, .run-btn:active {
-    background: #ffffff;
-    color: #000000;
-    transform: scale(0.95);
-}
-
-/* ============================================ */
-/* MATHQUILL РЕДАКТОР - С БЕЛОЙ ОБВОДКОЙ */
-/* ============================================ */
+/* MathQuill редактор */
 .mathquill-editor {
     flex: 1;
     min-height: 60px;
     max-height: 150px;
     background: #111111;
-    border: 2px solid #ffffff;  /* БЕЛАЯ ОБВОДКА */
+    border: 2px solid #ffffff !important;
     border-radius: 30px;
     padding: 12px 20px;
     font-size: 20px;
-    overflow-y: auto;
 }
 
 .mq-editable-field {
@@ -195,7 +156,6 @@ body {
     background: transparent !important;
     color: #ffffff !important;
     border: none !important;
-    min-height: 40px;
 }
 
 .mq-editable-field .mq-root-block {
@@ -203,43 +163,51 @@ body {
     padding: 5px 0;
 }
 
-/* Полоса дроби */
-.mq-math-mode .mq-fraction .mq-line {
-    border-top: 2px solid #ffffff !important;
-    background: transparent !important;
+/* ============================================ */
+/* ФИКСЫ ДЛЯ MATHQUILL - БЕЛЫЙ ТЕКСТ */
+/* ============================================ */
+
+/* Основной текст в редакторе */
+.mq-editable-field.mq-math-mode,
+.mq-editable-field.mq-math-mode .mq-root-block,
+.mq-editable-field.mq-math-mode .mq-root-block * {
+    color: #ffffff !important;
+    fill: #ffffff !important;
+    stroke: #ffffff !important;
 }
 
-/* Шапочка корня */
-.mq-math-mode .mq-sqrt-stem {
-    border-top: 2px solid #ffffff !important;
-}
-
-/* Скобки корня */
-.mq-math-mode .mq-sqrt {
-    margin-right: 0 !important;
-}
-
-/* Индексы корня */
-.mq-math-mode .mq-nth-root {
-    font-size: 70% !important;
-    vertical-align: super !important;
-}
-
-/* Стрелка вектора */
-.mq-math-mode .mq-vec {
-    text-decoration: overline;
-    text-decoration-color: #ffffff;
+/* Числа, буквы, символы */
+.mq-editable-field.mq-math-mode .mq-numeric,
+.mq-editable-field.mq-math-mode .mq-operator,
+.mq-editable-field.mq-math-mode .mq-symbol,
+.mq-editable-field.mq-math-mode .mq-binary-operator {
+    color: #ffffff !important;
 }
 
 /* Курсор */
-.mq-math-mode .mq-cursor {
+.mq-editable-field.mq-math-mode .mq-cursor {
     border-left-color: #ffffff !important;
     border-left-width: 2px !important;
 }
 
-/* ============================================ */
-/* МАТЕМАТИЧЕСКАЯ КЛАВИАТУРА */
-/* ============================================ */
+/* Выделение текста */
+.mq-editable-field.mq-math-mode .mq-selection,
+.mq-editable-field.mq-math-mode .mq-selection .mq-root-block {
+    background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Линии в корнях и дробях */
+.mq-math-mode .mq-sqrt-stem,
+.mq-math-mode .mq-fraction .mq-line {
+    border-color: #ffffff !important;
+}
+
+/* Стрелка вектора */
+.mq-math-mode .mq-vec {
+    text-decoration-color: #ffffff !important;
+}
+
+/* Математическая клавиатура */
 .math-keyboard {
     position: fixed;
     left: 0;
@@ -254,9 +222,7 @@ body {
     z-index: 2000;
 }
 
-.math-keyboard.show {
-    transform: translateY(0);
-}
+.math-keyboard.show { transform: translateY(0); }
 
 .keyboard-grid {
     display: grid;
@@ -277,15 +243,9 @@ body {
     transition: all 0.2s ease;
 }
 
-.math-key:active {
-    background: #ffffff;
-    color: #000000;
-    transform: scale(0.95);
-}
+.math-key:active { background: #ffffff; color: #000000; transform: scale(0.95); }
 
-/* ============================================ */
-/* ПАНЕЛЬ НАСТРОЕК */
-/* ============================================ */
+/* Панель настроек */
 .settings-panel {
     position: absolute;
     top: 0;
@@ -299,9 +259,7 @@ body {
     z-index: 3000;
 }
 
-.settings-panel.show {
-    display: flex;
-}
+.settings-panel.show { display: flex; }
 
 .settings-content {
     background: #111111;
@@ -312,28 +270,11 @@ body {
     max-width: 400px;
 }
 
-.settings-content h3 {
-    color: #ffffff;
-    font-size: 24px;
-    margin-bottom: 20px;
-    text-align: center;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-    padding-bottom: 10px;
-}
-
 .setting-item {
     margin-bottom: 20px;
     background: #1a1a1a;
     border-radius: 20px;
     padding: 15px;
-}
-
-.setting-item label {
-    display: block;
-    color: #ffffff;
-    font-size: 16px;
-    margin-bottom: 10px;
-    font-weight: 600;
 }
 
 .slider-container {
@@ -345,32 +286,16 @@ body {
     border-radius: 30px;
 }
 
-.slider {
-    flex: 1;
-    height: 6px;
-    -webkit-appearance: none;
-    background: #333333;
-    border-radius: 3px;
-    outline: none;
-}
-
+.slider { flex: 1; height: 6px; -webkit-appearance: none; background: #333; border-radius: 3px; }
 .slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 24px;
-    height: 24px;
-    background: #ffffff;
+    width: 24px; height: 24px;
+    background: #fff;
     border-radius: 50%;
-    cursor: pointer;
-    border: 2px solid #000000;
+    border: 2px solid #000;
 }
 
-.value-display {
-    color: #ffffff;
-    font-size: 16px;
-    min-width: 60px;
-    text-align: right;
-    font-weight: bold;
-}
+.value-display { color: #fff; min-width: 60px; text-align: right; }
 
 .color-buttons {
     display: flex;
@@ -383,101 +308,31 @@ body {
 }
 
 .color-btn {
-    width: 45px;
-    height: 45px;
+    width: 45px; height: 45px;
     border-radius: 50%;
-    border: 3px solid #ffffff;
+    border: 3px solid #fff;
     cursor: pointer;
-    transition: all 0.2s ease;
 }
 
-.color-btn.active {
-    border-width: 4px;
-    transform: scale(1.1);
-}
-
-.color-btn.white { background: #ffffff; }
+.color-btn.active { border-width: 4px; transform: scale(1.1); }
+.color-btn.white { background: #fff; }
 .color-btn.red { background: #ff3b30; }
 .color-btn.blue { background: #007aff; }
 .color-btn.green { background: #34c759; }
 .color-btn.yellow { background: #ffcc00; }
 
-/* ============================================ */
-/* АДАПТАЦИЯ ПОД МОБИЛКИ */
-/* ============================================ */
+/* Адаптация под мобилки */
 @media (max-width: 480px) {
     .reset-btn, .settings-btn, .donate-btn {
-        width: 40px;
-        height: 40px;
+        width: 40px; height: 40px;
         top: calc(16px + env(safe-area-inset-top, 0px) + 30px);
     }
-
     .reset-btn { right: 16px; }
     .settings-btn { right: 70px; }
     .donate-btn { right: 124px; }
-
-    .reset-btn svg {
-        width: 20px;
-        height: 20px;
-    }
-
     .donate-emoji { font-size: 20px; }
     .settings-emoji { font-size: 24px; }
-    
-    .math-btn, .run-btn {
-        width: 60px;
-        height: 50px;
-        font-size: 16px;
-    }
-    
-    .mathquill-editor {
-        padding: 10px 15px;
-        font-size: 18px;
-        min-height: 50px;
-    }
-    
-    .math-keyboard {
-        max-height: 400px;
-        overflow-y: auto;
-    }
-    
-    .keyboard-grid {
-        gap: 5px;
-    }
-    
-    .math-key {
-        height: 45px;
-        font-size: 14px;
-    }
-}
-
-/* ============================================ */
-/* ПОДДЕРЖКА ТЕЛЕГРАММА */
-/* ============================================ */
-body, html, .app-container, .mobile-view, .banner-area, 
-.input-area, .math-keyboard, .settings-content {
-    background: #000000;
-}
-
-.math-btn, .run-btn, .reset-btn, .settings-btn, 
-.math-key, .color-btn, .donate-btn,
-.mathquill-editor {
-    border-color: #ffffff;
-    color: #ffffff;
-}
-
-.mathquill-editor {
-    background: #111111;
-}
-
-.math-btn.active, .settings-btn.active {
-    background: #ffffff;
-    color: #000000;
-}
-
-.math-key:active, .run-btn:active, .reset-btn:active, 
-.settings-btn:active, .donate-btn:active {
-    background: #ffffff;
-    color: #000000;
-    transform: scale(0.95);
+    .math-btn, .run-btn { width: 60px; height: 50px; font-size: 16px; }
+    .mathquill-editor { padding: 10px 15px; font-size: 18px; }
+    .math-key { height: 45px; font-size: 14px; }
 }
