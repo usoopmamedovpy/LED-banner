@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - ЧИСТЫЙ MATHQUILL
+// LED BANNER - ЧИСТЫЙ MATHQUILL (ИСПРАВЛЕННЫЙ)
 // ============================================
 
 // Telegram
@@ -71,7 +71,19 @@ function initMathQuill() {
             }
         });
         
-        mathField.latex('LED');
+        // Пустое поле при старте
+        mathField.latex('');
+        
+        // Разрешаем ввод с обычной клавиатуры
+        editorElement.addEventListener('click', () => {
+            mathField.focus();
+        });
+        
+        editorElement.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            mathField.focus();
+        });
+        
         loadSettings();
         console.log('MathQuill ready');
         
@@ -220,9 +232,9 @@ function handleReset() {
         isRunning = false;
         if (mathField) saveData({ latex: mathField.latex() });
     } else {
-        if (mathField) mathField.latex('LED');
+        if (mathField) mathField.latex('');
         
-        scrollingText.innerHTML = '\\(LED\\)';
+        scrollingText.innerHTML = '';
         if (window.MathJax) {
             MathJax.typesetPromise([scrollingText]).then(applyColorToMath);
         }
@@ -240,7 +252,7 @@ function handleReset() {
         applyColorToMath();
         restartAnimation();
         
-        saveData({ latex: 'LED' });
+        saveData({ latex: '' });
     }
     
     closeKeyboard();
