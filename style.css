@@ -1,5 +1,5 @@
 /* ============================================ */
-/* LED BANNER - ИДЕАЛЬНОЕ НАЛОЖЕНИЕ */
+/* LED BANNER - ИДЕАЛЬНЫЙ ИНТЕРФЕЙС */
 /* ============================================ */
 
 * {
@@ -12,7 +12,7 @@
 html, body {
     height: 100%;
     background: #000000;
-    font-family: monospace;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     color: #ffffff;
 }
 
@@ -43,7 +43,7 @@ body {
     cursor: pointer;
     z-index: 1000;
     font-size: 20px;
-    top: calc(16px + env(safe-area-inset-top, 0px) + 30px);
+    top: calc(16px + env(safe-area-inset-top, 0px) + 20px);
 }
 
 .reset-btn { right: 16px; }
@@ -74,6 +74,8 @@ body {
     overflow: hidden;
     position: relative;
     padding: 20px;
+    display: flex;
+    align-items: center;
 }
 
 .scrolling-text {
@@ -81,13 +83,12 @@ body {
     font-weight: bold;
     white-space: nowrap;
     font-size: 15vw;
-    font-family: monospace;
-    transform: translateX(100vw);
-    animation: scrollText linear infinite;
-    animation-duration: 15s;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     left: 0;
     top: 50%;
     transform: translateY(-50%) translateX(100vw);
+    animation: scrollText linear infinite;
+    animation-duration: 15s;
 }
 
 @keyframes scrollText {
@@ -98,9 +99,10 @@ body {
 /* ========== КОНТЕЙНЕР С НАЛОЖЕНИЕМ ========== */
 .overlay-container {
     position: relative;
-    width: 100%;
-    height: 80px;
-    margin: 10px 0;
+    width: 90%;
+    max-width: 600px;
+    height: 50px;
+    margin: 10px auto;
     flex-shrink: 0;
 }
 
@@ -113,13 +115,13 @@ body {
     height: 100%;
     background: #111111;
     border: 2px solid #ffffff;
-    border-radius: 40px;
-    padding: 0 20px;
+    border-radius: 25px;
+    padding: 0 15px;
     z-index: 1;
     display: flex;
     align-items: center;
     pointer-events: none;
-    font-size: 24px;
+    font-size: 18px;
 }
 
 /* Передний план: поле ввода (текст виден) */
@@ -131,13 +133,13 @@ body {
     height: 100%;
     background: transparent;
     border: 2px solid #ffffff;
-    border-radius: 40px;
-    padding: 0 20px;
+    border-radius: 25px;
+    padding: 0 15px;
     z-index: 2;
-    font-size: 24px;
+    font-size: 18px;
     color: #ffffff;
     caret-color: #ffffff;
-    font-family: monospace;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .input-layer:focus {
@@ -145,34 +147,40 @@ body {
     border-color: #ffffff;
 }
 
-/* ========== RUN КНОПКА ========== */
-.run-container {
+/* ========== НИЖНЯЯ ПАНЕЛЬ ========== */
+.bottom-panel {
     width: 100%;
     padding: 16px;
     padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
     flex-shrink: 0;
 }
 
-.run-btn {
-    width: 120px;
-    height: 50px;
+.math-btn, .run-btn {
+    width: 80px;
+    height: 45px;
     background: transparent;
     border: 2px solid #ffffff;
-    border-radius: 25px;
+    border-radius: 22px;
     color: #ffffff;
     font-weight: bold;
-    font-size: 20px;
+    font-size: 16px;
     cursor: pointer;
     transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-.run-btn:active {
+.math-btn:active, .run-btn:active {
     background: #ffffff;
     color: #000000;
     transform: scale(0.95);
 }
+
+.math-btn.active { background: #ffffff; color: #000000; }
 
 /* ========== КЛАВИАТУРА ========== */
 .math-keyboard {
@@ -182,9 +190,9 @@ body {
     bottom: 0;
     background: #111111;
     border-top: 2px solid #ffffff;
-    border-top-left-radius: 30px;
-    border-top-right-radius: 30px;
-    padding: 20px;
+    border-top-left-radius: 25px;
+    border-top-right-radius: 25px;
+    padding: 15px;
     transform: translateY(100%);
     transition: transform 0.3s ease;
     z-index: 2000;
@@ -200,12 +208,12 @@ body {
 
 .math-key {
     width: 100%;
-    height: 50px;
+    height: 45px;
     background: #1a1a1a;
     border: 2px solid #ffffff;
-    border-radius: 25px;
+    border-radius: 22px;
     color: #ffffff;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 500;
     cursor: pointer;
 }
@@ -235,10 +243,16 @@ body {
 .settings-content {
     background: #111111;
     border: 2px solid #ffffff;
-    border-radius: 30px;
-    padding: 25px;
+    border-radius: 25px;
+    padding: 20px;
     width: 90%;
-    max-width: 400px;
+    max-width: 380px;
+}
+
+.settings-content h3 {
+    font-size: 20px;
+    margin-bottom: 20px;
+    text-align: center;
 }
 
 .setting-item {
@@ -254,13 +268,13 @@ body {
     gap: 15px;
     background: #222222;
     padding: 10px 15px;
-    border-radius: 30px;
+    border-radius: 20px;
 }
 
 .slider { flex: 1; height: 6px; -webkit-appearance: none; background: #333; border-radius: 3px; }
 .slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 24px; height: 24px;
+    width: 22px; height: 22px;
     background: #fff;
     border-radius: 50%;
     border: 2px solid #000;
@@ -270,16 +284,16 @@ body {
 
 .color-buttons {
     display: flex;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
     justify-content: center;
     background: #1a1a1a;
     padding: 15px;
-    border-radius: 30px;
+    border-radius: 20px;
 }
 
 .color-btn {
-    width: 45px; height: 45px;
+    width: 40px; height: 40px;
     border-radius: 50%;
     border: 3px solid #fff;
     cursor: pointer;
@@ -297,8 +311,19 @@ body {
     .reset-btn, .settings-btn, .donate-btn {
         width: 40px; height: 40px;
         font-size: 18px;
+        top: calc(12px + env(safe-area-inset-top, 0px) + 15px);
     }
-    .run-btn { width: 100px; height: 45px; font-size: 18px; }
-    .render-layer, .input-layer { font-size: 20px; }
-    .math-key { height: 45px; font-size: 16px; }
+    
+    .reset-btn { right: 12px; }
+    .settings-btn { right: 62px; }
+    .donate-btn { right: 112px; }
+    
+    .overlay-container { height: 45px; }
+    .render-layer, .input-layer { font-size: 16px; }
+    
+    .math-btn, .run-btn { width: 70px; height: 40px; font-size: 14px; }
+    .math-key { height: 40px; font-size: 14px; }
+    
+    .settings-content { padding: 15px; }
+    .color-btn { width: 35px; height: 35px; }
 }
