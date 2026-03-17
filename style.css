@@ -274,16 +274,28 @@ body {
     border-radius: 30px;
 }
 
-.slider { flex: 1; height: 6px; -webkit-appearance: none; background: #333; border-radius: 3px; }
+.slider {
+    flex: 1;
+    height: 6px;
+    -webkit-appearance: none;
+    background: #333;
+    border-radius: 3px;
+}
+
 .slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 24px; height: 24px;
+    width: 24px;
+    height: 24px;
     background: #fff;
     border-radius: 50%;
     border: 2px solid #000;
 }
 
-.value-display { color: #fff; min-width: 60px; text-align: right; }
+.value-display {
+    color: #fff;
+    min-width: 60px;
+    text-align: right;
+}
 
 .color-buttons {
     display: flex;
@@ -296,13 +308,18 @@ body {
 }
 
 .color-btn {
-    width: 45px; height: 45px;
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
     border: 3px solid #fff;
     cursor: pointer;
 }
 
-.color-btn.active { border-width: 4px; transform: scale(1.1); }
+.color-btn.active {
+    border-width: 4px;
+    transform: scale(1.1);
+}
+
 .color-btn.white { background: #fff; }
 .color-btn.red { background: #ff3b30; }
 .color-btn.blue { background: #007aff; }
@@ -312,7 +329,8 @@ body {
 /* Адаптация под мобилки */
 @media (max-width: 480px) {
     .reset-btn, .settings-btn, .donate-btn {
-        width: 40px; height: 40px;
+        width: 40px;
+        height: 40px;
         top: calc(16px + env(safe-area-inset-top, 0px) + 30px);
     }
     .reset-btn { right: 16px; }
