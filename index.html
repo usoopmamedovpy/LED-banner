@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
     <meta name="color-scheme" content="dark">
-    <title>LED Banner - Наложение</title>
+    <title>LED Banner Math - Многострочный</title>
     
-    <!-- MathQuill для рендера -->
+    <!-- MathQuill для отображения -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.css">
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.min.js"></script>
@@ -15,7 +15,10 @@
     <!-- MathJax для бегущей строки -->
     <script>
         window.MathJax = {
-            tex: { inlineMath: [['\\(', '\\)']] },
+            tex: { 
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            },
             chtml: { scale: 1 }
         };
     </script>
@@ -25,10 +28,18 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Кнопки управления (всегда сверху) -->
-        <button class="reset-btn" id="resetBtn">✕</button>
-        <button class="donate-btn" id="donateBtn">❤️</button>
-        <button class="settings-btn" id="settingsBtn">⚙️</button>
+        <!-- Кнопки управления -->
+        <button class="reset-btn" id="resetBtn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M18 6L6 18M6 6L18 18" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+        </button>
+        <button class="donate-btn" id="donateBtn" onclick="window.open('https://www.donationalerts.com/r/usoopmamedovpy', '_blank')">
+            <span class="donate-emoji">❤️</span>
+        </button>
+        <button class="settings-btn" id="settingsBtn">
+            <span class="settings-emoji">⚙️</span>
+        </button>
 
         <!-- Настройки -->
         <div class="settings-panel" id="settingsPanel">
@@ -37,14 +48,14 @@
                 <div class="setting-item">
                     <label>Text size (8-40)</label>
                     <div class="slider-container">
-                        <input type="range" id="sizeSlider" min="8" max="40" value="15" step="1">
+                        <input type="range" id="sizeSlider" min="8" max="40" value="15" step="1" class="slider">
                         <span class="value-display" id="sizeValue">15vw</span>
                     </div>
                 </div>
                 <div class="setting-item">
                     <label>Speed (2-30 sec)</label>
                     <div class="slider-container">
-                        <input type="range" id="speedSlider" min="2" max="30" value="15" step="1">
+                        <input type="range" id="speedSlider" min="2" max="30" value="15" step="1" class="slider">
                         <span class="value-display" id="speedValue">15 sec</span>
                     </div>
                 </div>
@@ -63,46 +74,48 @@
 
         <!-- Основной экран -->
         <div class="mobile-view">
-            <!-- Бегущая строка (наверху) -->
+            <!-- Бегущая строка -->
             <div class="banner-area">
-                <div class="scrolling-text" id="scrollingText">\(LED\)</div>
+                <div class="scrolling-wrapper">
+                    <div class="scrolling-text" id="scrollingText">\(LED\)</div>
+                </div>
             </div>
             
-            <!-- Контейнер с наложением (по центру) -->
-            <div class="overlay-container">
-                <!-- Задний план: красивый рендер MathQuill -->
-                <div class="render-layer" id="renderLayer"></div>
+            <!-- МНОГОСТРОЧНЫЙ РЕДАКТОР -->
+            <div class="multiline-editor-container">
+                <!-- Невидимое текстовое поле для ввода -->
+                <textarea 
+                    class="hidden-textarea" 
+                    id="hiddenTextarea" 
+                    placeholder="(a)/(b) or √[x]" 
+                    rows="1"
+                >LED</textarea>
                 
-                <!-- Передний план: поле ввода (текст виден) -->
-                <input 
-                    type="text" 
-                    class="input-layer" 
-                    id="inputField" 
-                    value="LED"
-                    autofocus
-                >
+                <!-- Визуальный слой с MathQuill -->
+                <div class="visual-layer" id="visualLayer"></div>
             </div>
             
-            <!-- Кнопка RUN (внизу) -->
-            <div class="run-container">
+            <!-- Кнопка RUN -->
+            <div class="input-area" id="inputArea">
+                <button class="math-btn" id="mathBtn">MATH</button>
                 <button class="run-btn" id="runBtn">RUN</button>
             </div>
             
-            <!-- Клавиатура-помощник -->
+            <!-- Математическая клавиатура -->
             <div class="math-keyboard" id="mathKeyboard">
                 <div class="keyboard-grid">
-                    <button class="math-key" data-cmd="√[]">√</button>
-                    <button class="math-key" data-cmd="(a)/(b)">a/b</button>
-                    <button class="math-key" data-cmd="^">ⁿ</button>
-                    <button class="math-key" data-cmd="_">ₙ</button>
-                    <button class="math-key" data-cmd="{}">⃗</button>
-                    <button class="math-key" data-cmd="∫">∫</button>
-                    <button class="math-key" data-cmd="∑">∑</button>
-                    <button class="math-key" data-cmd="α">α</button>
-                    <button class="math-key" data-cmd="β">β</button>
-                    <button class="math-key" data-cmd="γ">γ</button>
-                    <button class="math-key" data-cmd="Δ">Δ</button>
-                    <button class="math-key" data-cmd="∞">∞</button>
+                    <button class="math-key" data-symbol="√[]">√</button>
+                    <button class="math-key" data-symbol="(a)/(b)">a/b</button>
+                    <button class="math-key" data-symbol="^">xⁿ</button>
+                    <button class="math-key" data-symbol="_">xₙ</button>
+                    <button class="math-key" data-symbol="{}">⃗</button>
+                    <button class="math-key" data-symbol="∫">∫</button>
+                    <button class="math-key" data-symbol="∑">∑</button>
+                    <button class="math-key" data-symbol="α">α</button>
+                    <button class="math-key" data-symbol="β">β</button>
+                    <button class="math-key" data-symbol="γ">γ</button>
+                    <button class="math-key" data-symbol="Δ">Δ</button>
+                    <button class="math-key" data-symbol="∞">∞</button>
                 </div>
             </div>
         </div>
