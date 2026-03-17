@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - МНОГОСТРОЧНАЯ ВЕРСИЯ
+// LED BANNER - ИДЕАЛЬНОЕ НАЛОЖЕНИЕ
 // ============================================
 
 // Telegram
@@ -27,11 +27,10 @@ const resetBtn = document.getElementById('resetBtn');
 const settingsBtn = document.getElementById('settingsBtn');
 const donateBtn = document.getElementById('donateBtn');
 const settingsPanel = document.getElementById('settingsPanel');
-const mathBtn = document.getElementById('mathBtn');
 const mathKeyboard = document.getElementById('mathKeyboard');
 const mathKeys = document.querySelectorAll('.math-key');
-const hiddenTextarea = document.getElementById('hiddenTextarea');
-const visualLayer = document.getElementById('visualLayer');
+const inputField = document.getElementById('inputField');
+const renderLayer = document.getElementById('renderLayer');
 const sizeSlider = document.getElementById('sizeSlider');
 const sizeValue = document.getElementById('sizeValue');
 const speedSlider = document.getElementById('speedSlider');
@@ -39,104 +38,76 @@ const speedValue = document.getElementById('speedValue');
 const colorButtons = document.querySelectorAll('.color-btn');
 
 // ============================================
-// MATHQUILL ДЛЯ ВИЗУАЛЬНОГО СЛОЯ
+// MATHQUILL ДЛЯ РЕНДЕРА
 // ============================================
 let mathField = null;
 let MQ = null;
 
-function initVisualLayer() {
-    if (!visualLayer) return;
+function initRenderer() {
+    if (!renderLayer) return;
     
     try {
         MQ = MathQuill.getInterface(2);
         
-        mathField = MQ.MathField(visualLayer, {
+        mathField = MQ.MathField(renderLayer, {
             spaceBehavesLikeTab: false,
-            handlers: {
-                edit: function() {
-                    // Не делаем ничего, это только отображение
-                }
-            }
+            handlers: { edit: function() {} }
         });
         
-        // Делаем поле только для чтения
-        visualLayer.style.pointerEvents = 'none';
-        
-        console.log('Visual layer ready');
+        renderLayer.style.pointerEvents = 'none';
+        console.log('Renderer ready');
     } catch (e) {
-        console.error('MathQuill error:', e);
+        console.error('Renderer error:', e);
     }
 }
 
 // ============================================
-// МНОГОСТРОЧНЫЙ ПАРСЕР
+// ПАРСЕР
 // ============================================
-function parseMultilineToLaTeX(text) {
+function parseToLaTeX(text) {
     if (!text) return '';
     
     let result = text;
     
-    // 1. Дроби: (числитель)/(знаменатель) -> \frac{числитель}{знаменатель}
-    result = result.replace(/\(([^)]+)\)\s*\/\s*\(([^)]+)\)/g, (match, num, den) => {
-        return `\\frac{${parseMultilineToLaTeX(num)}}{${parseMultilineToLaTeX(den)}}`;
-    });
+    // Корни: √[выражение] -> \sqrt{выражение}
+    result = result.replace(/√\[([^\]]+)\]/g, '\\sqrt{$1}');
     
-    // 2. Простые дроби (число/число)
+    // Дроби: (числитель)/(знаменатель) -> \frac{числитель}{знаменатель}
+    result = result.replace(/\(([^)]+)\)\s*\/\s*\(([^)]+)\)/g, '\\frac{$1}{$2}');
     result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
     
-    // 3. Корни: √[выражение] -> \sqrt{выражение}
-    result = result.replace(/√\[([^\]]+)\]/g, (match, expr) => {
-        return `\\sqrt{${parseMultilineToLaTeX(expr)}}`;
-    });
+    // Векторы: {выражение} -> \vec{выражение}
+    result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
     
-    // 4. Корни с индексом: √[n]{выражение} -> \sqrt[n]{выражение}
-    result = result.replace(/√\[([^\]]+)\]\{([^}]+)\}/g, (match, n, expr) => {
-        return `\\sqrt[${n}]{${parseMultilineToLaTeX(expr)}}`;
-    });
+    // Степени
+    result = result.replace(/(\w)\^\(([^)]+)\)/g, '$1^{$2}');
+    result = result.replace(/(\w)\^(\w)/g, '$1^{$2}');
     
-    // 5. Векторы: {выражение} -> \vec{выражение}
-    result = result.replace(/\{([^}]+)\}/g, (match, expr) => {
-        return `\\vec{${parseMultilineToLaTeX(expr)}}`;
-    });
-    
-    // 6. Степени
-    result = result.replace(/([a-zA-Z0-9α-ω])\^\(([^)]+)\)/g, (match, base, exp) => {
-        return `${base}^{${parseMultilineToLaTeX(exp)}}`;
-    });
-    
-    result = result.replace(/([a-zA-Z0-9α-ω])\^([a-zA-Z0-9α-ω])/g, '$1^{$2}');
-    
-    // 7. Индексы
-    result = result.replace(/([a-zA-Z0-9α-ω])_\(([^)]+)\)/g, (match, base, idx) => {
-        return `${base}_{${parseMultilineToLaTeX(idx)}}`;
-    });
-    
-    result = result.replace(/([a-zA-Z0-9α-ω])_([a-zA-Z0-9α-ω])/g, '$1_{$2}');
+    // Индексы
+    result = result.replace(/(\w)_\(([^)]+)\)/g, '$1_{$2}');
+    result = result.replace(/(\w)_(\w)/g, '$1_{$2}');
     
     return result;
 }
 
 // ============================================
-// ОБНОВЛЕНИЕ ВИЗУАЛЬНОГО СЛОЯ
+// ОБНОВЛЕНИЕ РЕНДЕРА
 // ============================================
-function updateVisualLayer() {
+function updateRenderer() {
     if (!mathField) return;
     
-    const text = hiddenTextarea.value;
-    const latex = parseMultilineToLaTeX(text);
+    const text = inputField.value;
+    const latex = parseToLaTeX(text);
     
     try {
         mathField.latex(latex);
         
         scrollingText.innerHTML = '\\(' + latex + '\\)';
         if (window.MathJax) {
-            MathJax.typesetPromise([scrollingText]).then(applyColorToMath);
+            MathJax.typesetPromise([scrollingText]).then(applyColor);
         }
         
-        // Автоматически регулируем высоту textarea
-        hiddenTextarea.style.height = 'auto';
-        hiddenTextarea.style.height = hiddenTextarea.scrollHeight + 'px';
-        
+        saveData();
     } catch (e) {
         console.error('Update error:', e);
     }
@@ -161,14 +132,14 @@ const colorMap = {
 // ============================================
 function loadSettings() {
     try {
-        const saved = localStorage.getItem('ledBannerData');
+        const saved = localStorage.getItem('ledData');
         if (!saved) return;
         
         const data = JSON.parse(saved);
         
         if (data.color) {
             currentColor = data.color;
-            applyColorToMath();
+            applyColor();
         }
         
         if (data.speed) {
@@ -185,20 +156,20 @@ function loadSettings() {
         }
         
         if (data.text) {
-            hiddenTextarea.value = data.text;
-            updateVisualLayer();
+            inputField.value = data.text;
+            updateRenderer();
         }
     } catch (e) {}
 }
 
 function saveData() {
     const data = {
-        text: hiddenTextarea.value,
+        text: inputField.value,
         color: currentColor,
         speed: currentSpeed,
         size: currentSize
     };
-    localStorage.setItem('ledBannerData', JSON.stringify(data));
+    localStorage.setItem('ledData', JSON.stringify(data));
     
     if (tg) {
         tg.sendData(JSON.stringify({ action: 'save', data: data }));
@@ -208,7 +179,7 @@ function saveData() {
 // ============================================
 // ЦВЕТА
 // ============================================
-function applyColorToMath() {
+function applyColor() {
     const color = colorMap[currentColor];
     scrollingText.style.color = color;
     
@@ -240,33 +211,29 @@ function toggleKeyboard() {
     if (isRunning) return;
     keyboardVisible = !keyboardVisible;
     mathKeyboard.classList.toggle('show', keyboardVisible);
-    mathBtn.classList.toggle('active', keyboardVisible);
 }
 
 function closeKeyboard() {
     keyboardVisible = false;
     mathKeyboard.classList.remove('show');
-    mathBtn.classList.remove('active');
 }
 
 function toggleRun() {
     if (isRunning) {
-        document.querySelector('.multiline-editor-container').style.display = 'block';
+        document.querySelector('.overlay-container').style.display = 'flex';
         settingsBtn.style.display = 'flex';
         donateBtn.style.display = 'flex';
-        mathBtn.style.display = 'block';
         isRunning = false;
     } else {
         scrollingText.style.fontSize = currentSize + 'vw';
         sizeValue.textContent = currentSize + 'vw';
         speedValue.textContent = currentSpeed + ' sec';
         restartAnimation();
-        applyColorToMath();
+        applyColor();
         
-        document.querySelector('.multiline-editor-container').style.display = 'none';
+        document.querySelector('.overlay-container').style.display = 'none';
         settingsBtn.style.display = 'none';
         donateBtn.style.display = 'none';
-        mathBtn.style.display = 'none';
         isRunning = true;
         closeKeyboard();
         saveData();
@@ -275,14 +242,13 @@ function toggleRun() {
 
 function handleReset() {
     if (isRunning) {
-        document.querySelector('.multiline-editor-container').style.display = 'block';
+        document.querySelector('.overlay-container').style.display = 'flex';
         settingsBtn.style.display = 'flex';
         donateBtn.style.display = 'flex';
-        mathBtn.style.display = 'block';
         isRunning = false;
     } else {
-        hiddenTextarea.value = 'LED';
-        updateVisualLayer();
+        inputField.value = 'LED';
+        updateRenderer();
         
         currentColor = 'white';
         currentSpeed = 15;
@@ -294,39 +260,31 @@ function handleReset() {
         speedValue.textContent = '15 sec';
         
         scrollingText.style.fontSize = '15vw';
-        applyColorToMath();
+        applyColor();
         restartAnimation();
         saveData();
     }
     
     closeKeyboard();
     settingsPanel.classList.remove('show');
-    settingsBtn.classList.remove('active');
 }
 
 // ============================================
 // ВСТАВКА СИМВОЛОВ
 // ============================================
 function insertSymbol(symbol) {
-    const start = hiddenTextarea.selectionStart;
-    const end = hiddenTextarea.selectionEnd;
-    const text = hiddenTextarea.value;
+    const start = inputField.selectionStart;
+    const end = inputField.selectionEnd;
+    const text = inputField.value;
     
-    let insertText = symbol;
+    const newText = text.substring(0, start) + symbol + text.substring(end);
+    inputField.value = newText;
     
-    // Специальные символы
-    if (symbol === '√[]') insertText = '√[]';
-    else if (symbol === '{}') insertText = '{}';
-    else if (symbol === '(a)/(b)') insertText = '(a)/(b)';
+    const newPos = start + symbol.length;
+    inputField.setSelectionRange(newPos, newPos);
+    inputField.focus();
     
-    const newText = text.substring(0, start) + insertText + text.substring(end);
-    hiddenTextarea.value = newText;
-    
-    const newPos = start + insertText.length;
-    hiddenTextarea.setSelectionRange(newPos, newPos);
-    hiddenTextarea.focus();
-    
-    updateVisualLayer();
+    updateRenderer();
     saveData();
 }
 
@@ -335,34 +293,20 @@ function insertSymbol(symbol) {
 // ============================================
 
 window.addEventListener('load', () => {
-    initVisualLayer();
+    initRenderer();
     loadSettings();
-    updateVisualLayer();
-    setTimeout(applyColorToMath, 500);
+    updateRenderer();
+    setTimeout(applyColor, 500);
+    inputField.focus();
 });
 
-hiddenTextarea.addEventListener('input', () => {
-    updateVisualLayer();
-    saveData();
-});
-
-hiddenTextarea.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        // Можно добавить специальную обработку Enter
-    }
-});
-
-mathBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    toggleKeyboard();
-});
+inputField.addEventListener('input', updateRenderer);
 
 mathKeys.forEach(btn => {
     btn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        const symbol = btn.dataset.symbol;
+        const symbol = btn.dataset.cmd;
         if (symbol) insertSymbol(symbol);
         return false;
     });
@@ -374,14 +318,12 @@ resetBtn.addEventListener('click', handleReset);
 settingsBtn.addEventListener('click', () => {
     if (isRunning) return;
     settingsPanel.classList.toggle('show');
-    settingsBtn.classList.toggle('active');
     closeKeyboard();
 });
 
 settingsPanel.addEventListener('click', (e) => {
     if (e.target === settingsPanel) {
         settingsPanel.classList.remove('show');
-        settingsBtn.classList.remove('active');
     }
 });
 
@@ -397,7 +339,7 @@ colorButtons.forEach(btn => {
         else if (btn.classList.contains('yellow')) color = 'yellow';
         
         currentColor = color;
-        applyColorToMath();
+        applyColor();
         saveData();
     });
 });
@@ -417,9 +359,7 @@ speedSlider.addEventListener('input', () => {
 });
 
 document.addEventListener('click', (e) => {
-    if (keyboardVisible && 
-        !mathKeyboard.contains(e.target) && 
-        !mathBtn.contains(e.target)) {
+    if (keyboardVisible && !mathKeyboard.contains(e.target)) {
         closeKeyboard();
     }
 });
@@ -427,14 +367,12 @@ document.addEventListener('click', (e) => {
 tg.BackButton.onClick(() => {
     if (settingsPanel.classList.contains('show')) {
         settingsPanel.classList.remove('show');
-        settingsBtn.classList.remove('active');
     } else if (keyboardVisible) {
         closeKeyboard();
     } else if (isRunning) {
-        document.querySelector('.multiline-editor-container').style.display = 'block';
+        document.querySelector('.overlay-container').style.display = 'flex';
         settingsBtn.style.display = 'flex';
         donateBtn.style.display = 'flex';
-        mathBtn.style.display = 'block';
         isRunning = false;
     } else {
         tg.close();
@@ -442,4 +380,4 @@ tg.BackButton.onClick(() => {
 });
 tg.BackButton.show();
 
-console.log('✅ МНОГОСТРОЧНАЯ ВЕРСИЯ ГОТОВА!');
+console.log('✅ ИДЕАЛЬНОЕ НАЛОЖЕНИЕ ГОТОВО!');
