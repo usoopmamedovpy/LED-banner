@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - ИДЕАЛЬНОЕ НАЛОЖЕНИЕ
+// LED BANNER - ИДЕАЛЬНЫЙ ИНТЕРФЕЙС
 // ============================================
 
 // Telegram
@@ -27,10 +27,12 @@ const resetBtn = document.getElementById('resetBtn');
 const settingsBtn = document.getElementById('settingsBtn');
 const donateBtn = document.getElementById('donateBtn');
 const settingsPanel = document.getElementById('settingsPanel');
+const mathBtn = document.getElementById('mathBtn');
 const mathKeyboard = document.getElementById('mathKeyboard');
 const mathKeys = document.querySelectorAll('.math-key');
 const inputField = document.getElementById('inputField');
 const renderLayer = document.getElementById('renderLayer');
+const overlayContainer = document.getElementById('overlayContainer');
 const sizeSlider = document.getElementById('sizeSlider');
 const sizeValue = document.getElementById('sizeValue');
 const speedSlider = document.getElementById('speedSlider');
@@ -211,18 +213,21 @@ function toggleKeyboard() {
     if (isRunning) return;
     keyboardVisible = !keyboardVisible;
     mathKeyboard.classList.toggle('show', keyboardVisible);
+    mathBtn.classList.toggle('active', keyboardVisible);
 }
 
 function closeKeyboard() {
     keyboardVisible = false;
     mathKeyboard.classList.remove('show');
+    mathBtn.classList.remove('active');
 }
 
 function toggleRun() {
     if (isRunning) {
-        document.querySelector('.overlay-container').style.display = 'flex';
+        overlayContainer.style.display = 'block';
         settingsBtn.style.display = 'flex';
         donateBtn.style.display = 'flex';
+        mathBtn.style.display = 'block';
         isRunning = false;
     } else {
         scrollingText.style.fontSize = currentSize + 'vw';
@@ -231,9 +236,10 @@ function toggleRun() {
         restartAnimation();
         applyColor();
         
-        document.querySelector('.overlay-container').style.display = 'none';
+        overlayContainer.style.display = 'none';
         settingsBtn.style.display = 'none';
         donateBtn.style.display = 'none';
+        mathBtn.style.display = 'none';
         isRunning = true;
         closeKeyboard();
         saveData();
@@ -242,9 +248,10 @@ function toggleRun() {
 
 function handleReset() {
     if (isRunning) {
-        document.querySelector('.overlay-container').style.display = 'flex';
+        overlayContainer.style.display = 'block';
         settingsBtn.style.display = 'flex';
         donateBtn.style.display = 'flex';
+        mathBtn.style.display = 'block';
         isRunning = false;
     } else {
         inputField.value = 'LED';
@@ -301,6 +308,11 @@ window.addEventListener('load', () => {
 });
 
 inputField.addEventListener('input', updateRenderer);
+
+mathBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleKeyboard();
+});
 
 mathKeys.forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -359,7 +371,9 @@ speedSlider.addEventListener('input', () => {
 });
 
 document.addEventListener('click', (e) => {
-    if (keyboardVisible && !mathKeyboard.contains(e.target)) {
+    if (keyboardVisible && 
+        !mathKeyboard.contains(e.target) && 
+        !mathBtn.contains(e.target)) {
         closeKeyboard();
     }
 });
@@ -370,9 +384,10 @@ tg.BackButton.onClick(() => {
     } else if (keyboardVisible) {
         closeKeyboard();
     } else if (isRunning) {
-        document.querySelector('.overlay-container').style.display = 'flex';
+        overlayContainer.style.display = 'block';
         settingsBtn.style.display = 'flex';
         donateBtn.style.display = 'flex';
+        mathBtn.style.display = 'block';
         isRunning = false;
     } else {
         tg.close();
@@ -380,4 +395,4 @@ tg.BackButton.onClick(() => {
 });
 tg.BackButton.show();
 
-console.log('✅ ИДЕАЛЬНОЕ НАЛОЖЕНИЕ ГОТОВО!');
+console.log('✅ ИДЕАЛЬНЫЙ ИНТЕРФЕЙС ГОТОВ!');
