@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - ЧИСТЫЙ MATHQUILL (ФИНАЛЬНЫЙ)
+// LED BANNER - ГИБРИДНАЯ ВЕРСИЯ
 // ============================================
 
 // Telegram
@@ -7,7 +7,6 @@ let tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// Полноэкранный режим
 if (tg.isVersionAtLeast && tg.isVersionAtLeast('8.0')) {
     try { tg.requestFullscreen(); } catch (e) {}
 }
@@ -15,13 +14,12 @@ if (tg.isVersionAtLeast && tg.isVersionAtLeast('8.0')) {
 tg.setHeaderColor('#000000');
 tg.setBackgroundColor('#000000');
 
-// Черный фон
 document.documentElement.style.backgroundColor = '#000000';
 document.body.style.backgroundColor = '#000000';
 document.body.style.color = '#ffffff';
 
 // ============================================
-// ПОЛУЧАЕМ ЭЛЕМЕНТЫ
+// ЭЛЕМЕНТЫ
 // ============================================
 const scrollingText = document.getElementById('scrollingText');
 const runBtn = document.getElementById('runBtn');
@@ -32,6 +30,8 @@ const settingsPanel = document.getElementById('settingsPanel');
 const mathBtn = document.getElementById('mathBtn');
 const mathKeyboard = document.getElementById('mathKeyboard');
 const mathKeys = document.querySelectorAll('.math-key');
+const textInput = document.getElementById('textInput');
+const mathDisplay = document.getElementById('mathDisplay');
 const sizeSlider = document.getElementById('sizeSlider');
 const sizeValue = document.getElementById('sizeValue');
 const speedSlider = document.getElementById('speedSlider');
@@ -39,77 +39,83 @@ const speedValue = document.getElementById('speedValue');
 const colorButtons = document.querySelectorAll('.color-btn');
 
 // ============================================
-// MATHQUILL РЕДАКТОР
+// MATHQUILL ДЛЯ ОТОБРАЖЕНИЯ
 // ============================================
 let mathField = null;
 let MQ = null;
 
-function initMathQuill() {
-    const editorElement = document.getElementById('mathEditor');
-    if (!editorElement) return;
+function initMathDisplay() {
+    if (!mathDisplay) return;
     
     try {
         MQ = MathQuill.getInterface(2);
         
-        mathField = MQ.MathField(editorElement, {
-            spaceBehavesLikeTab: true,
-            autoCommands: 'pi theta sqrt sum prod int alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi pi rho sigma tau upsilon phi chi psi omega',
-            autoOperatorNames: 'sin cos tan cot log ln exp lim',
+        mathField = MQ.MathField(mathDisplay, {
+            spaceBehavesLikeTab: false,
             handlers: {
                 edit: function() {
-                    const latex = mathField.latex();
-                    if (latex) {
-                        scrollingText.innerHTML = '\\(' + latex + '\\)';
-                        if (window.MathJax) {
-                            MathJax.typesetPromise([scrollingText]).then(() => {
-                                applyColorToMath();
-                            }).catch(() => {});
-                        }
-                    }
-                    saveData({ latex: latex });
+                    // Не делаем ничего, это только отображение
                 }
             }
         });
         
-        // ВАЖНО: фокус по тапу для мобилок (усиленная версия)
-        editorElement.addEventListener('mousedown', () => {
-            if (mathField) {
-                mathField.focus();
-                console.log('Focus via mousedown');
-            }
-        });
+        // Делаем поле только для чтения
+        mathDisplay.style.pointerEvents = 'none';
         
-        editorElement.addEventListener('touchstart', () => {
-            if (mathField) {
-                mathField.focus();
-                console.log('Focus via touchstart');
-            }
-        }, { passive: true });
-        
-        // Сразу фокусируем при загрузке
-        setTimeout(() => {
-            if (mathField) {
-                mathField.focus();
-                console.log('Initial focus');
-            }
-        }, 500);
-        
-        // Защита от удаления последнего символа
-        editorElement.addEventListener('keydown', (e) => {
-            if (e.key === 'Backspace' || e.key === 'Delete') {
-                const latex = mathField.latex();
-                if (latex === 'LED' || latex === 'L' || latex === '') {
-                    e.preventDefault();
-                }
-            }
-        });
-        
-        mathField.latex('LED');
-        loadSettings();
-        console.log('MathQuill ready');
-        
+        console.log('MathQuill display ready');
     } catch (e) {
         console.error('MathQuill error:', e);
+    }
+}
+
+// ============================================
+// ПАРСЕР (старый, но надёжный)
+// ============================================
+function parseToLaTeX(text) {
+    if (!text) return '';
+    
+    let result = text;
+    
+    // Сохраняем пробелы
+    result = result.replace(/ /g, '\\ ');
+    
+    // Векторы
+    result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
+    
+    // Дроби
+    result = result.replace(/\(([^)]+)\)\s*\/\s*\(([^)]+)\)/g, '\\frac{$1}{$2}');
+    result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
+    
+    // Корни
+    result = result.replace(/√\[([^\]]+)\]/g, '\\sqrt{$1}');
+    
+    // Степени и индексы
+    result = result.replace(/([a-zA-Z0-9])\^\(([^)]+)\)/g, '$1^{$2}');
+    result = result.replace(/([a-zA-Z0-9])\^([a-zA-Z0-9])/g, '$1^{$2}');
+    result = result.replace(/([a-zA-Z0-9])_\(([^)]+)\)/g, '$1_{$2}');
+    result = result.replace(/([a-zA-Z0-9])_([a-zA-Z0-9])/g, '$1_{$2}');
+    
+    return result;
+}
+
+// ============================================
+// ОБНОВЛЕНИЕ ОТОБРАЖЕНИЯ
+// ============================================
+function updateDisplay() {
+    if (!mathField) return;
+    
+    const text = textInput.value;
+    const latex = parseToLaTeX(text);
+    
+    try {
+        mathField.latex(latex);
+        
+        scrollingText.innerHTML = '\\(' + latex + '\\)';
+        if (window.MathJax) {
+            MathJax.typesetPromise([scrollingText]).then(applyColorToMath);
+        }
+    } catch (e) {
+        console.error('Update error:', e);
     }
 }
 
@@ -128,7 +134,7 @@ const colorMap = {
 };
 
 // ============================================
-// ЗАГРУЗКА/СОХРАНЕНИЕ
+// НАСТРОЙКИ
 // ============================================
 function loadSettings() {
     try {
@@ -155,30 +161,29 @@ function loadSettings() {
             scrollingText.style.fontSize = currentSize + 'vw';
         }
         
-        if (data.latex && mathField) {
-            mathField.latex(data.latex);
+        if (data.text) {
+            textInput.value = data.text;
+            updateDisplay();
         }
     } catch (e) {}
 }
 
-function saveData(data) {
-    const fullData = {
-        ...data,
+function saveData() {
+    const data = {
+        text: textInput.value,
         color: currentColor,
         speed: currentSpeed,
         size: currentSize
     };
-    localStorage.setItem('ledBannerData', JSON.stringify(fullData));
+    localStorage.setItem('ledBannerData', JSON.stringify(data));
     
     if (tg) {
-        try {
-            tg.sendData(JSON.stringify({ action: 'save', data: fullData }));
-        } catch (e) {}
+        tg.sendData(JSON.stringify({ action: 'save', data: data }));
     }
 }
 
 // ============================================
-// ПРИМЕНЕНИЕ ЦВЕТА
+// ЦВЕТА
 // ============================================
 function applyColorToMath() {
     const color = colorMap[currentColor];
@@ -188,7 +193,6 @@ function applyColorToMath() {
         el.style.color = color;
     });
     
-    // Обновляем кнопки
     colorButtons.forEach(btn => {
         btn.classList.remove('active');
         if (btn.classList.contains(currentColor)) {
@@ -224,9 +228,10 @@ function closeKeyboard() {
 
 function toggleRun() {
     if (isRunning) {
-        document.querySelector('.input-area').style.display = 'flex';
+        document.querySelector('.hybrid-editor-container').style.display = 'block';
         settingsBtn.style.display = 'flex';
         donateBtn.style.display = 'flex';
+        mathBtn.style.display = 'block';
         isRunning = false;
     } else {
         scrollingText.style.fontSize = currentSize + 'vw';
@@ -235,30 +240,26 @@ function toggleRun() {
         restartAnimation();
         applyColorToMath();
         
-        document.querySelector('.input-area').style.display = 'none';
+        document.querySelector('.hybrid-editor-container').style.display = 'none';
         settingsBtn.style.display = 'none';
         donateBtn.style.display = 'none';
+        mathBtn.style.display = 'none';
         isRunning = true;
         closeKeyboard();
-        
-        if (mathField) saveData({ latex: mathField.latex() });
+        saveData();
     }
 }
 
 function handleReset() {
     if (isRunning) {
-        document.querySelector('.input-area').style.display = 'flex';
+        document.querySelector('.hybrid-editor-container').style.display = 'block';
         settingsBtn.style.display = 'flex';
         donateBtn.style.display = 'flex';
+        mathBtn.style.display = 'block';
         isRunning = false;
-        if (mathField) saveData({ latex: mathField.latex() });
     } else {
-        if (mathField) mathField.latex('LED');
-        
-        scrollingText.innerHTML = '\\(LED\\)';
-        if (window.MathJax) {
-            MathJax.typesetPromise([scrollingText]).then(applyColorToMath);
-        }
+        textInput.value = 'LED';
+        updateDisplay();
         
         currentColor = 'white';
         currentSpeed = 15;
@@ -272,8 +273,7 @@ function handleReset() {
         scrollingText.style.fontSize = '15vw';
         applyColorToMath();
         restartAnimation();
-        
-        saveData({ latex: 'LED' });
+        saveData();
     }
     
     closeKeyboard();
@@ -282,73 +282,58 @@ function handleReset() {
 }
 
 // ============================================
-// ВСТАВКА В MATHQUILL - ИСПРАВЛЕНО
+// ВСТАВКА СИМВОЛОВ
 // ============================================
-function insertMathCommand(latexCmd) {
-    if (!mathField || !latexCmd) return;
+function insertSymbol(symbol) {
+    const start = textInput.selectionStart;
+    const end = textInput.selectionEnd;
+    const text = textInput.value;
     
-    try {
-        console.log('Inserting:', latexCmd);
-        
-        if (latexCmd === '\\frac') {
-            mathField.cmd('\\frac');
-        } else if (latexCmd === '\\sqrt') {
-            mathField.cmd('\\sqrt');
-        } else if (latexCmd === '\\sqrt[3]') {
-            mathField.typedText('\\sqrt[3]{');
-            mathField.keystroke('Right');
-        } else if (latexCmd === '\\sqrt[n]') {
-            mathField.typedText('\\sqrt[n]{');
-            mathField.keystroke('Right');
-        } else if (latexCmd === '^' || latexCmd === '_') {
-            mathField.cmd(latexCmd);
-        } else if (latexCmd === '\\vec') {
-            mathField.cmd('\\vec');
-        } else {
-            mathField.cmd(latexCmd);
-        }
-        
-        mathField.focus();
-    } catch (e) {
-        console.error('Insert error:', e);
-    }
+    const newText = text.substring(0, start) + symbol + text.substring(end);
+    textInput.value = newText;
+    
+    const newPos = start + symbol.length;
+    textInput.setSelectionRange(newPos, newPos);
+    textInput.focus();
+    
+    updateDisplay();
+    saveData();
 }
 
 // ============================================
 // ОБРАБОТЧИКИ
 // ============================================
 
-// Инициализация
 window.addEventListener('load', () => {
-    initMathQuill();
+    initMathDisplay();
     loadSettings();
+    updateDisplay();
     setTimeout(applyColorToMath, 500);
 });
 
-// Кнопка MATH
+textInput.addEventListener('input', () => {
+    updateDisplay();
+    saveData();
+});
+
 mathBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     toggleKeyboard();
 });
 
-// Клавиатура
 mathKeys.forEach(btn => {
     btn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        const latexCmd = btn.dataset.cmd;
-        if (latexCmd) insertMathCommand(latexCmd);
+        const symbol = btn.dataset.symbol;
+        if (symbol) insertSymbol(symbol);
         return false;
     });
 });
 
-// RUN
 runBtn.addEventListener('click', toggleRun);
-
-// Крестик
 resetBtn.addEventListener('click', handleReset);
 
-// Настройки
 settingsBtn.addEventListener('click', () => {
     if (isRunning) return;
     settingsPanel.classList.toggle('show');
@@ -363,7 +348,6 @@ settingsPanel.addEventListener('click', (e) => {
     }
 });
 
-// Цвета
 colorButtons.forEach(btn => {
     btn.addEventListener('click', (e) => {
         e.preventDefault();
@@ -377,27 +361,24 @@ colorButtons.forEach(btn => {
         
         currentColor = color;
         applyColorToMath();
-        saveData({});
+        saveData();
     });
 });
 
-// Размер
 sizeSlider.addEventListener('input', () => {
     currentSize = parseInt(sizeSlider.value);
     scrollingText.style.fontSize = currentSize + 'vw';
     sizeValue.textContent = currentSize + 'vw';
-    saveData({});
+    saveData();
 });
 
-// Скорость
 speedSlider.addEventListener('input', () => {
     currentSpeed = parseInt(speedSlider.value);
     speedValue.textContent = currentSpeed + ' sec';
     restartAnimation();
-    saveData({});
+    saveData();
 });
 
-// Закрытие клавиатуры по клику вне
 document.addEventListener('click', (e) => {
     if (keyboardVisible && 
         !mathKeyboard.contains(e.target) && 
@@ -406,7 +387,6 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Кнопка назад в Telegram
 tg.BackButton.onClick(() => {
     if (settingsPanel.classList.contains('show')) {
         settingsPanel.classList.remove('show');
@@ -414,9 +394,10 @@ tg.BackButton.onClick(() => {
     } else if (keyboardVisible) {
         closeKeyboard();
     } else if (isRunning) {
-        document.querySelector('.input-area').style.display = 'flex';
+        document.querySelector('.hybrid-editor-container').style.display = 'block';
         settingsBtn.style.display = 'flex';
         donateBtn.style.display = 'flex';
+        mathBtn.style.display = 'block';
         isRunning = false;
     } else {
         tg.close();
@@ -424,4 +405,4 @@ tg.BackButton.onClick(() => {
 });
 tg.BackButton.show();
 
-console.log('✅ ЧИСТЫЙ MATHQUILL С ФИКСАМИ ГОТОВ!');
+console.log('✅ ГИБРИДНАЯ ВЕРСИЯ ГОТОВА!');
