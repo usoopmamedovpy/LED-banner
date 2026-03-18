@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ С ДОНАТ-КНОПКОЙ
+// LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ С ЯЗЫКОМ
 // ============================================
 
 // Telegram
@@ -26,6 +26,39 @@ tg.setBackgroundColor('#000000');
 document.documentElement.style.backgroundColor = '#000000';
 document.body.style.backgroundColor = '#000000';
 document.body.style.color = '#ffffff';
+
+// ============================================
+// ОПРЕДЕЛЯЕМ ЯЗЫК ПОЛЬЗОВАТЕЛЯ
+// ============================================
+const userLang = tg.initDataUnsafe?.user?.language_code || navigator.language || 'en';
+// Только русский и белорусский -> русский интерфейс
+const isRussian = userLang.startsWith('ru') || userLang.startsWith('be');
+console.log('User language:', userLang, 'Interface:', isRussian ? 'Russian' : 'English');
+
+// Тексты на двух языках
+const texts = {
+    ru: {
+        banner: 'LED бегущая строка',
+        inputPlaceholder: 'Введите текст...',
+        settings: 'Настройки',
+        textSize: 'Размер текста (8-40)',
+        speed: 'Скорость (2-30 сек)',
+        color: 'Цвет текста',
+        run: 'RUN'
+    },
+    en: {
+        banner: 'LED banner',
+        inputPlaceholder: 'Enter text...',
+        settings: 'Settings',
+        textSize: 'Text size (8-40)',
+        speed: 'Speed (2-30 sec)',
+        color: 'Text color',
+        run: 'RUN'
+    }
+};
+
+// Выбираем нужный язык
+const t = isRussian ? texts.ru : texts.en;
 
 // ============================================
 // ПОЛУЧАЕМ ЭЛЕМЕНТЫ
@@ -79,6 +112,9 @@ const colorMap = {
 window.addEventListener('load', function() {
     console.log('LED Banner загружен');
     
+    // Устанавливаем тексты
+    updateTexts();
+    
     createUnifiedInterface();
     loadSavedData();
     
@@ -87,6 +123,26 @@ window.addEventListener('load', function() {
     
     console.log('fixWhitePixels отключен для Android');
 });
+
+// ============================================
+// ОБНОВЛЕНИЕ ТЕКСТОВ
+// ============================================
+function updateTexts() {
+    // Обновляем заголовок настроек
+    const settingsTitle = document.querySelector('.settings-content h3');
+    if (settingsTitle) settingsTitle.textContent = t.settings;
+    
+    // Обновляем лейблы настроек
+    const settingLabels = document.querySelectorAll('.setting-item label');
+    if (settingLabels.length >= 3) {
+        settingLabels[0].textContent = t.textSize;
+        settingLabels[1].textContent = t.speed;
+        settingLabels[2].textContent = t.color;
+    }
+    
+    // Обновляем бегущую строку
+    scrollingText.innerHTML = '\\(' + t.banner + '\\)';
+}
 
 // ============================================
 // ЕДИНЫЙ ИНТЕРФЕЙС
@@ -132,8 +188,8 @@ function createUnifiedInterface() {
     textInput.type = 'text';
     textInput.id = 'mainInput';
     textInput.className = 'text-input';
-    textInput.placeholder = '√[x+1] or /3/√[x] or (a)/(b) or {vector}';
-    textInput.value = 'LED banner';
+    textInput.placeholder = t.inputPlaceholder;
+    textInput.value = t.banner;
     textInput.style.flex = '1';
     textInput.style.minWidth = '0';
     textInput.style.background = '#111111';
@@ -148,7 +204,7 @@ function createUnifiedInterface() {
     const runButton = document.createElement('button');
     runButton.className = 'run-btn';
     runButton.id = 'mainRunBtn';
-    runButton.textContent = 'RUN';
+    runButton.textContent = t.run;
     runButton.style.width = '70px';
     runButton.style.height = '60px';
     runButton.style.background = 'transparent';
@@ -315,7 +371,7 @@ function loadSavedData() {
             if (data.speed) {
                 currentSpeed = data.speed;
                 speedSlider.value = currentSpeed;
-                speedValue.textContent = currentSpeed + ' sec';
+                speedValue.textContent = currentSpeed + (isRussian ? ' сек' : ' sec');
             }
             
             if (data.size) {
@@ -406,7 +462,7 @@ function toggleRun() {
     } else {
         scrollingText.style.fontSize = currentSize + 'vw';
         sizeValue.textContent = currentSize + 'vw';
-        speedValue.textContent = currentSpeed + ' sec';
+        speedValue.textContent = currentSpeed + (isRussian ? ' сек' : ' sec');
         restartAnimation();
         applyColorToMath();
         
@@ -437,9 +493,9 @@ function handleReset() {
         }
     } else {
         const input = document.getElementById('mainInput');
-        if (input) input.value = 'LED banner';
+        if (input) input.value = t.banner;
         
-        scrollingText.innerHTML = '\\(LED\\ banner\\)';
+        scrollingText.innerHTML = '\\(' + t.banner + '\\)';
         if (window.MathJax) {
             MathJax.typesetPromise([scrollingText]).then(() => {
                 applyColorToMath();
@@ -453,13 +509,13 @@ function handleReset() {
         sizeSlider.value = 15;
         speedSlider.value = 15;
         sizeValue.textContent = '15vw';
-        speedValue.textContent = '15 sec';
+        speedValue.textContent = currentSpeed + (isRussian ? ' сек' : ' sec');
         
         scrollingText.style.fontSize = '15vw';
         applyColorToMath();
         restartAnimation();
         
-        saveData({ latex: 'LED\\ banner', raw: 'LED banner' });
+        saveData({ latex: 'LED\\ ' + (isRussian ? 'бегущая строка' : 'banner'), raw: t.banner });
     }
     
     closeKeyboard();
@@ -611,7 +667,7 @@ sizeSlider.addEventListener('input', function() {
 // СКОРОСТЬ
 speedSlider.addEventListener('input', function() {
     currentSpeed = parseInt(this.value);
-    speedValue.textContent = currentSpeed + ' sec';
+    speedValue.textContent = currentSpeed + (isRussian ? ' сек' : ' sec');
     restartAnimation();
     saveData({});
 });
@@ -658,4 +714,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ LED BANNER - FINAL VERSION WITH DONATE BUTTON');
+console.log('✅ LED BANNER - MULTILINGUAL VERSION');
