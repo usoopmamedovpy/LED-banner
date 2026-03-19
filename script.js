@@ -44,7 +44,8 @@ const texts = {
         textSize: 'Размер текста (8-40)',
         speed: 'Скорость (2-30 сек)',
         color: 'Цвет текста',
-        run: 'RUN'
+        run: 'RUN',
+        math: 'MATH'
     },
     en: {
         banner: 'LED banner',
@@ -53,7 +54,8 @@ const texts = {
         textSize: 'Text size (8-40)',
         speed: 'Speed (2-30 sec)',
         color: 'Text color',
-        run: 'RUN'
+        run: 'RUN',
+        math: 'MATH'
     }
 };
 
@@ -168,10 +170,11 @@ function createUnifiedInterface() {
     inputArea.style.borderTop = '2px solid rgba(255, 255, 255, 0.2)';
     inputArea.style.zIndex = '100';
     
+    // MATH кнопка - ИСПОЛЬЗУЕМ t.math ДЛЯ ТЕКСТА
     const mathButton = document.createElement('button');
     mathButton.className = 'math-btn';
     mathButton.id = 'mainMathBtn';
-    mathButton.textContent = 'MATH';
+    mathButton.textContent = t.math;
     mathButton.style.width = '70px';
     mathButton.style.height = '60px';
     mathButton.style.background = '#000000';
@@ -585,7 +588,9 @@ function insertMathSymbol(symbol) {
 // ОБРАБОТЧИКИ
 // ============================================
 
-if (mathBtn) mathBtn.style.display = 'none';
+// ВАЖНО: НЕ ПРЯЧЕМ MATH КНОПКУ!
+// Оригинальную кнопку мы не используем, но и не прячем
+// if (mathBtn) mathBtn.style.display = 'none'; // ← ЭТО ЗАКОММЕНТИРОВАНО!
 
 tabFunctions.addEventListener('click', function() {
     tabFunctions.classList.add('active');
@@ -714,4 +719,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ LED BANNER - MULTILINGUAL VERSION');
+console.log('✅ LED BANNER - MATH BUTTON FIXED');
