@@ -33,35 +33,27 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Фоновая подложка - закрывает щели -->
     <div class="app-bg-fix"></div>
-    
-    <!-- СПЕЦИАЛЬНЫЙ ФИКС ДЛЯ УГЛОВОГО ПИКСЕЛЯ -->
     <div class="corner-pixel-fix"></div>
     
     <div class="app-container">
-        <!-- Крестик для показа/скрытия элементов -->
         <button class="reset-btn" id="resetBtn">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M18 6L6 18M6 6L18 18" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
             </svg>
         </button>
 
-        <!-- Кнопка доната -->
         <button class="donate-btn" id="donateBtn" onclick="window.open('https://www.donationalerts.com/r/usoopmamedovpy', '_blank')">
             <span class="donate-emoji">❤️</span>
         </button>
 
-        <!-- Шестеренка для настроек -->
         <button class="settings-btn" id="settingsBtn">
             <span class="settings-emoji">⚙️</span>
         </button>
 
-        <!-- Окно настроек -->
         <div class="settings-panel" id="settingsPanel">
             <div class="settings-content">
                 <h3>Settings</h3>
-                
                 <div class="setting-item">
                     <label>Text size (8-40)</label>
                     <div class="slider-container">
@@ -69,7 +61,6 @@
                         <span class="value-display" id="sizeValue">15vw</span>
                     </div>
                 </div>
-
                 <div class="setting-item">
                     <label>Speed (2-30 sec)</label>
                     <div class="slider-container">
@@ -77,7 +68,6 @@
                         <span class="value-display" id="speedValue">15 sec</span>
                     </div>
                 </div>
-
                 <div class="setting-item">
                     <label>Text color</label>
                     <div class="color-buttons">
@@ -91,28 +81,20 @@
             </div>
         </div>
 
-        <!-- Основной экран -->
         <div class="mobile-view">
-            <!-- Зона с бегущей строкой -->
             <div class="banner-area">
                 <div class="scrolling-wrapper">
                     <div class="scrolling-text" id="scrollingText">\(LED бегущая строка\)</div>
                 </div>
             </div>
             
-            <!-- Контейнер для ввода -->
             <div class="input-container">
                 <div class="input-area" id="inputArea">
-                    <!-- MATH кнопка -->
                     <button class="math-btn" id="mathBtn">MATH</button>
-                    
-                    <!-- MathQuill поле для формул -->
                     <div class="math-field" id="mathField"></div>
-                    
                     <button class="run-btn" id="runBtn">RUN</button>
                 </div>
                 
-                <!-- Математическая клавиатура -->
                 <div class="math-keyboard" id="mathKeyboard">
                     <div class="keyboard-tabs">
                         <button class="tab-btn active" id="tabFunctions">ƒ(x)</button>
@@ -121,7 +103,6 @@
                         <button class="tab-btn" id="tabPhysics">⚛️</button>
                     </div>
                     
-                    <!-- Раздел функций -->
                     <div class="tab-content active" id="functionsTab">
                         <div class="keyboard-grid">
                             <button class="math-key" data-cmd="\sin">sin</button>
@@ -151,7 +132,6 @@
                         </div>
                     </div>
                     
-                    <!-- Раздел греческих букв (С ДЕЛЬТОЙ) -->
                     <div class="tab-content" id="greekTab">
                         <div class="keyboard-grid">
                             <button class="math-key" data-cmd="\alpha">α</button>
@@ -181,7 +161,6 @@
                         </div>
                     </div>
                     
-                    <!-- Раздел символов -->
                     <div class="tab-content" id="symbolsTab">
                         <div class="keyboard-grid">
                             <button class="math-key" data-cmd="\infty">∞</button>
@@ -206,7 +185,6 @@
                         </div>
                     </div>
                     
-                    <!-- Раздел физики -->
                     <div class="tab-content" id="physicsTab">
                         <div class="physics-subtabs">
                             <button class="physics-subtab-btn active" data-phys-cat="mechanics">🚗</button>
@@ -214,39 +192,47 @@
                             <button class="physics-subtab-btn" data-phys-cat="nuclear">⚛️</button>
                         </div>
                         
-                        <!-- Механика -->
                         <div class="physics-category active" id="phys-mechanics">
                             <div class="keyboard-grid">
+                                <button class="math-key" data-formula="v = v₀ + at">v = v₀ + at</button>
+                                <button class="math-key" data-formula="s = v₀t + (1/2)at^2">s = v₀t + (1/2)at^2</button>
+                                <button class="math-key" data-formula="v^2 = v₀^2 + 2as">v^2 = v₀^2 + 2as</button>
                                 <button class="math-key" data-formula="F = ma">F = ma</button>
                                 <button class="math-key" data-formula="p = mv">p = mv</button>
                                 <button class="math-key" data-formula="E_k = (1/2)mv^2">E_k = (1/2)mv^2</button>
                                 <button class="math-key" data-formula="E_p = mgh">E_p = mgh</button>
-                                <button class="math-key" data-formula="a = Δv/Δt">a = Δv/Δt</button>
                                 <button class="math-key" data-formula="F = G·(m₁m₂)/r^2">F = G·(m₁m₂)/r^2</button>
-                                <button class="math-key" data-formula="ω = v/r">ω = v/r</button>
-                                <button class="math-key" data-formula="I = mr^2">I = mr^2</button>
-                                <button class="math-key" data-formula="L = Iω">L = Iω</button>
-                                <button class="math-key" data-formula="p = F/S">p = F/S</button>
+                                <button class="math-key" data-formula="ω = Δφ/Δt">ω = Δφ/Δt</button>
+                                <button class="math-key" data-formula="v = ωR">v = ωR</button>
+                                <button class="math-key" data-formula="a_c = v^2/R">a_c = v^2/R</button>
+                                <button class="math-key" data-formula="x = A·sin(ωt + φ₀)">x = A·sin(ωt + φ₀)</button>
+                                <button class="math-key" data-formula="T = 2π√(m/k)">T = 2π√(m/k)</button>
+                                <button class="math-key" data-formula="T = 2π√(l/g)">T = 2π√(l/g)</button>
+                                <button class="math-key" data-formula="x = v₀·cosα·t">x = v₀·cosα·t</button>
+                                <button class="math-key" data-formula="y = v₀·sinα·t - (1/2)gt^2">y = v₀·sinα·t - (1/2)gt^2</button>
+                                <button class="math-key" data-formula="H_max = (v₀²·sin²α)/(2g)">H_max = (v₀²·sin²α)/(2g)</button>
+                                <button class="math-key" data-formula="L = (v₀²·sin2α)/g">L = (v₀²·sin2α)/g</button>
+                                <button class="math-key" data-formula="h = v₀t - (1/2)gt^2">h = v₀t - (1/2)gt^2</button>
+                                <button class="math-key" data-formula="H_max = v₀²/(2g)">H_max = v₀²/(2g)</button>
                             </div>
                         </div>
                         
-                        <!-- Оптика -->
                         <div class="physics-category" id="phys-optics">
                             <div class="keyboard-grid">
                                 <button class="math-key" data-formula="1/f = 1/d_o + 1/d_i">1/f = 1/d_o + 1/d_i</button>
+                                <button class="math-key" data-formula="M = -d_i/d_o">M = -d_i/d_o</button>
+                                <button class="math-key" data-formula="P = 1/f">P = 1/f</button>
                                 <button class="math-key" data-formula="n = c/v">n = c/v</button>
-                                <button class="math-key" data-formula="sinθ₁/sinθ₂ = n₂/n₁">sinθ₁/sinθ₂ = n₂/n₁</button>
+                                <button class="math-key" data-formula="n₁·sinθ₁ = n₂·sinθ₂">n₁·sinθ₁ = n₂·sinθ₂</button>
+                                <button class="math-key" data-formula="θ_c = arcsin(n₂/n₁)">θ_c = arcsin(n₂/n₁)</button>
                                 <button class="math-key" data-formula="λ = c/f">λ = c/f</button>
                                 <button class="math-key" data-formula="E = hf">E = hf</button>
                                 <button class="math-key" data-formula="d·sinθ = mλ">d·sinθ = mλ</button>
-                                <button class="math-key" data-formula="M = -d_i/d_o">M = -d_i/d_o</button>
-                                <button class="math-key" data-formula="P = 1/f">P = 1/f</button>
                                 <button class="math-key" data-formula="I = I₀·cos^2θ">I = I₀·cos^2θ</button>
-                                <button class="math-key" data-formula="θ_c = arcsin(n₂/n₁)">θ_c = arcsin(n₂/n₁)</button>
+                                <button class="math-key" data-formula="1/f = (n-1)·(1/R₁ - 1/R₂)">1/f = (n-1)·(1/R₁ - 1/R₂)</button>
                             </div>
                         </div>
                         
-                        <!-- Ядерная физика -->
                         <div class="physics-category" id="phys-nuclear">
                             <div class="keyboard-grid">
                                 <button class="math-key" data-formula="E = mc^2">E = mc^2</button>
@@ -259,6 +245,9 @@
                                 <button class="math-key" data-formula="R = R₀·A^{1/3}">R = R₀·A^{1/3}</button>
                                 <button class="math-key" data-formula="{}^{235}U + n → {}^{141}Ba + {}^{92}Kr + 3n">{}^{235}U + n → {}^{141}Ba + {}^{92}Kr + 3n</button>
                                 <button class="math-key" data-formula="{}^{2}H + {}^{3}H → {}^{4}He + n">{}^{2}H + {}^{3}H → {}^{4}He + n</button>
+                                <button class="math-key" data-formula="λ = ln(2)/T_{1/2}">λ = ln(2)/T_{1/2}</button>
+                                <button class="math-key" data-formula="E = hν = hc/λ">E = hν = hc/λ</button>
+                                <button class="math-key" data-formula="p = h/λ">p = h/λ</button>
                             </div>
                         </div>
                     </div>
@@ -267,7 +256,6 @@
         </div>
     </div>
 
-    <!-- Telegram Mini App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="script.js"></script>
 </body>
