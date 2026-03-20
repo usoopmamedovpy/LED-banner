@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - ДЕСКТОПНАЯ ЛОГИКА НА МОБИЛКАХ
+// LED BANNER - ИДЕАЛЬНЫЙ ИНТЕРФЕЙС
 // ============================================
 
 // Telegram
@@ -7,7 +7,6 @@ let tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// Полноэкранный режим
 if (tg.isVersionAtLeast && tg.isVersionAtLeast('8.0')) {
     try { tg.requestFullscreen(); } catch (e) {}
 }
@@ -28,22 +27,93 @@ const resetBtn = document.getElementById('resetBtn');
 const settingsBtn = document.getElementById('settingsBtn');
 const donateBtn = document.getElementById('donateBtn');
 const settingsPanel = document.getElementById('settingsPanel');
-const inputArea = document.getElementById('inputArea');
 const mathBtn = document.getElementById('mathBtn');
 const mathKeyboard = document.getElementById('mathKeyboard');
 const mathKeys = document.querySelectorAll('.math-key');
+const inputField = document.getElementById('inputField');
+const renderLayer = document.getElementById('renderLayer');
+const overlayContainer = document.getElementById('overlayContainer');
 const sizeSlider = document.getElementById('sizeSlider');
 const sizeValue = document.getElementById('sizeValue');
 const speedSlider = document.getElementById('speedSlider');
 const speedValue = document.getElementById('speedValue');
 const colorButtons = document.querySelectorAll('.color-btn');
 
-const tabFunctions = document.getElementById('tabFunctions');
-const tabGreek = document.getElementById('tabGreek');
-const tabSymbols = document.getElementById('tabSymbols');
-const functionsTab = document.getElementById('functionsTab');
-const greekTab = document.getElementById('greekTab');
-const symbolsTab = document.getElementById('symbolsTab');
+// ============================================
+// MATHQUILL ДЛЯ РЕНДЕРА
+// ============================================
+let mathField = null;
+let MQ = null;
+
+function initRenderer() {
+    if (!renderLayer) return;
+    
+    try {
+        MQ = MathQuill.getInterface(2);
+        
+        mathField = MQ.MathField(renderLayer, {
+            spaceBehavesLikeTab: false,
+            handlers: { edit: function() {} }
+        });
+        
+        renderLayer.style.pointerEvents = 'none';
+        console.log('Renderer ready');
+    } catch (e) {
+        console.error('Renderer error:', e);
+    }
+}
+
+// ============================================
+// ПАРСЕР
+// ============================================
+function parseToLaTeX(text) {
+    if (!text) return '';
+    
+    let result = text;
+    
+    // Корни: √[выражение] -> \sqrt{выражение}
+    result = result.replace(/√\[([^\]]+)\]/g, '\\sqrt{$1}');
+    
+    // Дроби: (числитель)/(знаменатель) -> \frac{числитель}{знаменатель}
+    result = result.replace(/\(([^)]+)\)\s*\/\s*\(([^)]+)\)/g, '\\frac{$1}{$2}');
+    result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
+    
+    // Векторы: {выражение} -> \vec{выражение}
+    result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
+    
+    // Степени
+    result = result.replace(/(\w)\^\(([^)]+)\)/g, '$1^{$2}');
+    result = result.replace(/(\w)\^(\w)/g, '$1^{$2}');
+    
+    // Индексы
+    result = result.replace(/(\w)_\(([^)]+)\)/g, '$1_{$2}');
+    result = result.replace(/(\w)_(\w)/g, '$1_{$2}');
+    
+    return result;
+}
+
+// ============================================
+// ОБНОВЛЕНИЕ РЕНДЕРА
+// ============================================
+function updateRenderer() {
+    if (!mathField) return;
+    
+    const text = inputField.value;
+    const latex = parseToLaTeX(text);
+    
+    try {
+        mathField.latex(latex);
+        
+        scrollingText.innerHTML = '\\(' + latex + '\\)';
+        if (window.MathJax) {
+            MathJax.typesetPromise([scrollingText]).then(applyColor);
+        }
+        
+        saveData();
+    } catch (e) {
+        console.error('Update error:', e);
+    }
+}
 
 // ============================================
 // ПЕРЕМЕННЫЕ
@@ -53,8 +123,6 @@ let currentColor = 'white';
 let currentSize = 15;
 let isRunning = false;
 let keyboardVisible = false;
-let mathField = null;
-let MQ = null;
 
 const colorMap = {
     'white': '#ffffff', 'red': '#ff3b30', 'blue': '#007aff',
@@ -62,70 +130,56 @@ const colorMap = {
 };
 
 // ============================================
-// ИНИЦИАЛИЗАЦИЯ MATHQUILL
+// НАСТРОЙКИ
 // ============================================
-window.addEventListener('load', function() {
-    console.log('LED Banner loaded');
-    
-    const mathFieldElement = document.getElementById('mathField');
-    
-    setTimeout(() => {
-        if (typeof MathQuill !== 'undefined') {
-            initMathQuill(mathFieldElement);
-        }
-    }, 500);
-    
-    loadSavedData();
-    applyColor();
-});
-
-function initMathQuill(element) {
+function loadSettings() {
     try {
-        MQ = MathQuill.getInterface(2);
+        const saved = localStorage.getItem('ledData');
+        if (!saved) return;
         
-        mathField = MQ.MathField(element, {
-            spaceBehavesLikeTab: true,
-            autoCommands: 'pi theta sqrt sum prod int alpha beta gamma delta epsilon',
-            autoOperatorNames: 'sin cos tan cot arcsin arccos arctan log ln exp lim',
-            handlers: {
-                edit: function() {
-                    const latex = mathField.latex();
-                    if (latex) {
-                        scrollingText.innerHTML = '\\(' + latex + '\\)';
-                        if (window.MathJax) {
-                            MathJax.typesetPromise([scrollingText]).then(() => {
-                                applyColor();
-                            }).catch(() => {});
-                        }
-                    }
-                    saveData({ latex: latex });
-                }
-            }
-        });
+        const data = JSON.parse(saved);
         
-        // Устанавливаем начальное значение
-        mathField.latex('LED\\ бегущая\\ строка');
+        if (data.color) {
+            currentColor = data.color;
+            applyColor();
+        }
         
-        // Обработчики для мобилок (только фокус)
-        element.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            mathField.focus();
-        });
+        if (data.speed) {
+            currentSpeed = data.speed;
+            speedSlider.value = currentSpeed;
+            speedValue.textContent = currentSpeed + ' sec';
+        }
         
-        element.addEventListener('click', () => {
-            mathField.focus();
-        });
+        if (data.size) {
+            currentSize = data.size;
+            sizeSlider.value = currentSize;
+            sizeValue.textContent = currentSize + 'vw';
+            scrollingText.style.fontSize = currentSize + 'vw';
+        }
         
-        console.log('MathQuill initialized');
-        loadSavedData();
-        
-    } catch (e) {
-        console.error('MathQuill error:', e);
+        if (data.text) {
+            inputField.value = data.text;
+            updateRenderer();
+        }
+    } catch (e) {}
+}
+
+function saveData() {
+    const data = {
+        text: inputField.value,
+        color: currentColor,
+        speed: currentSpeed,
+        size: currentSize
+    };
+    localStorage.setItem('ledData', JSON.stringify(data));
+    
+    if (tg) {
+        tg.sendData(JSON.stringify({ action: 'save', data: data }));
     }
 }
 
 // ============================================
-// ПРИМЕНЕНИЕ ЦВЕТА
+// ЦВЕТА
 // ============================================
 function applyColor() {
     const color = colorMap[currentColor];
@@ -135,71 +189,12 @@ function applyColor() {
         el.style.color = color;
     });
     
-    const oldStyle = document.getElementById('mathColorStyle');
-    if (oldStyle) oldStyle.remove();
-    
-    const style = document.createElement('style');
-    style.id = 'mathColorStyle';
-    style.textContent = `
-        #scrollingText, #scrollingText mjx-container {
-            color: ${color} !important;
-        }
-    `;
-    document.head.appendChild(style);
-    
     colorButtons.forEach(btn => {
-        btn.classList.toggle('active', btn.classList.contains(currentColor));
-    });
-}
-
-// ============================================
-// СОХРАНЕНИЕ
-// ============================================
-function loadSavedData() {
-    try {
-        const saved = localStorage.getItem('ledBannerData');
-        if (saved) {
-            const data = JSON.parse(saved);
-            
-            if (data.color) {
-                currentColor = data.color;
-                applyColor();
-            }
-            
-            if (data.speed) {
-                currentSpeed = data.speed;
-                speedSlider.value = currentSpeed;
-                speedValue.textContent = currentSpeed + ' sec';
-            }
-            
-            if (data.size) {
-                currentSize = data.size;
-                sizeSlider.value = currentSize;
-                sizeValue.textContent = currentSize + 'vw';
-                scrollingText.style.fontSize = currentSize + 'vw';
-            }
-            
-            if (data.latex && mathField) {
-                mathField.latex(data.latex);
-            }
+        btn.classList.remove('active');
+        if (btn.classList.contains(currentColor)) {
+            btn.classList.add('active');
         }
-    } catch (e) {}
-}
-
-function saveData(data) {
-    const fullData = {
-        ...data,
-        color: currentColor,
-        speed: currentSpeed,
-        size: currentSize
-    };
-    localStorage.setItem('ledBannerData', JSON.stringify(fullData));
-    
-    if (tg) {
-        try {
-            tg.sendData(JSON.stringify({ action: 'save', data: fullData }));
-        } catch (e) {}
-    }
+    });
 }
 
 // ============================================
@@ -217,16 +212,8 @@ function restartAnimation() {
 function toggleKeyboard() {
     if (isRunning) return;
     keyboardVisible = !keyboardVisible;
-    
-    if (keyboardVisible) {
-        mathKeyboard.classList.add('show');
-        mathBtn.classList.add('active');
-        settingsPanel.classList.remove('show');
-        settingsBtn.classList.remove('active');
-    } else {
-        mathKeyboard.classList.remove('show');
-        mathBtn.classList.remove('active');
-    }
+    mathKeyboard.classList.toggle('show', keyboardVisible);
+    mathBtn.classList.toggle('active', keyboardVisible);
 }
 
 function closeKeyboard() {
@@ -237,9 +224,10 @@ function closeKeyboard() {
 
 function toggleRun() {
     if (isRunning) {
-        inputArea.style.display = 'flex';
+        overlayContainer.style.display = 'block';
         settingsBtn.style.display = 'flex';
         donateBtn.style.display = 'flex';
+        mathBtn.style.display = 'block';
         isRunning = false;
     } else {
         scrollingText.style.fontSize = currentSize + 'vw';
@@ -248,35 +236,26 @@ function toggleRun() {
         restartAnimation();
         applyColor();
         
-        inputArea.style.display = 'none';
+        overlayContainer.style.display = 'none';
         settingsBtn.style.display = 'none';
         donateBtn.style.display = 'none';
+        mathBtn.style.display = 'none';
         isRunning = true;
         closeKeyboard();
-        saveData({});
+        saveData();
     }
 }
 
 function handleReset() {
     if (isRunning) {
-        inputArea.style.display = 'flex';
+        overlayContainer.style.display = 'block';
         settingsBtn.style.display = 'flex';
         donateBtn.style.display = 'flex';
+        mathBtn.style.display = 'block';
         isRunning = false;
-        
-        if (mathField) {
-            const currentLatex = mathField.latex();
-            saveData({ latex: currentLatex });
-        }
     } else {
-        if (mathField) {
-            mathField.latex('LED\\ бегущая\\ строка');
-        }
-        
-        scrollingText.innerHTML = '\\(LED\\ бегущая\\ строка\\)';
-        if (window.MathJax) {
-            MathJax.typesetPromise([scrollingText]).then(applyColor);
-        }
+        inputField.value = 'LED';
+        updateRenderer();
         
         currentColor = 'white';
         currentSpeed = 15;
@@ -290,81 +269,74 @@ function handleReset() {
         scrollingText.style.fontSize = '15vw';
         applyColor();
         restartAnimation();
-        
-        saveData({ latex: 'LED\\ бегущая\\ строка' });
+        saveData();
     }
     
     closeKeyboard();
     settingsPanel.classList.remove('show');
-    settingsBtn.classList.remove('active');
 }
 
-function insertMathCommand(cmd) {
-    if (!mathField) return;
+// ============================================
+// ВСТАВКА СИМВОЛОВ
+// ============================================
+function insertSymbol(symbol) {
+    const start = inputField.selectionStart;
+    const end = inputField.selectionEnd;
+    const text = inputField.value;
     
-    try {
-        if (cmd === '√') mathField.cmd('\\sqrt');
-        else if (cmd === '∛') mathField.typedText('\\sqrt[3]{');
-        else if (cmd === '∜') mathField.typedText('\\sqrt[4]{');
-        else if (cmd === 'n√') mathField.typedText('\\sqrt[n]{');
-        else if (cmd === '→' || cmd === '\\vec') mathField.typedText('\\vec{}');
-        else if (cmd === 'a/b' || cmd === 'frac') mathField.cmd('\\frac');
-        else if (cmd === 'Δ') mathField.cmd('\\Delta');
-        else mathField.cmd(cmd);
-        
-        mathField.focus();
-    } catch (e) {
-        console.error('Insert error:', e);
-    }
+    const newText = text.substring(0, start) + symbol + text.substring(end);
+    inputField.value = newText;
+    
+    const newPos = start + symbol.length;
+    inputField.setSelectionRange(newPos, newPos);
+    inputField.focus();
+    
+    updateRenderer();
+    saveData();
 }
 
 // ============================================
 // ОБРАБОТЧИКИ
 // ============================================
 
-if (mathBtn) mathBtn.style.display = 'none';
-
-tabFunctions.addEventListener('click', () => {
-    tabFunctions.classList.add('active');
-    tabGreek.classList.remove('active');
-    tabSymbols.classList.remove('active');
-    functionsTab.classList.add('active');
-    greekTab.classList.remove('active');
-    symbolsTab.classList.remove('active');
+window.addEventListener('load', () => {
+    initRenderer();
+    loadSettings();
+    updateRenderer();
+    setTimeout(applyColor, 500);
+    inputField.focus();
 });
 
-tabGreek.addEventListener('click', () => {
-    tabGreek.classList.add('active');
-    tabFunctions.classList.remove('active');
-    tabSymbols.classList.remove('active');
-    greekTab.classList.add('active');
-    functionsTab.classList.remove('active');
-    symbolsTab.classList.remove('active');
-});
+inputField.addEventListener('input', updateRenderer);
 
-tabSymbols.addEventListener('click', () => {
-    tabSymbols.classList.add('active');
-    tabFunctions.classList.remove('active');
-    tabGreek.classList.remove('active');
-    symbolsTab.classList.add('active');
-    functionsTab.classList.remove('active');
-    greekTab.classList.remove('active');
+mathBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleKeyboard();
 });
 
 mathKeys.forEach(btn => {
     btn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        
-        const cmd = btn.textContent;
-        const dataCmd = btn.dataset.cmd;
-        
-        if (dataCmd === 'frac' || cmd === 'a/b') insertMathCommand('frac');
-        else if (dataCmd === '\\vec' || cmd === '⃗' || cmd === '→') insertMathCommand('→');
-        else if (dataCmd === '\\sqrt[n]' || cmd === 'n√') insertMathCommand('n√');
-        else if (dataCmd === '\\Delta' || cmd === 'Δ') insertMathCommand('Δ');
-        else insertMathCommand(cmd);
+        const symbol = btn.dataset.cmd;
+        if (symbol) insertSymbol(symbol);
+        return false;
     });
+});
+
+runBtn.addEventListener('click', toggleRun);
+resetBtn.addEventListener('click', handleReset);
+
+settingsBtn.addEventListener('click', () => {
+    if (isRunning) return;
+    settingsPanel.classList.toggle('show');
+    closeKeyboard();
+});
+
+settingsPanel.addEventListener('click', (e) => {
+    if (e.target === settingsPanel) {
+        settingsPanel.classList.remove('show');
+    }
 });
 
 colorButtons.forEach(btn => {
@@ -380,7 +352,7 @@ colorButtons.forEach(btn => {
         
         currentColor = color;
         applyColor();
-        saveData({});
+        saveData();
     });
 });
 
@@ -388,36 +360,14 @@ sizeSlider.addEventListener('input', () => {
     currentSize = parseInt(sizeSlider.value);
     scrollingText.style.fontSize = currentSize + 'vw';
     sizeValue.textContent = currentSize + 'vw';
-    saveData({});
+    saveData();
 });
 
 speedSlider.addEventListener('input', () => {
     currentSpeed = parseInt(speedSlider.value);
     speedValue.textContent = currentSpeed + ' sec';
     restartAnimation();
-    saveData({});
-});
-
-resetBtn.addEventListener('click', handleReset);
-
-settingsBtn.addEventListener('click', () => {
-    if (isRunning) return;
-    
-    if (settingsPanel.classList.contains('show')) {
-        settingsPanel.classList.remove('show');
-        settingsBtn.classList.remove('active');
-    } else {
-        settingsPanel.classList.add('show');
-        settingsBtn.classList.add('active');
-        closeKeyboard();
-    }
-});
-
-settingsPanel.addEventListener('click', (e) => {
-    if (e.target === settingsPanel) {
-        settingsPanel.classList.remove('show');
-        settingsBtn.classList.remove('active');
-    }
+    saveData();
 });
 
 document.addEventListener('click', (e) => {
@@ -428,19 +378,16 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// ============================================
-// TELEGRAM BACK BUTTON
-// ============================================
 tg.BackButton.onClick(() => {
     if (settingsPanel.classList.contains('show')) {
         settingsPanel.classList.remove('show');
-        settingsBtn.classList.remove('active');
     } else if (keyboardVisible) {
         closeKeyboard();
     } else if (isRunning) {
-        inputArea.style.display = 'flex';
+        overlayContainer.style.display = 'block';
         settingsBtn.style.display = 'flex';
         donateBtn.style.display = 'flex';
+        mathBtn.style.display = 'block';
         isRunning = false;
     } else {
         tg.close();
@@ -448,4 +395,4 @@ tg.BackButton.onClick(() => {
 });
 tg.BackButton.show();
 
-console.log('✅ DESKTOP LOGIC ON MOBILE - READY!');
+console.log('✅ ИДЕАЛЬНЫЙ ИНТЕРФЕЙС ГОТОВ!');
