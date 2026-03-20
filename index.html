@@ -118,6 +118,7 @@
                         <button class="tab-btn active" id="tabFunctions">ƒ(x)</button>
                         <button class="tab-btn" id="tabGreek">Aα</button>
                         <button class="tab-btn" id="tabSymbols">∫∑</button>
+                        <button class="tab-btn" id="tabPhysics">⚛️</button>
                     </div>
                     
                     <!-- Раздел функций -->
@@ -202,6 +203,63 @@
                             <button class="math-key" data-cmd="\geq">≥</button>
                             <button class="math-key" data-cmd="\approx">≈</button>
                             <button class="math-key" data-cmd="\propto">∝</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Раздел физики -->
+                    <div class="tab-content" id="physicsTab">
+                        <div class="physics-subtabs">
+                            <button class="physics-subtab-btn active" data-phys-cat="mechanics">🚗</button>
+                            <button class="physics-subtab-btn" data-phys-cat="optics">👓</button>
+                            <button class="physics-subtab-btn" data-phys-cat="nuclear">⚛️</button>
+                        </div>
+                        
+                        <!-- Механика -->
+                        <div class="physics-category active" id="phys-mechanics">
+                            <div class="keyboard-grid">
+                                <button class="math-key" data-formula="F = ma">F = ma</button>
+                                <button class="math-key" data-formula="p = mv">p = mv</button>
+                                <button class="math-key" data-formula="E_k = (1/2)mv^2">E_k = (1/2)mv^2</button>
+                                <button class="math-key" data-formula="E_p = mgh">E_p = mgh</button>
+                                <button class="math-key" data-formula="a = Δv/Δt">a = Δv/Δt</button>
+                                <button class="math-key" data-formula="F = G·(m₁m₂)/r^2">F = G·(m₁m₂)/r^2</button>
+                                <button class="math-key" data-formula="ω = v/r">ω = v/r</button>
+                                <button class="math-key" data-formula="I = mr^2">I = mr^2</button>
+                                <button class="math-key" data-formula="L = Iω">L = Iω</button>
+                                <button class="math-key" data-formula="p = F/S">p = F/S</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Оптика -->
+                        <div class="physics-category" id="phys-optics">
+                            <div class="keyboard-grid">
+                                <button class="math-key" data-formula="1/f = 1/d_o + 1/d_i">1/f = 1/d_o + 1/d_i</button>
+                                <button class="math-key" data-formula="n = c/v">n = c/v</button>
+                                <button class="math-key" data-formula="sinθ₁/sinθ₂ = n₂/n₁">sinθ₁/sinθ₂ = n₂/n₁</button>
+                                <button class="math-key" data-formula="λ = c/f">λ = c/f</button>
+                                <button class="math-key" data-formula="E = hf">E = hf</button>
+                                <button class="math-key" data-formula="d·sinθ = mλ">d·sinθ = mλ</button>
+                                <button class="math-key" data-formula="M = -d_i/d_o">M = -d_i/d_o</button>
+                                <button class="math-key" data-formula="P = 1/f">P = 1/f</button>
+                                <button class="math-key" data-formula="I = I₀·cos^2θ">I = I₀·cos^2θ</button>
+                                <button class="math-key" data-formula="θ_c = arcsin(n₂/n₁)">θ_c = arcsin(n₂/n₁)</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Ядерная физика -->
+                        <div class="physics-category" id="phys-nuclear">
+                            <div class="keyboard-grid">
+                                <button class="math-key" data-formula="E = mc^2">E = mc^2</button>
+                                <button class="math-key" data-formula="ΔE = Δm·c^2">ΔE = Δm·c^2</button>
+                                <button class="math-key" data-formula="N = N₀·e^{-λt}">N = N₀·e^{-λt}</button>
+                                <button class="math-key" data-formula="T_{1/2} = ln(2)/λ">T_{1/2} = ln(2)/λ</button>
+                                <button class="math-key" data-formula="A = λN">A = λN</button>
+                                <button class="math-key" data-formula="Q = (m_i - m_f)c^2">Q = (m_i - m_f)c^2</button>
+                                <button class="math-key" data-formula="E_b = Δm·c^2">E_b = Δm·c^2</button>
+                                <button class="math-key" data-formula="R = R₀·A^{1/3}">R = R₀·A^{1/3}</button>
+                                <button class="math-key" data-formula="{}^{235}U + n → {}^{141}Ba + {}^{92}Kr + 3n">{}^{235}U + n → {}^{141}Ba + {}^{92}Kr + 3n</button>
+                                <button class="math-key" data-formula="{}^{2}H + {}^{3}H → {}^{4}He + n">{}^{2}H + {}^{3}H → {}^{4}He + n</button>
+                            </div>
                         </div>
                     </div>
                 </div>
