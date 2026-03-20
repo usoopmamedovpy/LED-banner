@@ -1,5 +1,5 @@
 // ============================================
-// LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ С ЯЗЫКОМ
+// LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ С ФИЗИКОЙ
 // ============================================
 
 // Telegram
@@ -9,7 +9,7 @@ let tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// ЗАПРАШИВАЕМ ПОЛНОЭКРАННЫЙ РЕЖИМ (для новых версий Telegram)
+// ЗАПРАШИВАЕМ ПОЛНОЭКРАННЫЙ РЕЖИМ
 if (tg.isVersionAtLeast && tg.isVersionAtLeast('8.0')) {
     try {
         tg.requestFullscreen();
@@ -31,11 +31,9 @@ document.body.style.color = '#ffffff';
 // ОПРЕДЕЛЯЕМ ЯЗЫК ПОЛЬЗОВАТЕЛЯ
 // ============================================
 const userLang = tg.initDataUnsafe?.user?.language_code || navigator.language || 'en';
-// Только русский и белорусский -> русский интерфейс
 const isRussian = userLang.startsWith('ru') || userLang.startsWith('be');
 console.log('User language:', userLang, 'Interface:', isRussian ? 'Russian' : 'English');
 
-// Тексты на двух языках
 const texts = {
     ru: {
         banner: 'LED бегущая строка',
@@ -59,7 +57,6 @@ const texts = {
     }
 };
 
-// Выбираем нужный язык
 const t = isRussian ? texts.ru : texts.en;
 
 // ============================================
@@ -85,9 +82,16 @@ const colorButtons = document.querySelectorAll('.color-btn');
 const tabFunctions = document.getElementById('tabFunctions');
 const tabGreek = document.getElementById('tabGreek');
 const tabSymbols = document.getElementById('tabSymbols');
+const tabPhysics = document.getElementById('tabPhysics');
 const functionsTab = document.getElementById('functionsTab');
 const greekTab = document.getElementById('greekTab');
 const symbolsTab = document.getElementById('symbolsTab');
+const physicsTab = document.getElementById('physicsTab');
+
+// Физика
+const physicsSubtabs = document.querySelectorAll('.physics-subtab-btn');
+const physicsCategories = document.querySelectorAll('.physics-category');
+const physicsKeys = document.querySelectorAll('.physics-category .math-key');
 
 // ============================================
 // ПЕРЕМЕННЫЕ
@@ -99,7 +103,6 @@ let isRunning = false;
 let keyboardVisible = false;
 let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-// Карта цветов
 const colorMap = {
     'white': '#ffffff',
     'red': '#ff3b30',
@@ -114,9 +117,7 @@ const colorMap = {
 window.addEventListener('load', function() {
     console.log('LED Banner загружен');
     
-    // Устанавливаем тексты
     updateTexts();
-    
     createUnifiedInterface();
     loadSavedData();
     
@@ -126,15 +127,10 @@ window.addEventListener('load', function() {
     console.log('fixWhitePixels отключен для Android');
 });
 
-// ============================================
-// ОБНОВЛЕНИЕ ТЕКСТОВ
-// ============================================
 function updateTexts() {
-    // Обновляем заголовок настроек
     const settingsTitle = document.querySelector('.settings-content h3');
     if (settingsTitle) settingsTitle.textContent = t.settings;
     
-    // Обновляем лейблы настроек
     const settingLabels = document.querySelectorAll('.setting-item label');
     if (settingLabels.length >= 3) {
         settingLabels[0].textContent = t.textSize;
@@ -142,7 +138,6 @@ function updateTexts() {
         settingLabels[2].textContent = t.color;
     }
     
-    // Обновляем бегущую строку
     scrollingText.innerHTML = '\\(' + t.banner + '\\)';
 }
 
@@ -170,7 +165,6 @@ function createUnifiedInterface() {
     inputArea.style.borderTop = '2px solid rgba(255, 255, 255, 0.2)';
     inputArea.style.zIndex = '100';
     
-    // MATH кнопка - ИСПОЛЬЗУЕМ t.math ДЛЯ ТЕКСТА
     const mathButton = document.createElement('button');
     mathButton.className = 'math-btn';
     mathButton.id = 'mainMathBtn';
@@ -258,6 +252,55 @@ function createUnifiedInterface() {
             closeKeyboard();
         }
     });
+    
+    // ============================================
+    // ОБРАБОТЧИКИ ДЛЯ ФИЗИКИ
+    // ============================================
+    
+    physicsKeys.forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            const formula = this.dataset.formula;
+            if (formula) {
+                insertMathSymbol(formula);
+            }
+            
+            return false;
+        });
+    });
+    
+    tabPhysics.addEventListener('click', function() {
+        tabFunctions.classList.remove('active');
+        tabGreek.classList.remove('active');
+        tabSymbols.classList.remove('active');
+        tabPhysics.classList.add('active');
+        
+        functionsTab.classList.remove('active');
+        greekTab.classList.remove('active');
+        symbolsTab.classList.remove('active');
+        physicsTab.classList.add('active');
+        
+        physicsCategories.forEach(cat => cat.classList.remove('active'));
+        physicsSubtabs.forEach(btn => btn.classList.remove('active'));
+        document.getElementById('phys-mechanics').classList.add('active');
+        physicsSubtabs[0].classList.add('active');
+    });
+    
+    physicsSubtabs.forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            
+            const cat = this.dataset.physCat;
+            
+            physicsSubtabs.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            physicsCategories.forEach(catEl => catEl.classList.remove('active'));
+            document.getElementById(`phys-${cat}`).classList.add('active');
+        });
+    });
 }
 
 // ============================================
@@ -268,36 +311,20 @@ function parseToLaTeX(text) {
     
     let result = text;
     
-    // 0. Сохраняем пробелы
     result = result.replace(/ /g, '\\ ');
-    
-    // 1. Векторы
     result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
-    
-    // 2. Дроби
     result = result.replace(/\(([^)]+)\)\s*\/\s*\(([^)]+)\)/g, '\\frac{$1}{$2}');
     result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
-    
-    // 3. КОРЕНЬ n-Й СТЕПЕНИ
     result = result.replace(/\/(\d+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
     result = result.replace(/\/([a-zA-Zα-ω]+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
-    
-    // 4. КУБИЧЕСКИЙ КОРЕНЬ
     result = result.replace(/∛\[([^\]]+)\]/g, '\\sqrt[3]{$1}');
-    
-    // 5. КОРЕНЬ 4-Й СТЕПЕНИ
     result = result.replace(/∜\[([^\]]+)\]/g, '\\sqrt[4]{$1}');
-    
-    // 6. ОБЫЧНЫЙ КОРЕНЬ
     result = result.replace(/√\[([^\]]+)\]/g, '\\sqrt{$1}');
-    
-    // 7. Степени и индексы
     result = result.replace(/([a-zA-Z0-9α-ω])\^\(([^)]+)\)/g, '$1^{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])\^([a-zA-Z0-9α-ω])/g, '$1^{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])_\(([^)]+)\)/g, '$1_{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])_([a-zA-Z0-9α-ω])/g, '$1_{$2}');
     
-    // 8. Греческие буквы
     const greekMap = {
         'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
         'ε': '\\epsilon', 'ζ': '\\zeta', 'η': '\\eta', 'θ': '\\theta',
@@ -317,7 +344,6 @@ function parseToLaTeX(text) {
         result = result.replace(new RegExp(char, 'g'), latex);
     }
     
-    // 9. Функции
     const funcs = ['sin', 'cos', 'tan', 'cot', 'log', 'ln', 'exp', 'lim'];
     funcs.forEach(func => {
         result = result.replace(new RegExp(func + '\\s*\\(', 'g'), func + '(');
@@ -330,8 +356,6 @@ function parseToLaTeX(text) {
 // ПРИМЕНЕНИЕ ЦВЕТА
 // ============================================
 function applyColorToMath() {
-    console.log('Applying color (CHTML):', currentColor);
-    
     const color = colorMap[currentColor];
     scrollingText.style.color = color;
     
@@ -370,24 +394,20 @@ function loadSavedData() {
                 currentColor = data.color;
                 setTimeout(() => applyColorToMath(), 100);
             }
-            
             if (data.speed) {
                 currentSpeed = data.speed;
                 speedSlider.value = currentSpeed;
                 speedValue.textContent = currentSpeed + (isRussian ? ' сек' : ' sec');
             }
-            
             if (data.size) {
                 currentSize = data.size;
                 sizeSlider.value = currentSize;
                 sizeValue.textContent = currentSize + 'vw';
                 scrollingText.style.fontSize = currentSize + 'vw';
             }
-            
             if (data.raw) {
                 const input = document.getElementById('mainInput');
                 if (input) input.value = data.raw;
-                
                 if (data.latex) {
                     scrollingText.innerHTML = '\\(' + data.latex + '\\)';
                     if (window.MathJax) {
@@ -553,22 +573,18 @@ function insertMathSymbol(symbol) {
         insertText = '(a)/(b)';
     } else if (symbol === 'Δ' || symbol === '\\Delta') {
         insertText = 'Δ';
+    } else {
+        insertText = symbol;
     }
     
     const newText = text.substring(0, start) + insertText + text.substring(end);
     input.value = newText;
     
     let newPos = start + insertText.length;
-    
-    if (insertText.includes('[]')) {
-        newPos = start + insertText.length - 1;
-    } else if (insertText === '{}') {
-        newPos = start + 1;
-    } else if (insertText === '(a)/(b)') {
-        newPos = start + 2;
-    } else if (insertText === '/n/√[]') {
-        newPos = start + 3;
-    }
+    if (insertText.includes('[]')) newPos = start + insertText.length - 1;
+    else if (insertText === '{}') newPos = start + 1;
+    else if (insertText === '(a)/(b)') newPos = start + 2;
+    else if (insertText === '/n/√[]') newPos = start + 3;
     
     input.setSelectionRange(newPos, newPos);
     input.focus();
@@ -587,35 +603,37 @@ function insertMathSymbol(symbol) {
 // ============================================
 // ОБРАБОТЧИКИ
 // ============================================
-
-// ВАЖНО: НЕ ПРЯЧЕМ MATH КНОПКУ!
-// if (mathBtn) mathBtn.style.display = 'none'; // ← ЗАКОММЕНТИРОВАНО!
-
 tabFunctions.addEventListener('click', function() {
     tabFunctions.classList.add('active');
     tabGreek.classList.remove('active');
     tabSymbols.classList.remove('active');
+    tabPhysics.classList.remove('active');
     functionsTab.classList.add('active');
     greekTab.classList.remove('active');
     symbolsTab.classList.remove('active');
+    physicsTab.classList.remove('active');
 });
 
 tabGreek.addEventListener('click', function() {
     tabGreek.classList.add('active');
     tabFunctions.classList.remove('active');
     tabSymbols.classList.remove('active');
+    tabPhysics.classList.remove('active');
     greekTab.classList.add('active');
     functionsTab.classList.remove('active');
     symbolsTab.classList.remove('active');
+    physicsTab.classList.remove('active');
 });
 
 tabSymbols.addEventListener('click', function() {
     tabSymbols.classList.add('active');
     tabFunctions.classList.remove('active');
     tabGreek.classList.remove('active');
+    tabPhysics.classList.remove('active');
     symbolsTab.classList.add('active');
     functionsTab.classList.remove('active');
     greekTab.classList.remove('active');
+    physicsTab.classList.remove('active');
 });
 
 mathKeys.forEach(function(btn) {
@@ -642,7 +660,6 @@ mathKeys.forEach(function(btn) {
     });
 });
 
-// ЦВЕТА
 colorButtons.forEach(function(btn) {
     btn.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -660,7 +677,6 @@ colorButtons.forEach(function(btn) {
     });
 });
 
-// РАЗМЕР
 sizeSlider.addEventListener('input', function() {
     currentSize = parseInt(this.value);
     scrollingText.style.fontSize = currentSize + 'vw';
@@ -668,7 +684,6 @@ sizeSlider.addEventListener('input', function() {
     saveData({});
 });
 
-// СКОРОСТЬ
 speedSlider.addEventListener('input', function() {
     currentSpeed = parseInt(this.value);
     speedValue.textContent = currentSpeed + (isRussian ? ' сек' : ' sec');
@@ -718,4 +733,4 @@ tg.BackButton.onClick(function() {
 });
 tg.BackButton.show();
 
-console.log('✅ LED BANNER - MATH BUTTON FIXED');
+console.log('✅ LED BANNER - PHYSICS SECTION READY!');
