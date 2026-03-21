@@ -154,30 +154,75 @@ function createUnifiedInterface() {
 function parseToLaTeX(text) {
     if (!text) return '';
     let result = text;
+    
+    // 1. Сохраняем пробелы
     result = result.replace(/ /g, '\\ ');
+    
+    // 2. Векторы
     result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
     
+    // 3. УМНЫЕ ДРОБИ: (числитель)/(знаменатель) → \frac{числитель}{знаменатель}
     let prevResult;
     do {
         prevResult = result;
         result = result.replace(/\(((?:[^()]|\([^()]*\))*)\)\s*\/\s*\(((?:[^()]|\([^()]*\))*)\)/g, '\\frac{$1}{$2}');
     } while (result !== prevResult);
     
+    // 4. НОВЫЙ ФОРМАТ: (/) — всё что слева в числитель, всё что справа в знаменатель
+    result = result.replace(/([^()]+)\s*\(\/\)\s*([^()]+)/g, '\\frac{$1}{$2}');
+    result = result.replace(/\(\/\)/g, '\\frac{}{}');
+    
+    // 5. Простые дроби (число/число)
     result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
+    
+    // 6. КОРЕНЬ n-Й СТЕПЕНИ
     result = result.replace(/\/(\d+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
     result = result.replace(/\/([a-zA-Zα-ω]+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
+    
+    // 7. КУБИЧЕСКИЙ КОРЕНЬ
     result = result.replace(/∛\[([^\]]+)\]/g, '\\sqrt[3]{$1}');
+    
+    // 8. КОРЕНЬ 4-Й СТЕПЕНИ
     result = result.replace(/∜\[([^\]]+)\]/g, '\\sqrt[4]{$1}');
+    
+    // 9. ОБЫЧНЫЙ КОРЕНЬ: √[выражение] → \sqrt{выражение}
     result = result.replace(/√\[([^\]]+)\]/g, '\\sqrt{$1}');
+    result = result.replace(/√([a-zA-Z0-9α-ω])/g, '\\sqrt{$1}');
+    
+    // 10. Степени
     result = result.replace(/([a-zA-Z0-9α-ω])\^\(([^)]+)\)/g, '$1^{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])\^([a-zA-Z0-9α-ω])/g, '$1^{$2}');
+    
+    // 11. Индексы
     result = result.replace(/([a-zA-Z0-9α-ω])_\(([^)]+)\)/g, '$1_{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])_([a-zA-Z0-9α-ω])/g, '$1_{$2}');
     
-    const greek = { 'α':'\\alpha','β':'\\beta','γ':'\\gamma','δ':'\\delta','ε':'\\epsilon','ζ':'\\zeta','η':'\\eta','θ':'\\theta','ι':'\\iota','κ':'\\kappa','λ':'\\lambda','μ':'\\mu','ν':'\\nu','ξ':'\\xi','π':'\\pi','ρ':'\\rho','σ':'\\sigma','τ':'\\tau','υ':'\\upsilon','φ':'\\phi','χ':'\\chi','ψ':'\\psi','ω':'\\omega','Α':'\\Alpha','Β':'\\Beta','Γ':'\\Gamma','Δ':'\\Delta','Ε':'\\Epsilon','Ζ':'\\Zeta','Η':'\\Eta','Θ':'\\Theta','Ι':'\\Iota','Κ':'\\Kappa','Λ':'\\Lambda','Μ':'\\Mu','Ν':'\\Nu','Ξ':'\\Xi','Π':'\\Pi','Ρ':'\\Rho','Σ':'\\Sigma','Τ':'\\Tau','Υ':'\\Upsilon','Φ':'\\Phi','Χ':'\\Chi','Ψ':'\\Psi','Ω':'\\Omega' };
-    for (let [c, l] of Object.entries(greek)) result = result.replace(new RegExp(c, 'g'), l);
+    // 12. Греческие буквы
+    const greekMap = {
+        'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
+        'ε': '\\epsilon', 'ζ': '\\zeta', 'η': '\\eta', 'θ': '\\theta',
+        'ι': '\\iota', 'κ': '\\kappa', 'λ': '\\lambda', 'μ': '\\mu',
+        'ν': '\\nu', 'ξ': '\\xi', 'π': '\\pi', 'ρ': '\\rho',
+        'σ': '\\sigma', 'τ': '\\tau', 'υ': '\\upsilon', 'φ': '\\phi',
+        'χ': '\\chi', 'ψ': '\\psi', 'ω': '\\omega',
+        'Α': '\\Alpha', 'Β': '\\Beta', 'Γ': '\\Gamma', 'Δ': '\\Delta',
+        'Ε': '\\Epsilon', 'Ζ': '\\Zeta', 'Η': '\\Eta', 'Θ': '\\Theta',
+        'Ι': '\\Iota', 'Κ': '\\Kappa', 'Λ': '\\Lambda', 'Μ': '\\Mu',
+        'Ν': '\\Nu', 'Ξ': '\\Xi', 'Π': '\\Pi', 'Ρ': '\\Rho',
+        'Σ': '\\Sigma', 'Τ': '\\Tau', 'Υ': '\\Upsilon', 'Φ': '\\Phi',
+        'Χ': '\\Chi', 'Ψ': '\\Psi', 'Ω': '\\Omega'
+    };
     
-    ['sin','cos','tan','cot','log','ln','exp','lim'].forEach(f => { result = result.replace(new RegExp(f + '\\s*\\(', 'g'), f + '('); });
+    for (let [char, latex] of Object.entries(greekMap)) {
+        result = result.replace(new RegExp(char, 'g'), latex);
+    }
+    
+    // 13. Функции
+    const funcs = ['sin', 'cos', 'tan', 'cot', 'arcsin', 'arccos', 'arctan', 'arccot', 'log', 'ln', 'exp', 'lim'];
+    funcs.forEach(func => {
+        result = result.replace(new RegExp(func + '\\s*\\(', 'g'), func + '(');
+    });
+    
     return result;
 }
 
@@ -302,14 +347,14 @@ function insertMathSymbol(symbol) {
     else if (symbol === '∜') insertText = '∜[]';
     else if (symbol === 'n√' || symbol === '√[n]') insertText = '/n/√[]';
     else if (symbol === '→' || symbol === '\\vec' || symbol === '⃗') insertText = '{}';
-    else if (symbol === 'a/b' || symbol === 'frac') insertText = '(a)/(b)';
+    else if (symbol === 'a/b' || symbol === 'frac') insertText = '(/)';
     else if (symbol === 'Δ' || symbol === '\\Delta') insertText = 'Δ';
     const newText = text.substring(0, start) + insertText + text.substring(end);
     input.value = newText;
     let newPos = start + insertText.length;
     if (insertText.includes('[]')) newPos = start + insertText.length - 1;
     else if (insertText === '{}') newPos = start + 1;
-    else if (insertText === '(a)/(b)') newPos = start + 2;
+    else if (insertText === '(/)') newPos = start + 2;
     else if (insertText === '/n/√[]') newPos = start + 3;
     input.setSelectionRange(newPos, newPos);
     input.focus();
@@ -395,4 +440,4 @@ tg.BackButton.onClick(() => {
 });
 tg.BackButton.show();
 
-console.log('✅ LED BANNER - FINAL VERSION WITH SMART FRACTIONS');
+console.log('✅ LED BANNER - NEW FRACTION FORMAT (/)');
