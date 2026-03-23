@@ -28,7 +28,6 @@ const settingsBtn = document.getElementById('settingsBtn');
 const donateBtn = document.getElementById('donateBtn');
 const settingsPanel = document.getElementById('settingsPanel');
 const inputArea = document.getElementById('inputArea');
-const mathBtn = document.getElementById('mathBtn');
 const mathKeyboard = document.getElementById('mathKeyboard');
 const mathKeys = document.querySelectorAll('.math-key');
 const sizeSlider = document.getElementById('sizeSlider');
@@ -51,6 +50,10 @@ const physicsCategories = document.querySelectorAll('.physics-category');
 const physicsKeys = document.querySelectorAll('.physics-category .math-key');
 
 let currentSpeed = 15, currentColor = 'white', currentSize = 15, isRunning = false, keyboardVisible = false;
+let mainMathBtn = null;
+let mainInput = null;
+let mainRunBtn = null;
+
 const colorMap = { 'white': '#ffffff', 'red': '#ff3b30', 'blue': '#007aff', 'green': '#34c759', 'yellow': '#ffcc00' };
 
 window.addEventListener('load', function() {
@@ -80,34 +83,36 @@ function createUnifiedInterface() {
     inputArea.innerHTML = '';
     inputArea.style.cssText = 'display:flex; justify-content:flex-end; align-items:center; padding:16px; gap:10px; position:absolute; bottom:0; left:0; right:0; background:#000; border-top:2px solid rgba(255,255,255,0.2); z-index:100;';
     
-    const mathButton = document.createElement('button');
-    mathButton.className = 'math-btn';
-    mathButton.id = 'mainMathBtn';
-    mathButton.textContent = t.math;
-    mathButton.style.cssText = 'width:70px; height:60px; background:#000; border:2px solid #fff; border-radius:30px; color:#fff; font-weight:bold; font-size:18px; cursor:pointer; flex-shrink:0; transition:all 0.2s ease;';
+    mainMathBtn = document.createElement('button');
+    mainMathBtn.className = 'math-btn';
+    mainMathBtn.id = 'mainMathBtn';
+    mainMathBtn.textContent = t.math;
+    mainMathBtn.style.cssText = 'width:70px; height:60px; background:#000; border:2px solid #fff; border-radius:30px; color:#fff; font-weight:bold; font-size:18px; cursor:pointer; flex-shrink:0; transition:all 0.2s ease;';
     
-    const textInput = document.createElement('input');
-    textInput.type = 'text';
-    textInput.id = 'mainInput';
-    textInput.className = 'text-input';
-    textInput.placeholder = t.inputPlaceholder;
-    textInput.value = t.banner;
-    textInput.style.cssText = 'flex:1; min-width:0; background:#111; border:2px solid #fff; border-radius:30px; padding:14px 18px; font-size:16px; color:#fff; outline:none; transition:all 0.2s ease;';
+    mainInput = document.createElement('input');
+    mainInput.type = 'text';
+    mainInput.id = 'mainInput';
+    mainInput.className = 'text-input';
+    mainInput.placeholder = t.inputPlaceholder;
+    mainInput.value = t.banner;
+    mainInput.style.cssText = 'flex:1; min-width:0; background:#111; border:2px solid #fff; border-radius:30px; padding:14px 18px; font-size:16px; color:#fff; outline:none; transition:all 0.2s ease;';
     
-    const runButton = document.createElement('button');
-    runButton.className = 'run-btn';
-    runButton.id = 'mainRunBtn';
-    runButton.textContent = t.run;
-    runButton.style.cssText = 'width:70px; height:60px; background:transparent; border:2px solid #fff; border-radius:30px; color:#fff; font-weight:bold; font-size:18px; cursor:pointer; flex-shrink:0; transition:all 0.2s ease;';
+    mainRunBtn = document.createElement('button');
+    mainRunBtn.className = 'run-btn';
+    mainRunBtn.id = 'mainRunBtn';
+    mainRunBtn.textContent = t.run;
+    mainRunBtn.style.cssText = 'width:70px; height:60px; background:transparent; border:2px solid #fff; border-radius:30px; color:#fff; font-weight:bold; font-size:18px; cursor:pointer; flex-shrink:0; transition:all 0.2s ease;';
     
-    inputArea.appendChild(mathButton);
-    inputArea.appendChild(textInput);
-    inputArea.appendChild(runButton);
+    inputArea.appendChild(mainMathBtn);
+    inputArea.appendChild(mainInput);
+    inputArea.appendChild(mainRunBtn);
     
-    mathButton.addEventListener('click', (e) => { e.stopPropagation(); toggleKeyboard(); });
-    runButton.addEventListener('click', toggleRun);
+    console.log('Interface created: MATH + input + RUN');
     
-    textInput.addEventListener('input', (e) => {
+    mainMathBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleKeyboard(); });
+    mainRunBtn.addEventListener('click', toggleRun);
+    
+    mainInput.addEventListener('input', (e) => {
         const text = e.target.value;
         const latex = parseToLaTeX(text);
         scrollingText.innerHTML = '\\(' + latex + '\\)';
@@ -115,10 +120,10 @@ function createUnifiedInterface() {
         saveData({ latex: latex, raw: text });
     });
     
-    textInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') toggleRun(); });
+    mainInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') toggleRun(); });
     
     document.addEventListener('click', (e) => {
-        if (keyboardVisible && !mathKeyboard.contains(e.target) && !mathButton.contains(e.target)) closeKeyboard();
+        if (keyboardVisible && !mathKeyboard.contains(e.target) && !mainMathBtn?.contains(e.target)) closeKeyboard();
     });
     
     physicsKeys.forEach(btn => {
@@ -154,30 +159,56 @@ function createUnifiedInterface() {
 function parseToLaTeX(text) {
     if (!text) return '';
     let result = text;
+    
     result = result.replace(/ /g, '\\ ');
     result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
     
     let prevResult;
     do {
         prevResult = result;
-        result = result.replace(/\(((?:[^()]|\([^()]*\))*)\)\s*\/\s*\(((?:[^()]|\([^()]*\))*)\)/g, '\\frac{$1}{$2}');
+        result = result.replace(/([^()]+)\s*\(\/\)\s*([^()]+)/g, '\\frac{$1}{$2}');
+        result = result.replace(/\(([^()]+)\)\s*\(\/\)\s*\(([^()]+)\)/g, '\\frac{$1}{$2}');
+        result = result.replace(/([^()]+)\s*\(\/\)\s*\(([^()]+)\)/g, '\\frac{$1}{$2}');
+        result = result.replace(/\(([^()]+)\)\s*\(\/\)\s*([^()]+)/g, '\\frac{$1}{$2}');
     } while (result !== prevResult);
     
+    result = result.replace(/\(\/\)/g, '\\frac{}{}');
     result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
     result = result.replace(/\/(\d+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
     result = result.replace(/\/([a-zA-Zα-ω]+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
     result = result.replace(/∛\[([^\]]+)\]/g, '\\sqrt[3]{$1}');
     result = result.replace(/∜\[([^\]]+)\]/g, '\\sqrt[4]{$1}');
     result = result.replace(/√\[([^\]]+)\]/g, '\\sqrt{$1}');
+    result = result.replace(/√([a-zA-Z0-9α-ω])/g, '\\sqrt{$1}');
     result = result.replace(/([a-zA-Z0-9α-ω])\^\(([^)]+)\)/g, '$1^{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])\^([a-zA-Z0-9α-ω])/g, '$1^{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])_\(([^)]+)\)/g, '$1_{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])_([a-zA-Z0-9α-ω])/g, '$1_{$2}');
     
-    const greek = { 'α':'\\alpha','β':'\\beta','γ':'\\gamma','δ':'\\delta','ε':'\\epsilon','ζ':'\\zeta','η':'\\eta','θ':'\\theta','ι':'\\iota','κ':'\\kappa','λ':'\\lambda','μ':'\\mu','ν':'\\nu','ξ':'\\xi','π':'\\pi','ρ':'\\rho','σ':'\\sigma','τ':'\\tau','υ':'\\upsilon','φ':'\\phi','χ':'\\chi','ψ':'\\psi','ω':'\\omega','Α':'\\Alpha','Β':'\\Beta','Γ':'\\Gamma','Δ':'\\Delta','Ε':'\\Epsilon','Ζ':'\\Zeta','Η':'\\Eta','Θ':'\\Theta','Ι':'\\Iota','Κ':'\\Kappa','Λ':'\\Lambda','Μ':'\\Mu','Ν':'\\Nu','Ξ':'\\Xi','Π':'\\Pi','Ρ':'\\Rho','Σ':'\\Sigma','Τ':'\\Tau','Υ':'\\Upsilon','Φ':'\\Phi','Χ':'\\Chi','Ψ':'\\Psi','Ω':'\\Omega' };
-    for (let [c, l] of Object.entries(greek)) result = result.replace(new RegExp(c, 'g'), l);
+    const greekMap = {
+        'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
+        'ε': '\\epsilon', 'ζ': '\\zeta', 'η': '\\eta', 'θ': '\\theta',
+        'ι': '\\iota', 'κ': '\\kappa', 'λ': '\\lambda', 'μ': '\\mu',
+        'ν': '\\nu', 'ξ': '\\xi', 'π': '\\pi', 'ρ': '\\rho',
+        'σ': '\\sigma', 'τ': '\\tau', 'υ': '\\upsilon', 'φ': '\\phi',
+        'χ': '\\chi', 'ψ': '\\psi', 'ω': '\\omega',
+        'Α': '\\Alpha', 'Β': '\\Beta', 'Γ': '\\Gamma', 'Δ': '\\Delta',
+        'Ε': '\\Epsilon', 'Ζ': '\\Zeta', 'Η': '\\Eta', 'Θ': '\\Theta',
+        'Ι': '\\Iota', 'Κ': '\\Kappa', 'Λ': '\\Lambda', 'Μ': '\\Mu',
+        'Ν': '\\Nu', 'Ξ': '\\Xi', 'Π': '\\Pi', 'Ρ': '\\Rho',
+        'Σ': '\\Sigma', 'Τ': '\\Tau', 'Υ': '\\Upsilon', 'Φ': '\\Phi',
+        'Χ': '\\Chi', 'Ψ': '\\Psi', 'Ω': '\\Omega'
+    };
     
-    ['sin','cos','tan','cot','log','ln','exp','lim'].forEach(f => { result = result.replace(new RegExp(f + '\\s*\\(', 'g'), f + '('); });
+    for (let [char, latex] of Object.entries(greekMap)) {
+        result = result.replace(new RegExp(char, 'g'), latex);
+    }
+    
+    const funcs = ['sin', 'cos', 'tan', 'cot', 'arcsin', 'arccos', 'arctan', 'arccot', 'log', 'ln', 'exp', 'lim'];
+    funcs.forEach(func => {
+        result = result.replace(new RegExp(func + '\\s*\\(', 'g'), func + '(');
+    });
+    
     return result;
 }
 
@@ -202,9 +233,8 @@ function loadSavedData() {
             if (data.color) { currentColor = data.color; setTimeout(() => applyColorToMath(), 100); }
             if (data.speed) { currentSpeed = data.speed; speedSlider.value = currentSpeed; speedValue.textContent = currentSpeed + (isRussian ? ' сек' : ' sec'); }
             if (data.size) { currentSize = data.size; sizeSlider.value = currentSize; sizeValue.textContent = currentSize + 'vw'; scrollingText.style.fontSize = currentSize + 'vw'; }
-            if (data.raw) {
-                const input = document.getElementById('mainInput');
-                if (input) input.value = data.raw;
+            if (data.raw && mainInput) {
+                mainInput.value = data.raw;
                 if (data.latex) {
                     scrollingText.innerHTML = '\\(' + data.latex + '\\)';
                     if (window.MathJax) MathJax.typesetPromise([scrollingText]).then(() => applyColorToMath()).catch(()=>{});
@@ -225,24 +255,23 @@ function restartAnimation() { scrollingText.style.animation = 'none'; void scrol
 function toggleKeyboard() {
     if (isRunning) return;
     keyboardVisible = !keyboardVisible;
+    const mathButton = document.getElementById('mainMathBtn');
     if (keyboardVisible) {
         mathKeyboard.classList.add('show');
-        mathBtn.classList.add('active');
-        document.getElementById('mainMathBtn')?.classList.add('active');
+        if (mathButton) mathButton.classList.add('active');
         settingsPanel.classList.remove('show');
         settingsBtn.classList.remove('active');
     } else {
         mathKeyboard.classList.remove('show');
-        mathBtn.classList.remove('active');
-        document.getElementById('mainMathBtn')?.classList.remove('active');
+        if (mathButton) mathButton.classList.remove('active');
     }
 }
 
 function closeKeyboard() {
     keyboardVisible = false;
     mathKeyboard.classList.remove('show');
-    mathBtn.classList.remove('active');
-    document.getElementById('mainMathBtn')?.classList.remove('active');
+    const mathButton = document.getElementById('mainMathBtn');
+    if (mathButton) mathButton.classList.remove('active');
 }
 
 function toggleRun() {
@@ -272,11 +301,9 @@ function handleReset() {
         settingsBtn.style.display = 'flex';
         donateBtn.style.display = 'flex';
         isRunning = false;
-        const input = document.getElementById('mainInput');
-        if (input) { const currentText = input.value; const latex = parseToLaTeX(currentText); saveData({ latex, raw: currentText }); }
+        if (mainInput) { const currentText = mainInput.value; const latex = parseToLaTeX(currentText); saveData({ latex, raw: currentText }); }
     } else {
-        const input = document.getElementById('mainInput');
-        if (input) input.value = t.banner;
+        if (mainInput) mainInput.value = t.banner;
         scrollingText.innerHTML = '\\(' + t.banner + '\\)';
         if (window.MathJax) MathJax.typesetPromise([scrollingText]).then(() => applyColorToMath()).catch(()=>{});
         currentColor = 'white'; currentSpeed = 15; currentSize = 15;
@@ -293,26 +320,25 @@ function handleReset() {
 }
 
 function insertMathSymbol(symbol) {
-    const input = document.getElementById('mainInput');
-    if (!input) return;
-    const start = input.selectionStart, end = input.selectionEnd, text = input.value;
+    if (!mainInput) return;
+    const start = mainInput.selectionStart, end = mainInput.selectionEnd, text = mainInput.value;
     let insertText = symbol;
     if (symbol === '√') insertText = '√[]';
     else if (symbol === '∛') insertText = '∛[]';
     else if (symbol === '∜') insertText = '∜[]';
     else if (symbol === 'n√' || symbol === '√[n]') insertText = '/n/√[]';
     else if (symbol === '→' || symbol === '\\vec' || symbol === '⃗') insertText = '{}';
-    else if (symbol === 'a/b' || symbol === 'frac') insertText = '(a)/(b)';
+    else if (symbol === 'a/b' || symbol === 'frac') insertText = '(/)';
     else if (symbol === 'Δ' || symbol === '\\Delta') insertText = 'Δ';
     const newText = text.substring(0, start) + insertText + text.substring(end);
-    input.value = newText;
+    mainInput.value = newText;
     let newPos = start + insertText.length;
     if (insertText.includes('[]')) newPos = start + insertText.length - 1;
     else if (insertText === '{}') newPos = start + 1;
-    else if (insertText === '(a)/(b)') newPos = start + 2;
+    else if (insertText === '(/)') newPos = start + 2;
     else if (insertText === '/n/√[]') newPos = start + 3;
-    input.setSelectionRange(newPos, newPos);
-    input.focus();
+    mainInput.setSelectionRange(newPos, newPos);
+    mainInput.focus();
     const latex = parseToLaTeX(newText);
     scrollingText.innerHTML = '\\(' + latex + '\\)';
     if (window.MathJax) MathJax.typesetPromise([scrollingText]).then(() => applyColorToMath()).catch(()=>{});
@@ -395,4 +421,4 @@ tg.BackButton.onClick(() => {
 });
 tg.BackButton.show();
 
-console.log('✅ LED BANNER - FINAL VERSION WITH SMART FRACTIONS');
+console.log('✅ LED BANNER - FIXED VERSION');
