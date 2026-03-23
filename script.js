@@ -28,7 +28,6 @@ const settingsBtn = document.getElementById('settingsBtn');
 const donateBtn = document.getElementById('donateBtn');
 const settingsPanel = document.getElementById('settingsPanel');
 const inputArea = document.getElementById('inputArea');
-const mathBtn = document.getElementById('mathBtn'); // старая кнопка, не используем
 const mathKeyboard = document.getElementById('mathKeyboard');
 const mathKeys = document.querySelectorAll('.math-key');
 const sizeSlider = document.getElementById('sizeSlider');
@@ -84,14 +83,12 @@ function createUnifiedInterface() {
     inputArea.innerHTML = '';
     inputArea.style.cssText = 'display:flex; justify-content:flex-end; align-items:center; padding:16px; gap:10px; position:absolute; bottom:0; left:0; right:0; background:#000; border-top:2px solid rgba(255,255,255,0.2); z-index:100;';
     
-    // Создаём новую MATH кнопку
     mainMathBtn = document.createElement('button');
     mainMathBtn.className = 'math-btn';
     mainMathBtn.id = 'mainMathBtn';
     mainMathBtn.textContent = t.math;
     mainMathBtn.style.cssText = 'width:70px; height:60px; background:#000; border:2px solid #fff; border-radius:30px; color:#fff; font-weight:bold; font-size:18px; cursor:pointer; flex-shrink:0; transition:all 0.2s ease;';
     
-    // Создаём поле ввода
     mainInput = document.createElement('input');
     mainInput.type = 'text';
     mainInput.id = 'mainInput';
@@ -100,7 +97,6 @@ function createUnifiedInterface() {
     mainInput.value = t.banner;
     mainInput.style.cssText = 'flex:1; min-width:0; background:#111; border:2px solid #fff; border-radius:30px; padding:14px 18px; font-size:16px; color:#fff; outline:none; transition:all 0.2s ease;';
     
-    // Создаём RUN кнопку
     mainRunBtn = document.createElement('button');
     mainRunBtn.className = 'run-btn';
     mainRunBtn.id = 'mainRunBtn';
