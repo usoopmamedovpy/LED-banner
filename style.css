@@ -2,7 +2,6 @@
 /* LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ */
 /* ============================================ */
 
-/* Мягкий сброс */
 * {
     margin: 0;
     padding: 0;
@@ -34,7 +33,6 @@ body {
     position: relative;
 }
 
-/* Фоновая подложка - закрывает щели */
 .app-bg-fix {
     position: fixed;
     top: 0;
@@ -46,7 +44,6 @@ body {
     pointer-events: none;
 }
 
-/* СПЕЦИАЛЬНЫЙ ФИКС ДЛЯ УГЛОВОГО ПИКСЕЛЯ */
 .corner-pixel-fix {
     position: fixed;
     top: 0;
@@ -158,7 +155,6 @@ body {
     filter: drop-shadow(0 0 4px rgba(0,0,0,0.8));
 }
 
-/* Адаптация для мобилок */
 @media (max-width: 480px) {
     .reset-btn, .settings-btn, .donate-btn {
         width: 40px;
@@ -187,7 +183,7 @@ body {
 }
 
 /* ============================================ */
-/* АНИМАЦИЯ - 2D, БЕЗ 3D */
+/* АНИМАЦИЯ */
 /* ============================================ */
 .banner-area {
     flex: 1;
@@ -199,8 +195,6 @@ body {
     position: relative;
     min-height: 0;
     padding: 20px;
-    -webkit-mask-image: none !important;
-    mask-image: none !important;
 }
 
 .scrolling-wrapper {
@@ -229,21 +223,21 @@ body {
     to { transform: translateX(calc(-100% - 50px)); }
 }
 
-/* MathJax стили */
 .scrolling-text mjx-container {
     text-shadow: none !important;
     box-shadow: none !important;
     background: transparent !important;
 }
 
-/* Контейнер для ввода */
+/* ============================================ */
+/* ОБЛАСТЬ ВВОДА */
+/* ============================================ */
 .input-container {
     width: 100%;
     position: relative;
     z-index: 100;
 }
 
-/* Область ввода */
 .input-area {
     display: flex;
     gap: 10px;
@@ -257,7 +251,6 @@ body {
     z-index: 101;
 }
 
-/* MATH кнопка */
 .math-btn {
     width: 70px;
     height: 60px;
@@ -269,10 +262,6 @@ body {
     font-size: 18px;
     cursor: pointer;
     transition: all 0.2s ease;
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
 }
 
 .math-btn.active {
@@ -286,7 +275,6 @@ body {
     transform: scale(0.95);
 }
 
-/* Поле ввода */
 .text-input {
     flex: 1;
     background: #111111;
@@ -308,7 +296,6 @@ body {
     color: rgba(255,255,255,0.5);
 }
 
-/* RUN кнопка */
 .run-btn {
     width: 70px;
     height: 60px;
@@ -323,10 +310,6 @@ body {
     text-transform: uppercase;
     letter-spacing: 2px;
     transition: all 0.2s ease;
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
 }
 
 .run-btn:active {
@@ -353,13 +336,15 @@ body {
     max-height: 450px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    pointer-events: none;
 }
 
 .math-keyboard.show {
     transform: translateY(0);
+    pointer-events: auto;
 }
 
-/* Вкладки клавиатуры */
+/* Вкладки */
 .keyboard-tabs {
     display: flex;
     gap: 10px;
@@ -390,7 +375,6 @@ body {
     transform: scale(0.95);
 }
 
-/* Содержимое вкладок */
 .tab-content {
     display: none;
 }
@@ -399,7 +383,6 @@ body {
     display: block;
 }
 
-/* Сетка кнопок */
 .keyboard-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -425,9 +408,7 @@ body {
     transform: scale(0.95);
 }
 
-/* ============================================ */
-/* ФИЗИЧЕСКАЯ КЛАВИАТУРА */
-/* ============================================ */
+/* Физика */
 .physics-subtabs {
     display: flex;
     gap: 15px;
@@ -448,10 +429,6 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
 }
 
 .physics-subtab-btn.active {
@@ -473,9 +450,7 @@ body {
     display: block;
 }
 
-/* ============================================ */
-/* ПАНЕЛЬ НАСТРОЕК */
-/* ============================================ */
+/* Панель настроек */
 .settings-panel {
     position: absolute;
     top: 0;
@@ -566,7 +541,7 @@ body {
     font-weight: bold;
 }
 
-/* Кнопки цвета */
+/* Цвета */
 .color-buttons {
     display: flex;
     gap: 12px;
@@ -598,9 +573,7 @@ body {
 .color-btn.green { background: #34c759; }
 .color-btn.yellow { background: #ffcc00; }
 
-/* ============================================ */
-/* АДАПТАЦИЯ ПОД МОБИЛКИ */
-/* ============================================ */
+/* Адаптация */
 @media (max-width: 480px) {
     .math-btn, .run-btn {
         width: 60px;
@@ -639,9 +612,7 @@ body {
     }
 }
 
-/* ============================================ */
-/* ПОДДЕРЖКА ТЕЛЕГРАММА */
-/* ============================================ */
+/* Поддержка Telegram */
 body, html, .app-container, .mobile-view, .banner-area, 
 .input-area, .math-keyboard, .settings-content {
     background: #000000;
