@@ -161,46 +161,48 @@ function parseToLaTeX(text) {
     // 2. Векторы
     result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
     
-    // 3. Дроби в формате (выражение/выражение)
+    // 3. НОВЫЙ ФОРМАТ ДРОБЕЙ: (выражение/выражение) → \frac{выражение}{выражение}
     let prevResult;
     do {
         prevResult = result;
+        // Простые дроби без вложений
         result = result.replace(/\(([^()/]+)\/([^()/]+)\)/g, '\\frac{$1}{$2}');
+        // Дроби со скобками внутри: (a+b)/(c+d)
         result = result.replace(/\(((?:[^()]|\([^()]*\))*)\)\s*\/\s*\(((?:[^()]|\([^()]*\))*)\)/g, '\\frac{$1}{$2}');
+        // Формат (число/выражение)
         result = result.replace(/\((\d+)\/([^()]+)\)/g, '\\frac{$1}{$2}');
+        // Формат (выражение/число)
         result = result.replace(/\(([^()]+)\/(\d+)\)/g, '\\frac{$1}{$2}');
+        // Формат (буква/буква)
         result = result.replace(/\(([a-zA-Zα-ω]+)\/([a-zA-Zα-ω]+)\)/g, '\\frac{$1}{$2}');
     } while (result !== prevResult);
     
-    // 4. Простые дроби
+    // 4. Простые дроби (число/число) — для обратной совместимости
     result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
     
-    // 5. КОРНИ с дробями внутри
-    result = result.replace(/√\[\(([^)]+)\/([^)]+)\)\]/g, '\\sqrt{\\frac{$1}{$2}}');
-    
-    // 6. КОРЕНЬ n-Й СТЕПЕНИ
+    // 5. КОРЕНЬ n-Й СТЕПЕНИ
     result = result.replace(/\/(\d+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
     result = result.replace(/\/([a-zA-Zα-ω]+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
     
-    // 7. КУБИЧЕСКИЙ КОРЕНЬ
+    // 6. КУБИЧЕСКИЙ КОРЕНЬ
     result = result.replace(/∛\[([^\]]+)\]/g, '\\sqrt[3]{$1}');
     
-    // 8. КОРЕНЬ 4-Й СТЕПЕНИ
+    // 7. КОРЕНЬ 4-Й СТЕПЕНИ
     result = result.replace(/∜\[([^\]]+)\]/g, '\\sqrt[4]{$1}');
     
-    // 9. ОБЫЧНЫЙ КОРЕНЬ
+    // 8. ОБЫЧНЫЙ КОРЕНЬ: √[выражение] → \sqrt{выражение}
     result = result.replace(/√\[([^\]]+)\]/g, '\\sqrt{$1}');
     result = result.replace(/√([a-zA-Z0-9α-ω])/g, '\\sqrt{$1}');
     
-    // 10. Степени
+    // 9. Степени
     result = result.replace(/([a-zA-Z0-9α-ω])\^\(([^)]+)\)/g, '$1^{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])\^([a-zA-Z0-9α-ω])/g, '$1^{$2}');
     
-    // 11. Индексы
+    // 10. Индексы
     result = result.replace(/([a-zA-Z0-9α-ω])_\(([^)]+)\)/g, '$1_{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])_([a-zA-Z0-9α-ω])/g, '$1_{$2}');
     
-    // 12. Греческие буквы
+    // 11. Греческие буквы
     const greekMap = {
         'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
         'ε': '\\epsilon', 'ζ': '\\zeta', 'η': '\\eta', 'θ': '\\theta',
@@ -220,7 +222,7 @@ function parseToLaTeX(text) {
         result = result.replace(new RegExp(char, 'g'), latex);
     }
     
-    // 13. Функции
+    // 12. Функции
     const funcs = ['sin', 'cos', 'tan', 'cot', 'arcsin', 'arccos', 'arctan', 'arccot', 'log', 'ln', 'exp', 'lim'];
     funcs.forEach(func => {
         result = result.replace(new RegExp(func + '\\s*\\(', 'g'), func + '(');
@@ -443,4 +445,4 @@ tg.BackButton.onClick(() => {
 });
 tg.BackButton.show();
 
-console.log('✅ LED BANNER - PHYSICS FORMULAS WITH ROOTS AND MULTIPLE VARIANTS');
+console.log('✅ LED BANNER - NEW FRACTION FORMAT: (3+4/7+6) = \\frac{3+4}{7+6}');
