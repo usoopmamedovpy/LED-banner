@@ -54,7 +54,6 @@ let currentSpeed = 15, currentColor = 'white', currentSize = 15, isRunning = fal
 const colorMap = { 'white': '#ffffff', 'red': '#ff3b30', 'blue': '#007aff', 'green': '#34c759', 'yellow': '#ffcc00' };
 
 window.addEventListener('load', function() {
-    console.log('Загрузка...');
     updateTexts();
     createUnifiedInterface();
     loadSavedData();
@@ -75,80 +74,36 @@ function updateTexts() {
 }
 
 function createUnifiedInterface() {
-    // Очищаем inputArea
-    inputArea.innerHTML = '';
-    inputArea.style.display = 'flex';
-    inputArea.style.justifyContent = 'flex-end';
-    inputArea.style.alignItems = 'center';
-    inputArea.style.padding = '16px';
-    inputArea.style.gap = '10px';
-    inputArea.style.position = 'absolute';
-    inputArea.style.bottom = '0';
-    inputArea.style.left = '0';
-    inputArea.style.right = '0';
-    inputArea.style.backgroundColor = '#000000';
-    inputArea.style.borderTop = '2px solid rgba(255,255,255,0.2)';
-    inputArea.style.zIndex = '100';
+    const mathFieldElement = document.getElementById('mathField');
+    if (!mathFieldElement) return;
     
-    // MATH кнопка
+    inputArea.innerHTML = '';
+    inputArea.style.cssText = 'display:flex; justify-content:flex-end; align-items:center; padding:16px; gap:10px; position:absolute; bottom:0; left:0; right:0; background:#000; border-top:2px solid rgba(255,255,255,0.2); z-index:100;';
+    
     const mathButton = document.createElement('button');
     mathButton.className = 'math-btn';
     mathButton.id = 'mainMathBtn';
     mathButton.textContent = t.math;
-    mathButton.style.width = '70px';
-    mathButton.style.height = '60px';
-    mathButton.style.background = '#000000';
-    mathButton.style.border = '2px solid #ffffff';
-    mathButton.style.borderRadius = '30px';
-    mathButton.style.color = '#ffffff';
-    mathButton.style.fontWeight = 'bold';
-    mathButton.style.fontSize = '18px';
-    mathButton.style.cursor = 'pointer';
-    mathButton.style.flexShrink = '0';
-    mathButton.style.transition = 'all 0.2s ease';
+    mathButton.style.cssText = 'width:70px; height:60px; background:#000; border:2px solid #fff; border-radius:30px; color:#fff; font-weight:bold; font-size:18px; cursor:pointer; flex-shrink:0; transition:all 0.2s ease;';
     
-    // Текстовое поле
     const textInput = document.createElement('input');
     textInput.type = 'text';
     textInput.id = 'mainInput';
     textInput.className = 'text-input';
     textInput.placeholder = t.inputPlaceholder;
     textInput.value = t.banner;
-    textInput.style.flex = '1';
-    textInput.style.minWidth = '0';
-    textInput.style.background = '#111111';
-    textInput.style.border = '2px solid #ffffff';
-    textInput.style.borderRadius = '30px';
-    textInput.style.padding = '14px 18px';
-    textInput.style.fontSize = '16px';
-    textInput.style.color = '#ffffff';
-    textInput.style.outline = 'none';
-    textInput.style.transition = 'all 0.2s ease';
+    textInput.style.cssText = 'flex:1; min-width:0; background:#111; border:2px solid #fff; border-radius:30px; padding:14px 18px; font-size:16px; color:#fff; outline:none; transition:all 0.2s ease;';
     
-    // RUN кнопка
     const runButton = document.createElement('button');
     runButton.className = 'run-btn';
     runButton.id = 'mainRunBtn';
     runButton.textContent = t.run;
-    runButton.style.width = '70px';
-    runButton.style.height = '60px';
-    runButton.style.background = 'transparent';
-    runButton.style.border = '2px solid #ffffff';
-    runButton.style.borderRadius = '30px';
-    runButton.style.color = '#ffffff';
-    runButton.style.fontWeight = 'bold';
-    runButton.style.fontSize = '18px';
-    runButton.style.cursor = 'pointer';
-    runButton.style.flexShrink = '0';
-    runButton.style.transition = 'all 0.2s ease';
+    runButton.style.cssText = 'width:70px; height:60px; background:transparent; border:2px solid #fff; border-radius:30px; color:#fff; font-weight:bold; font-size:18px; cursor:pointer; flex-shrink:0; transition:all 0.2s ease;';
     
     inputArea.appendChild(mathButton);
     inputArea.appendChild(textInput);
     inputArea.appendChild(runButton);
     
-    console.log('Интерфейс создан');
-    
-    // Обработчики
     mathButton.addEventListener('click', (e) => { e.stopPropagation(); toggleKeyboard(); });
     runButton.addEventListener('click', toggleRun);
     
@@ -166,7 +121,6 @@ function createUnifiedInterface() {
         if (keyboardVisible && !mathKeyboard.contains(e.target) && !mathButton.contains(e.target)) closeKeyboard();
     });
     
-    // Физика
     physicsKeys.forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation(); e.preventDefault();
@@ -207,21 +161,22 @@ function parseToLaTeX(text) {
     // 2. Векторы
     result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
     
-    // 3. ФОРМАТ ДРОБИ: (/) — всё что слева в числитель, всё что справа в знаменатель
+    // 3. Дроби в формате (выражение/выражение)
     let prevResult;
     do {
         prevResult = result;
-        result = result.replace(/([^()]+)\s*\(\/\)\s*([^()]+)/g, '\\frac{$1}{$2}');
-        result = result.replace(/\(([^()]+)\)\s*\(\/\)\s*\(([^()]+)\)/g, '\\frac{$1}{$2}');
-        result = result.replace(/([^()]+)\s*\(\/\)\s*\(([^()]+)\)/g, '\\frac{$1}{$2}');
-        result = result.replace(/\(([^()]+)\)\s*\(\/\)\s*([^()]+)/g, '\\frac{$1}{$2}');
+        result = result.replace(/\(([^()/]+)\/([^()/]+)\)/g, '\\frac{$1}{$2}');
+        result = result.replace(/\(((?:[^()]|\([^()]*\))*)\)\s*\/\s*\(((?:[^()]|\([^()]*\))*)\)/g, '\\frac{$1}{$2}');
+        result = result.replace(/\((\d+)\/([^()]+)\)/g, '\\frac{$1}{$2}');
+        result = result.replace(/\(([^()]+)\/(\d+)\)/g, '\\frac{$1}{$2}');
+        result = result.replace(/\(([a-zA-Zα-ω]+)\/([a-zA-Zα-ω]+)\)/g, '\\frac{$1}{$2}');
     } while (result !== prevResult);
     
-    // 4. Пустая дробь
-    result = result.replace(/\(\/\)/g, '\\frac{}{}');
-    
-    // 5. Простые дроби
+    // 4. Простые дроби
     result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
+    
+    // 5. КОРНИ с дробями внутри
+    result = result.replace(/√\[\(([^)]+)\/([^)]+)\)\]/g, '\\sqrt{\\frac{$1}{$2}}');
     
     // 6. КОРЕНЬ n-Й СТЕПЕНИ
     result = result.replace(/\/(\d+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
@@ -395,14 +350,14 @@ function insertMathSymbol(symbol) {
     else if (symbol === '∜') insertText = '∜[]';
     else if (symbol === 'n√' || symbol === '√[n]') insertText = '/n/√[]';
     else if (symbol === '→' || symbol === '\\vec' || symbol === '⃗') insertText = '{}';
-    else if (symbol === 'a/b' || symbol === 'frac') insertText = '(/)';
+    else if (symbol === 'a/b' || symbol === 'frac') insertText = '()';
     else if (symbol === 'Δ' || symbol === '\\Delta') insertText = 'Δ';
     const newText = text.substring(0, start) + insertText + text.substring(end);
     input.value = newText;
     let newPos = start + insertText.length;
     if (insertText.includes('[]')) newPos = start + insertText.length - 1;
     else if (insertText === '{}') newPos = start + 1;
-    else if (insertText === '(/)') newPos = start + 2;
+    else if (insertText === '()') newPos = start + 1;
     else if (insertText === '/n/√[]') newPos = start + 3;
     input.setSelectionRange(newPos, newPos);
     input.focus();
@@ -488,4 +443,4 @@ tg.BackButton.onClick(() => {
 });
 tg.BackButton.show();
 
-console.log('✅ LED BANNER - WORKING');
+console.log('✅ LED BANNER - PHYSICS FORMULAS WITH ROOTS AND MULTIPLE VARIANTS');
