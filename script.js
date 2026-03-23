@@ -161,48 +161,48 @@ function parseToLaTeX(text) {
     // 2. Векторы
     result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
     
-    // 3. НОВЫЙ ФОРМАТ ДРОБЕЙ: (выражение/выражение) → \frac{выражение}{выражение}
+    // 3. ФОРМАТ ДРОБИ: (/) — всё что слева в числитель, всё что справа в знаменатель
+    // Ищем шаблон: выражение (/) выражение
     let prevResult;
     do {
         prevResult = result;
         // Простые дроби без вложений
-        result = result.replace(/\(([^()/]+)\/([^()/]+)\)/g, '\\frac{$1}{$2}');
-        // Дроби со скобками внутри: (a+b)/(c+d)
-        result = result.replace(/\(((?:[^()]|\([^()]*\))*)\)\s*\/\s*\(((?:[^()]|\([^()]*\))*)\)/g, '\\frac{$1}{$2}');
-        // Формат (число/выражение)
-        result = result.replace(/\((\d+)\/([^()]+)\)/g, '\\frac{$1}{$2}');
-        // Формат (выражение/число)
-        result = result.replace(/\(([^()]+)\/(\d+)\)/g, '\\frac{$1}{$2}');
-        // Формат (буква/буква)
-        result = result.replace(/\(([a-zA-Zα-ω]+)\/([a-zA-Zα-ω]+)\)/g, '\\frac{$1}{$2}');
+        result = result.replace(/([^()]+)\s*\(\/\)\s*([^()]+)/g, '\\frac{$1}{$2}');
+        // Дроби со скобками внутри
+        result = result.replace(/\(([^()]+)\)\s*\(\/\)\s*\(([^()]+)\)/g, '\\frac{$1}{$2}');
+        result = result.replace(/([^()]+)\s*\(\/\)\s*\(([^()]+)\)/g, '\\frac{$1}{$2}');
+        result = result.replace(/\(([^()]+)\)\s*\(\/\)\s*([^()]+)/g, '\\frac{$1}{$2}');
     } while (result !== prevResult);
     
-    // 4. Простые дроби (число/число) — для обратной совместимости
+    // 4. Пустая дробь (/) для начала ввода
+    result = result.replace(/\(\/\)/g, '\\frac{}{}');
+    
+    // 5. Простые дроби (число/число) — для обратной совместимости
     result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
     
-    // 5. КОРЕНЬ n-Й СТЕПЕНИ
+    // 6. КОРЕНЬ n-Й СТЕПЕНИ
     result = result.replace(/\/(\d+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
     result = result.replace(/\/([a-zA-Zα-ω]+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
     
-    // 6. КУБИЧЕСКИЙ КОРЕНЬ
+    // 7. КУБИЧЕСКИЙ КОРЕНЬ
     result = result.replace(/∛\[([^\]]+)\]/g, '\\sqrt[3]{$1}');
     
-    // 7. КОРЕНЬ 4-Й СТЕПЕНИ
+    // 8. КОРЕНЬ 4-Й СТЕПЕНИ
     result = result.replace(/∜\[([^\]]+)\]/g, '\\sqrt[4]{$1}');
     
-    // 8. ОБЫЧНЫЙ КОРЕНЬ: √[выражение] → \sqrt{выражение}
+    // 9. ОБЫЧНЫЙ КОРЕНЬ: √[выражение] → \sqrt{выражение}
     result = result.replace(/√\[([^\]]+)\]/g, '\\sqrt{$1}');
     result = result.replace(/√([a-zA-Z0-9α-ω])/g, '\\sqrt{$1}');
     
-    // 9. Степени
+    // 10. Степени
     result = result.replace(/([a-zA-Z0-9α-ω])\^\(([^)]+)\)/g, '$1^{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])\^([a-zA-Z0-9α-ω])/g, '$1^{$2}');
     
-    // 10. Индексы
+    // 11. Индексы
     result = result.replace(/([a-zA-Z0-9α-ω])_\(([^)]+)\)/g, '$1_{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])_([a-zA-Z0-9α-ω])/g, '$1_{$2}');
     
-    // 11. Греческие буквы
+    // 12. Греческие буквы
     const greekMap = {
         'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
         'ε': '\\epsilon', 'ζ': '\\zeta', 'η': '\\eta', 'θ': '\\theta',
@@ -222,7 +222,7 @@ function parseToLaTeX(text) {
         result = result.replace(new RegExp(char, 'g'), latex);
     }
     
-    // 12. Функции
+    // 13. Функции
     const funcs = ['sin', 'cos', 'tan', 'cot', 'arcsin', 'arccos', 'arctan', 'arccot', 'log', 'ln', 'exp', 'lim'];
     funcs.forEach(func => {
         result = result.replace(new RegExp(func + '\\s*\\(', 'g'), func + '(');
@@ -352,14 +352,14 @@ function insertMathSymbol(symbol) {
     else if (symbol === '∜') insertText = '∜[]';
     else if (symbol === 'n√' || symbol === '√[n]') insertText = '/n/√[]';
     else if (symbol === '→' || symbol === '\\vec' || symbol === '⃗') insertText = '{}';
-    else if (symbol === 'a/b' || symbol === 'frac') insertText = '()';
+    else if (symbol === 'a/b' || symbol === 'frac') insertText = '(/)';
     else if (symbol === 'Δ' || symbol === '\\Delta') insertText = 'Δ';
     const newText = text.substring(0, start) + insertText + text.substring(end);
     input.value = newText;
     let newPos = start + insertText.length;
     if (insertText.includes('[]')) newPos = start + insertText.length - 1;
     else if (insertText === '{}') newPos = start + 1;
-    else if (insertText === '()') newPos = start + 1;
+    else if (insertText === '(/)') newPos = start + 2;
     else if (insertText === '/n/√[]') newPos = start + 3;
     input.setSelectionRange(newPos, newPos);
     input.focus();
@@ -445,4 +445,4 @@ tg.BackButton.onClick(() => {
 });
 tg.BackButton.show();
 
-console.log('✅ LED BANNER - NEW FRACTION FORMAT: (3+4/7+6) = \\frac{3+4}{7+6}');
+console.log('✅ LED BANNER - FRACTION FORMAT: (/)');
