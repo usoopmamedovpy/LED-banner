@@ -57,11 +57,13 @@ let mainRunBtn = null;
 const colorMap = { 'white': '#ffffff', 'red': '#ff3b30', 'blue': '#007aff', 'green': '#34c759', 'yellow': '#ffcc00' };
 
 window.addEventListener('load', function() {
+    console.log('Загрузка...');
     updateTexts();
     createUnifiedInterface();
     loadSavedData();
     setTimeout(applyColorToMath, 500);
     scrollingText.style.textShadow = 'none';
+    console.log('Загрузка завершена');
 });
 
 function updateTexts() {
@@ -77,17 +79,37 @@ function updateTexts() {
 }
 
 function createUnifiedInterface() {
-    const mathFieldElement = document.getElementById('mathField');
-    if (!mathFieldElement) return;
+    console.log('Создание интерфейса...');
     
     inputArea.innerHTML = '';
-    inputArea.style.cssText = 'display:flex; justify-content:flex-end; align-items:center; padding:16px; gap:10px; position:absolute; bottom:0; left:0; right:0; background:#000; border-top:2px solid rgba(255,255,255,0.2); z-index:100;';
+    inputArea.style.display = 'flex';
+    inputArea.style.justifyContent = 'flex-end';
+    inputArea.style.alignItems = 'center';
+    inputArea.style.padding = '16px';
+    inputArea.style.gap = '10px';
+    inputArea.style.position = 'absolute';
+    inputArea.style.bottom = '0';
+    inputArea.style.left = '0';
+    inputArea.style.right = '0';
+    inputArea.style.backgroundColor = '#000000';
+    inputArea.style.borderTop = '2px solid rgba(255,255,255,0.2)';
+    inputArea.style.zIndex = '100';
     
     mainMathBtn = document.createElement('button');
     mainMathBtn.className = 'math-btn';
     mainMathBtn.id = 'mainMathBtn';
     mainMathBtn.textContent = t.math;
-    mainMathBtn.style.cssText = 'width:70px; height:60px; background:#000; border:2px solid #fff; border-radius:30px; color:#fff; font-weight:bold; font-size:18px; cursor:pointer; flex-shrink:0; transition:all 0.2s ease;';
+    mainMathBtn.style.width = '70px';
+    mainMathBtn.style.height = '60px';
+    mainMathBtn.style.background = '#000000';
+    mainMathBtn.style.border = '2px solid #fff';
+    mainMathBtn.style.borderRadius = '30px';
+    mainMathBtn.style.color = '#fff';
+    mainMathBtn.style.fontWeight = 'bold';
+    mainMathBtn.style.fontSize = '18px';
+    mainMathBtn.style.cursor = 'pointer';
+    mainMathBtn.style.flexShrink = '0';
+    mainMathBtn.style.transition = 'all 0.2s ease';
     
     mainInput = document.createElement('input');
     mainInput.type = 'text';
@@ -95,19 +117,42 @@ function createUnifiedInterface() {
     mainInput.className = 'text-input';
     mainInput.placeholder = t.inputPlaceholder;
     mainInput.value = t.banner;
-    mainInput.style.cssText = 'flex:1; min-width:0; background:#111; border:2px solid #fff; border-radius:30px; padding:14px 18px; font-size:16px; color:#fff; outline:none; transition:all 0.2s ease;';
+    mainInput.style.flex = '1';
+    mainInput.style.minWidth = '0';
+    mainInput.style.background = '#111111';
+    mainInput.style.border = '2px solid #fff';
+    mainInput.style.borderRadius = '30px';
+    mainInput.style.padding = '14px 18px';
+    mainInput.style.fontSize = '16px';
+    mainInput.style.color = '#fff';
+    mainInput.style.outline = 'none';
+    mainInput.style.transition = 'all 0.2s ease';
     
     mainRunBtn = document.createElement('button');
     mainRunBtn.className = 'run-btn';
     mainRunBtn.id = 'mainRunBtn';
     mainRunBtn.textContent = t.run;
-    mainRunBtn.style.cssText = 'width:70px; height:60px; background:transparent; border:2px solid #fff; border-radius:30px; color:#fff; font-weight:bold; font-size:18px; cursor:pointer; flex-shrink:0; transition:all 0.2s ease;';
+    mainRunBtn.style.width = '70px';
+    mainRunBtn.style.height = '60px';
+    mainRunBtn.style.background = 'transparent';
+    mainRunBtn.style.border = '2px solid #fff';
+    mainRunBtn.style.borderRadius = '30px';
+    mainRunBtn.style.color = '#fff';
+    mainRunBtn.style.fontWeight = 'bold';
+    mainRunBtn.style.fontSize = '18px';
+    mainRunBtn.style.cursor = 'pointer';
+    mainRunBtn.style.flexShrink = '0';
+    mainRunBtn.style.transition = 'all 0.2s ease';
     
     inputArea.appendChild(mainMathBtn);
     inputArea.appendChild(mainInput);
     inputArea.appendChild(mainRunBtn);
     
-    console.log('Interface created: MATH + input + RUN');
+    console.log('Элементы созданы:', {
+        mathBtn: !!mainMathBtn,
+        input: !!mainInput,
+        runBtn: !!mainRunBtn
+    });
     
     mainMathBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleKeyboard(); });
     mainRunBtn.addEventListener('click', toggleRun);
@@ -421,4 +466,4 @@ tg.BackButton.onClick(() => {
 });
 tg.BackButton.show();
 
-console.log('✅ LED BANNER - FIXED VERSION');
+console.log('✅ LED BANNER - FIXED MOBILE VERSION');
