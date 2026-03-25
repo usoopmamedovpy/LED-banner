@@ -1,1 +1,253 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <meta name="color-scheme" content="dark">
+    <title>LED Banner Math</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.css">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.min.js"></script>
+    
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+            chtml: { scale: 1, adaptiveCSS: true },
+            options: { enableMenu: false }
+        };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-bg-fix"></div>
+    <div class="corner-pixel-fix"></div>
+    
+    <div class="app-container">
+        <button class="reset-btn" id="resetBtn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M18 6L6 18M6 6L18 18" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+        </button>
 
+        <button class="donate-btn" id="donateBtn" onclick="window.open('https://www.donationalerts.com/r/usoopmamedovpy', '_blank')">
+            <span class="donate-emoji">❤️</span>
+        </button>
+
+        <button class="settings-btn" id="settingsBtn">
+            <span class="settings-emoji">⚙️</span>
+        </button>
+
+        <div class="settings-panel" id="settingsPanel">
+            <div class="settings-content">
+                <h3>Settings</h3>
+                <div class="setting-item">
+                    <label>Text size (8-40)</label>
+                    <div class="slider-container">
+                        <input type="range" id="sizeSlider" min="8" max="40" value="15" step="1" class="slider">
+                        <span class="value-display" id="sizeValue">15vw</span>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <label>Speed (2-30 sec)</label>
+                    <div class="slider-container">
+                        <input type="range" id="speedSlider" min="2" max="30" value="15" step="1" class="slider">
+                        <span class="value-display" id="speedValue">15 sec</span>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <label>Text color</label>
+                    <div class="color-buttons">
+                        <button class="color-btn white active"></button>
+                        <button class="color-btn red"></button>
+                        <button class="color-btn blue"></button>
+                        <button class="color-btn green"></button>
+                        <button class="color-btn yellow"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mobile-view">
+            <div class="banner-area">
+                <div class="scrolling-wrapper">
+                    <div class="scrolling-text" id="scrollingText">\(LED бегущая строка\)</div>
+                </div>
+            </div>
+            
+            <div class="input-container">
+                <div class="input-area" id="inputArea">
+                    <!-- Элементы будут созданы через JS -->
+                </div>
+                
+                <div class="math-keyboard" id="mathKeyboard">
+                    <div class="keyboard-tabs">
+                        <button class="tab-btn active" id="tabFunctions">ƒ(x)</button>
+                        <button class="tab-btn" id="tabGreek">Aα</button>
+                        <button class="tab-btn" id="tabSymbols">∫∑</button>
+                        <button class="tab-btn" id="tabPhysics">⚛️</button>
+                    </div>
+                    
+                    <div class="tab-content active" id="functionsTab">
+                        <div class="keyboard-grid">
+                            <button class="math-key" data-cmd="\sin">sin</button>
+                            <button class="math-key" data-cmd="\cos">cos</button>
+                            <button class="math-key" data-cmd="\tan">tan</button>
+                            <button class="math-key" data-cmd="\cot">cot</button>
+                            <button class="math-key" data-cmd="\arcsin">arcsin</button>
+                            <button class="math-key" data-cmd="\arccos">arccos</button>
+                            <button class="math-key" data-cmd="\arctan">arctan</button>
+                            <button class="math-key" data-cmd="\arccot">arccot</button>
+                            <button class="math-key" data-cmd="\log">log</button>
+                            <button class="math-key" data-cmd="\ln">ln</button>
+                            <button class="math-key" data-cmd="\lg">lg</button>
+                            <button class="math-key" data-cmd="\exp">exp</button>
+                            <button class="math-key" data-cmd="\sqrt">√</button>
+                            <button class="math-key" data-cmd="\sqrt[3]">∛</button>
+                            <button class="math-key" data-cmd="\sqrt[4]">∜</button>
+                            <button class="math-key" data-cmd="\sqrt[n]">n√</button>
+                            <button class="math-key" data-cmd="\frac">a/b</button>
+                            <button class="math-key" data-cmd="^">xⁿ</button>
+                            <button class="math-key" data-cmd="_">xₙ</button>
+                            <button class="math-key" data-cmd="\vec">⃗</button>
+                            <button class="math-key" data-cmd="\int">∫</button>
+                            <button class="math-key" data-cmd="\sum">∑</button>
+                            <button class="math-key" data-cmd="\prod">∏</button>
+                            <button class="math-key" data-cmd="\lim">lim</button>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="greekTab">
+                        <div class="keyboard-grid">
+                            <button class="math-key" data-cmd="\alpha">α</button>
+                            <button class="math-key" data-cmd="\beta">β</button>
+                            <button class="math-key" data-cmd="\gamma">γ</button>
+                            <button class="math-key" data-cmd="\delta">δ</button>
+                            <button class="math-key" data-cmd="\epsilon">ε</button>
+                            <button class="math-key" data-cmd="\zeta">ζ</button>
+                            <button class="math-key" data-cmd="\eta">η</button>
+                            <button class="math-key" data-cmd="\theta">θ</button>
+                            <button class="math-key" data-cmd="\iota">ι</button>
+                            <button class="math-key" data-cmd="\kappa">κ</button>
+                            <button class="math-key" data-cmd="\lambda">λ</button>
+                            <button class="math-key" data-cmd="\mu">μ</button>
+                            <button class="math-key" data-cmd="\nu">ν</button>
+                            <button class="math-key" data-cmd="\xi">ξ</button>
+                            <button class="math-key" data-cmd="\pi">π</button>
+                            <button class="math-key" data-cmd="\rho">ρ</button>
+                            <button class="math-key" data-cmd="\sigma">σ</button>
+                            <button class="math-key" data-cmd="\tau">τ</button>
+                            <button class="math-key" data-cmd="\upsilon">υ</button>
+                            <button class="math-key" data-cmd="\phi">φ</button>
+                            <button class="math-key" data-cmd="\chi">χ</button>
+                            <button class="math-key" data-cmd="\psi">ψ</button>
+                            <button class="math-key" data-cmd="\omega">ω</button>
+                            <button class="math-key" data-cmd="\Delta">Δ</button>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="symbolsTab">
+                        <div class="keyboard-grid">
+                            <button class="math-key" data-cmd="\infty">∞</button>
+                            <button class="math-key" data-cmd="\partial">∂</button>
+                            <button class="math-key" data-cmd="\nabla">∇</button>
+                            <button class="math-key" data-cmd="\forall">∀</button>
+                            <button class="math-key" data-cmd="\exists">∃</button>
+                            <button class="math-key" data-cmd="\in">∈</button>
+                            <button class="math-key" data-cmd="\notin">∉</button>
+                            <button class="math-key" data-cmd="\subset">⊂</button>
+                            <button class="math-key" data-cmd="\supset">⊃</button>
+                            <button class="math-key" data-cmd="\cup">∪</button>
+                            <button class="math-key" data-cmd="\cap">∩</button>
+                            <button class="math-key" data-cmd="\pm">±</button>
+                            <button class="math-key" data-cmd="\times">×</button>
+                            <button class="math-key" data-cmd="\div">÷</button>
+                            <button class="math-key" data-cmd="\neq">≠</button>
+                            <button class="math-key" data-cmd="\leq">≤</button>
+                            <button class="math-key" data-cmd="\geq">≥</button>
+                            <button class="math-key" data-cmd="\approx">≈</button>
+                            <button class="math-key" data-cmd="\propto">∝</button>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="physicsTab">
+                        <div class="physics-subtabs">
+                            <button class="physics-subtab-btn active" data-phys-cat="mechanics">🚗</button>
+                            <button class="physics-subtab-btn" data-phys-cat="optics">👓</button>
+                            <button class="physics-subtab-btn" data-phys-cat="nuclear">⚛️</button>
+                        </div>
+                        
+                        <div class="physics-category active" id="phys-mechanics">
+                            <div class="keyboard-grid">
+                                <button class="math-key" data-formula="v = v₀ + at">v = v₀ + at</button>
+                                <button class="math-key" data-formula="s = v₀t + (1/2)at^2">s = v₀t + (1/2)at^2</button>
+                                <button class="math-key" data-formula="v^2 = v₀^2 + 2as">v^2 = v₀^2 + 2as</button>
+                                <button class="math-key" data-formula="F = ma = Δp/Δt">F = ma = Δp/Δt</button>
+                                <button class="math-key" data-formula="p = mv">p = mv</button>
+                                <button class="math-key" data-formula="E_k = (1/2)mv^2 = p^2/(2m)">E_k = (1/2)mv^2 = p^2/(2m)</button>
+                                <button class="math-key" data-formula="E_p = mgh">E_p = mgh</button>
+                                <button class="math-key" data-formula="F = G·m₁m₂/r^2">F = G·m₁m₂/r^2</button>
+                                <button class="math-key" data-formula="ω = Δφ/Δt = 2π/T = 2πf">ω = Δφ/Δt = 2π/T = 2πf</button>
+                                <button class="math-key" data-formula="v = ωR">v = ωR</button>
+                                <button class="math-key" data-formula="a_c = v^2/R = ω^2R">a_c = v^2/R = ω^2R</button>
+                                <button class="math-key" data-formula="x = A·sin(ωt + φ₀)">x = A·sin(ωt + φ₀)</button>
+                                <button class="math-key" data-formula="T = 2π√[m/k] = 2π/ω">T = 2π√[m/k] = 2π/ω</button>
+                                <button class="math-key" data-formula="T = 2π√[l/g]">T = 2π√[l/g]</button>
+                                <button class="math-key" data-formula="x = v₀·cosα·t">x = v₀·cosα·t</button>
+                                <button class="math-key" data-formula="y = v₀·sinα·t - (1/2)gt^2">y = v₀·sinα·t - (1/2)gt^2</button>
+                                <button class="math-key" data-formula="H_max = v₀²·sin²α/(2g) = (v₀·sinα)²/(2g)">H_max = v₀²·sin²α/(2g)</button>
+                                <button class="math-key" data-formula="L = v₀²·sin2α/g = (v₀²·2·sinα·cosα)/g">L = v₀²·sin2α/g</button>
+                                <button class="math-key" data-formula="h = v₀t - (1/2)gt^2">h = v₀t - (1/2)gt^2</button>
+                                <button class="math-key" data-formula="H_max = v₀²/(2g)">H_max = v₀²/(2g)</button>
+                                <button class="math-key" data-formula="ω = √[k/m] = 2π/T">ω = √[k/m] = 2π/T</button>
+                                <button class="math-key" data-formula="E = (1/2)kA^2 = (1/2)mv_max^2">E = (1/2)kA^2</button>
+                            </div>
+                        </div>
+                        
+                        <div class="physics-category" id="phys-optics">
+                            <div class="keyboard-grid">
+                                <button class="math-key" data-formula="1/f = 1/d_o + 1/d_i">1/f = 1/d_o + 1/d_i</button>
+                                <button class="math-key" data-formula="M = -d_i/d_o = h_i/h_o">M = -d_i/d_o = h_i/h_o</button>
+                                <button class="math-key" data-formula="P = 1/f = (n-1)·(1/R₁ - 1/R₂)">P = 1/f</button>
+                                <button class="math-key" data-formula="n = c/v = λ₀/λ">n = c/v = λ₀/λ</button>
+                                <button class="math-key" data-formula="n₁·sinθ₁ = n₂·sinθ₂">n₁·sinθ₁ = n₂·sinθ₂</button>
+                                <button class="math-key" data-formula="θ_c = arcsin(n₂/n₁)">θ_c = arcsin(n₂/n₁)</button>
+                                <button class="math-key" data-formula="λ = c/f = v/f">λ = c/f = v/f</button>
+                                <button class="math-key" data-formula="E = hf = hc/λ">E = hf = hc/λ</button>
+                                <button class="math-key" data-formula="d·sinθ = mλ">d·sinθ = mλ</button>
+                                <button class="math-key" data-formula="I = I₀·cos²θ">I = I₀·cos²θ</button>
+                                <button class="math-key" data-formula="1/f = (n-1)·(1/R₁ - 1/R₂)">1/f = (n-1)·(1/R₁ - 1/R₂)</button>
+                            </div>
+                        </div>
+                        
+                        <div class="physics-category" id="phys-nuclear">
+                            <div class="keyboard-grid">
+                                <button class="math-key" data-formula="E = mc² = √[p²c² + m₀²c⁴]">E = mc² = √[p²c² + m₀²c⁴]</button>
+                                <button class="math-key" data-formula="ΔE = Δm·c²">ΔE = Δm·c²</button>
+                                <button class="math-key" data-formula="N = N₀·e^{-λt} = N₀·2^{-t/T_{1/2}}">N = N₀·e^{-λt} = N₀·2^{-t/T_{1/2}}</button>
+                                <button class="math-key" data-formula="T_{1/2} = ln(2)/λ = τ·ln(2)">T_{1/2} = ln(2)/λ</button>
+                                <button class="math-key" data-formula="A = λN = A₀·e^{-λt}">A = λN</button>
+                                <button class="math-key" data-formula="Q = (m_i - m_f)c²">Q = (m_i - m_f)c²</button>
+                                <button class="math-key" data-formula="E_b = Δm·c² = (Z·m_p + N·m_n - m_яд)·c²">E_b = Δm·c²</button>
+                                <button class="math-key" data-formula="R = R₀·A^{1/3}">R = R₀·A^{1/3}</button>
+                                <button class="math-key" data-formula="{}^{235}U + n → {}^{141}Ba + {}^{92}Kr + 3n">{}^{235}U + n → {}^{141}Ba + {}^{92}Kr + 3n</button>
+                                <button class="math-key" data-formula="{}^{2}H + {}^{3}H → {}^{4}He + n">{}^{2}H + {}^{3}H → {}^{4}He + n</button>
+                                <button class="math-key" data-formula="λ = ln(2)/T_{1/2} = 1/τ">λ = ln(2)/T_{1/2}</button>
+                                <button class="math-key" data-formula="E = hν = hc/λ = pc">E = hν = hc/λ</button>
+                                <button class="math-key" data-formula="p = h/λ = E/c">p = h/λ = E/c</button>
+                                <button class="math-key" data-formula="λ = h/p = h/√[2mE_k]">λ = h/p</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
