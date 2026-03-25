@@ -161,23 +161,20 @@ function parseToLaTeX(text) {
     // 2. Векторы
     result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
     
-    // 3. ФОРМАТ ДРОБИ: (/) — всё что слева в числитель, всё что справа в знаменатель
-    // Ищем шаблон: выражение (/) выражение
+    // 3. ФОРМАТ ДРОБИ: (выражение/выражение) — скобки удаляются, остаётся только дробь
     let prevResult;
     do {
         prevResult = result;
-        // Простые дроби без вложений
-        result = result.replace(/([^()]+)\s*\(\/\)\s*([^()]+)/g, '\\frac{$1}{$2}');
-        // Дроби со скобками внутри
-        result = result.replace(/\(([^()]+)\)\s*\(\/\)\s*\(([^()]+)\)/g, '\\frac{$1}{$2}');
-        result = result.replace(/([^()]+)\s*\(\/\)\s*\(([^()]+)\)/g, '\\frac{$1}{$2}');
-        result = result.replace(/\(([^()]+)\)\s*\(\/\)\s*([^()]+)/g, '\\frac{$1}{$2}');
+        // Ищем любой текст в скобках, содержащий /
+        result = result.replace(/\(([^()/]+)\/([^()/]+)\)/g, '\\frac{$1}{$2}');
+        // Для выражений со скобками внутри
+        result = result.replace(/\(((?:[^()]|\([^()]*\))*)\/((?:[^()]|\([^()]*\))*)\)/g, '\\frac{$1}{$2}');
     } while (result !== prevResult);
     
     // 4. Пустая дробь (/) для начала ввода
     result = result.replace(/\(\/\)/g, '\\frac{}{}');
     
-    // 5. Простые дроби (число/число) — для обратной совместимости
+    // 5. Простые дроби (число/число) без скобок — для обратной совместимости
     result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
     
     // 6. КОРЕНЬ n-Й СТЕПЕНИ
@@ -352,14 +349,14 @@ function insertMathSymbol(symbol) {
     else if (symbol === '∜') insertText = '∜[]';
     else if (symbol === 'n√' || symbol === '√[n]') insertText = '/n/√[]';
     else if (symbol === '→' || symbol === '\\vec' || symbol === '⃗') insertText = '{}';
-    else if (symbol === 'a/b' || symbol === 'frac') insertText = '(/)';
+    else if (symbol === 'a/b' || symbol === 'frac') insertText = '()';
     else if (symbol === 'Δ' || symbol === '\\Delta') insertText = 'Δ';
     const newText = text.substring(0, start) + insertText + text.substring(end);
     input.value = newText;
     let newPos = start + insertText.length;
     if (insertText.includes('[]')) newPos = start + insertText.length - 1;
     else if (insertText === '{}') newPos = start + 1;
-    else if (insertText === '(/)') newPos = start + 2;
+    else if (insertText === '()') newPos = start + 1;
     else if (insertText === '/n/√[]') newPos = start + 3;
     input.setSelectionRange(newPos, newPos);
     input.focus();
@@ -445,4 +442,4 @@ tg.BackButton.onClick(() => {
 });
 tg.BackButton.show();
 
-console.log('✅ LED BANNER - FRACTION FORMAT: (/)');
+console.log('✅ LED BANNER - FRACTIONS WITHOUT BRACKETS IN RENDER');
