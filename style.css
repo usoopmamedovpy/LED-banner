@@ -84,10 +84,6 @@ body {
     z-index: 1000;
     padding: 0;
     transition: all 0.2s ease;
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
     top: calc(16px + var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + 30px);
 }
 
@@ -133,27 +129,11 @@ body {
     transform: scale(0.95);
 }
 
-.reset-btn:active svg {
-    stroke: #000000;
-}
-
-.settings-btn:active .settings-emoji {
-    transform: scale(0.9);
-    filter: drop-shadow(0 0 4px rgba(0,0,0,0.5));
-}
-
-.donate-btn:active .donate-emoji {
-    transform: scale(0.9);
-    filter: drop-shadow(0 0 4px rgba(255,0,0,0.5));
-}
-
-.settings-btn.active {
-    background: #ffffff;
-}
-
-.settings-btn.active .settings-emoji {
-    filter: drop-shadow(0 0 4px rgba(0,0,0,0.8));
-}
+.reset-btn:active svg { stroke: #000000; }
+.settings-btn:active .settings-emoji { transform: scale(0.9); filter: drop-shadow(0 0 4px rgba(0,0,0,0.5)); }
+.donate-btn:active .donate-emoji { transform: scale(0.9); filter: drop-shadow(0 0 4px rgba(255,0,0,0.5)); }
+.settings-btn.active { background: #ffffff; }
+.settings-btn.active .settings-emoji { filter: drop-shadow(0 0 4px rgba(0,0,0,0.8)); }
 
 @media (max-width: 480px) {
     .reset-btn, .settings-btn, .donate-btn {
@@ -344,7 +324,6 @@ body {
     pointer-events: auto;
 }
 
-/* Вкладки */
 .keyboard-tabs {
     display: flex;
     gap: 10px;
@@ -408,7 +387,6 @@ body {
     transform: scale(0.95);
 }
 
-/* Физика */
 .physics-subtabs {
     display: flex;
     gap: 15px;
@@ -450,7 +428,9 @@ body {
     display: block;
 }
 
-/* Панель настроек */
+/* ============================================ */
+/* ПАНЕЛЬ НАСТРОЕК */
+/* ============================================ */
 .settings-panel {
     position: absolute;
     top: 0;
@@ -541,7 +521,6 @@ body {
     font-weight: bold;
 }
 
-/* Цвета */
 .color-buttons {
     display: flex;
     gap: 12px;
@@ -573,7 +552,6 @@ body {
 .color-btn.green { background: #34c759; }
 .color-btn.yellow { background: #ffcc00; }
 
-/* Адаптация */
 @media (max-width: 480px) {
     .math-btn, .run-btn {
         width: 60px;
@@ -612,7 +590,6 @@ body {
     }
 }
 
-/* Поддержка Telegram */
 body, html, .app-container, .mobile-view, .banner-area, 
 .input-area, .math-keyboard, .settings-content {
     background: #000000;
