@@ -28,6 +28,7 @@ const settingsBtn = document.getElementById('settingsBtn');
 const donateBtn = document.getElementById('donateBtn');
 const settingsPanel = document.getElementById('settingsPanel');
 const inputArea = document.getElementById('inputArea');
+const mathBtn = document.getElementById('mathBtn');
 const mathKeyboard = document.getElementById('mathKeyboard');
 const mathKeys = document.querySelectorAll('.math-key');
 const sizeSlider = document.getElementById('sizeSlider');
@@ -50,20 +51,14 @@ const physicsCategories = document.querySelectorAll('.physics-category');
 const physicsKeys = document.querySelectorAll('.physics-category .math-key');
 
 let currentSpeed = 15, currentColor = 'white', currentSize = 15, isRunning = false, keyboardVisible = false;
-let mainMathBtn = null;
-let mainInput = null;
-let mainRunBtn = null;
-
 const colorMap = { 'white': '#ffffff', 'red': '#ff3b30', 'blue': '#007aff', 'green': '#34c759', 'yellow': '#ffcc00' };
 
 window.addEventListener('load', function() {
-    console.log('Загрузка...');
     updateTexts();
     createUnifiedInterface();
     loadSavedData();
     setTimeout(applyColorToMath, 500);
     scrollingText.style.textShadow = 'none';
-    console.log('Загрузка завершена');
 });
 
 function updateTexts() {
@@ -79,85 +74,40 @@ function updateTexts() {
 }
 
 function createUnifiedInterface() {
-    console.log('Создание интерфейса...');
+    const mathFieldElement = document.getElementById('mathField');
+    if (!mathFieldElement) return;
     
     inputArea.innerHTML = '';
-    inputArea.style.display = 'flex';
-    inputArea.style.justifyContent = 'flex-end';
-    inputArea.style.alignItems = 'center';
-    inputArea.style.padding = '16px';
-    inputArea.style.gap = '10px';
-    inputArea.style.position = 'absolute';
-    inputArea.style.bottom = '0';
-    inputArea.style.left = '0';
-    inputArea.style.right = '0';
-    inputArea.style.backgroundColor = '#000000';
-    inputArea.style.borderTop = '2px solid rgba(255,255,255,0.2)';
-    inputArea.style.zIndex = '100';
+    inputArea.style.cssText = 'display:flex; justify-content:flex-end; align-items:center; padding:16px; gap:10px; position:absolute; bottom:0; left:0; right:0; background:#000; border-top:2px solid rgba(255,255,255,0.2); z-index:100;';
     
-    mainMathBtn = document.createElement('button');
-    mainMathBtn.className = 'math-btn';
-    mainMathBtn.id = 'mainMathBtn';
-    mainMathBtn.textContent = t.math;
-    mainMathBtn.style.width = '70px';
-    mainMathBtn.style.height = '60px';
-    mainMathBtn.style.background = '#000000';
-    mainMathBtn.style.border = '2px solid #fff';
-    mainMathBtn.style.borderRadius = '30px';
-    mainMathBtn.style.color = '#fff';
-    mainMathBtn.style.fontWeight = 'bold';
-    mainMathBtn.style.fontSize = '18px';
-    mainMathBtn.style.cursor = 'pointer';
-    mainMathBtn.style.flexShrink = '0';
-    mainMathBtn.style.transition = 'all 0.2s ease';
+    const mathButton = document.createElement('button');
+    mathButton.className = 'math-btn';
+    mathButton.id = 'mainMathBtn';
+    mathButton.textContent = t.math;
+    mathButton.style.cssText = 'width:70px; height:60px; background:#000; border:2px solid #fff; border-radius:30px; color:#fff; font-weight:bold; font-size:18px; cursor:pointer; flex-shrink:0; transition:all 0.2s ease;';
     
-    mainInput = document.createElement('input');
-    mainInput.type = 'text';
-    mainInput.id = 'mainInput';
-    mainInput.className = 'text-input';
-    mainInput.placeholder = t.inputPlaceholder;
-    mainInput.value = t.banner;
-    mainInput.style.flex = '1';
-    mainInput.style.minWidth = '0';
-    mainInput.style.background = '#111111';
-    mainInput.style.border = '2px solid #fff';
-    mainInput.style.borderRadius = '30px';
-    mainInput.style.padding = '14px 18px';
-    mainInput.style.fontSize = '16px';
-    mainInput.style.color = '#fff';
-    mainInput.style.outline = 'none';
-    mainInput.style.transition = 'all 0.2s ease';
+    const textInput = document.createElement('input');
+    textInput.type = 'text';
+    textInput.id = 'mainInput';
+    textInput.className = 'text-input';
+    textInput.placeholder = t.inputPlaceholder;
+    textInput.value = t.banner;
+    textInput.style.cssText = 'flex:1; min-width:0; background:#111; border:2px solid #fff; border-radius:30px; padding:14px 18px; font-size:16px; color:#fff; outline:none; transition:all 0.2s ease;';
     
-    mainRunBtn = document.createElement('button');
-    mainRunBtn.className = 'run-btn';
-    mainRunBtn.id = 'mainRunBtn';
-    mainRunBtn.textContent = t.run;
-    mainRunBtn.style.width = '70px';
-    mainRunBtn.style.height = '60px';
-    mainRunBtn.style.background = 'transparent';
-    mainRunBtn.style.border = '2px solid #fff';
-    mainRunBtn.style.borderRadius = '30px';
-    mainRunBtn.style.color = '#fff';
-    mainRunBtn.style.fontWeight = 'bold';
-    mainRunBtn.style.fontSize = '18px';
-    mainRunBtn.style.cursor = 'pointer';
-    mainRunBtn.style.flexShrink = '0';
-    mainRunBtn.style.transition = 'all 0.2s ease';
+    const runButton = document.createElement('button');
+    runButton.className = 'run-btn';
+    runButton.id = 'mainRunBtn';
+    runButton.textContent = t.run;
+    runButton.style.cssText = 'width:70px; height:60px; background:transparent; border:2px solid #fff; border-radius:30px; color:#fff; font-weight:bold; font-size:18px; cursor:pointer; flex-shrink:0; transition:all 0.2s ease;';
     
-    inputArea.appendChild(mainMathBtn);
-    inputArea.appendChild(mainInput);
-    inputArea.appendChild(mainRunBtn);
+    inputArea.appendChild(mathButton);
+    inputArea.appendChild(textInput);
+    inputArea.appendChild(runButton);
     
-    console.log('Элементы созданы:', {
-        mathBtn: !!mainMathBtn,
-        input: !!mainInput,
-        runBtn: !!mainRunBtn
-    });
+    mathButton.addEventListener('click', (e) => { e.stopPropagation(); toggleKeyboard(); });
+    runButton.addEventListener('click', toggleRun);
     
-    mainMathBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleKeyboard(); });
-    mainRunBtn.addEventListener('click', toggleRun);
-    
-    mainInput.addEventListener('input', (e) => {
+    textInput.addEventListener('input', (e) => {
         const text = e.target.value;
         const latex = parseToLaTeX(text);
         scrollingText.innerHTML = '\\(' + latex + '\\)';
@@ -165,10 +115,10 @@ function createUnifiedInterface() {
         saveData({ latex: latex, raw: text });
     });
     
-    mainInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') toggleRun(); });
+    textInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') toggleRun(); });
     
     document.addEventListener('click', (e) => {
-        if (keyboardVisible && !mathKeyboard.contains(e.target) && !mainMathBtn?.contains(e.target)) closeKeyboard();
+        if (keyboardVisible && !mathKeyboard.contains(e.target) && !mathButton.contains(e.target)) closeKeyboard();
     });
     
     physicsKeys.forEach(btn => {
@@ -205,31 +155,54 @@ function parseToLaTeX(text) {
     if (!text) return '';
     let result = text;
     
+    // 1. Сохраняем пробелы
     result = result.replace(/ /g, '\\ ');
+    
+    // 2. Векторы
     result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
     
+    // 3. ФОРМАТ ДРОБИ: (/) — всё что слева в числитель, всё что справа в знаменатель
+    // Ищем шаблон: выражение (/) выражение
     let prevResult;
     do {
         prevResult = result;
+        // Простые дроби без вложений
         result = result.replace(/([^()]+)\s*\(\/\)\s*([^()]+)/g, '\\frac{$1}{$2}');
+        // Дроби со скобками внутри
         result = result.replace(/\(([^()]+)\)\s*\(\/\)\s*\(([^()]+)\)/g, '\\frac{$1}{$2}');
         result = result.replace(/([^()]+)\s*\(\/\)\s*\(([^()]+)\)/g, '\\frac{$1}{$2}');
         result = result.replace(/\(([^()]+)\)\s*\(\/\)\s*([^()]+)/g, '\\frac{$1}{$2}');
     } while (result !== prevResult);
     
+    // 4. Пустая дробь (/) для начала ввода
     result = result.replace(/\(\/\)/g, '\\frac{}{}');
+    
+    // 5. Простые дроби (число/число) — для обратной совместимости
     result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
+    
+    // 6. КОРЕНЬ n-Й СТЕПЕНИ
     result = result.replace(/\/(\d+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
     result = result.replace(/\/([a-zA-Zα-ω]+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
+    
+    // 7. КУБИЧЕСКИЙ КОРЕНЬ
     result = result.replace(/∛\[([^\]]+)\]/g, '\\sqrt[3]{$1}');
+    
+    // 8. КОРЕНЬ 4-Й СТЕПЕНИ
     result = result.replace(/∜\[([^\]]+)\]/g, '\\sqrt[4]{$1}');
+    
+    // 9. ОБЫЧНЫЙ КОРЕНЬ: √[выражение] → \sqrt{выражение}
     result = result.replace(/√\[([^\]]+)\]/g, '\\sqrt{$1}');
     result = result.replace(/√([a-zA-Z0-9α-ω])/g, '\\sqrt{$1}');
+    
+    // 10. Степени
     result = result.replace(/([a-zA-Z0-9α-ω])\^\(([^)]+)\)/g, '$1^{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])\^([a-zA-Z0-9α-ω])/g, '$1^{$2}');
+    
+    // 11. Индексы
     result = result.replace(/([a-zA-Z0-9α-ω])_\(([^)]+)\)/g, '$1_{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])_([a-zA-Z0-9α-ω])/g, '$1_{$2}');
     
+    // 12. Греческие буквы
     const greekMap = {
         'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
         'ε': '\\epsilon', 'ζ': '\\zeta', 'η': '\\eta', 'θ': '\\theta',
@@ -249,6 +222,7 @@ function parseToLaTeX(text) {
         result = result.replace(new RegExp(char, 'g'), latex);
     }
     
+    // 13. Функции
     const funcs = ['sin', 'cos', 'tan', 'cot', 'arcsin', 'arccos', 'arctan', 'arccot', 'log', 'ln', 'exp', 'lim'];
     funcs.forEach(func => {
         result = result.replace(new RegExp(func + '\\s*\\(', 'g'), func + '(');
@@ -278,8 +252,9 @@ function loadSavedData() {
             if (data.color) { currentColor = data.color; setTimeout(() => applyColorToMath(), 100); }
             if (data.speed) { currentSpeed = data.speed; speedSlider.value = currentSpeed; speedValue.textContent = currentSpeed + (isRussian ? ' сек' : ' sec'); }
             if (data.size) { currentSize = data.size; sizeSlider.value = currentSize; sizeValue.textContent = currentSize + 'vw'; scrollingText.style.fontSize = currentSize + 'vw'; }
-            if (data.raw && mainInput) {
-                mainInput.value = data.raw;
+            if (data.raw) {
+                const input = document.getElementById('mainInput');
+                if (input) input.value = data.raw;
                 if (data.latex) {
                     scrollingText.innerHTML = '\\(' + data.latex + '\\)';
                     if (window.MathJax) MathJax.typesetPromise([scrollingText]).then(() => applyColorToMath()).catch(()=>{});
@@ -300,23 +275,24 @@ function restartAnimation() { scrollingText.style.animation = 'none'; void scrol
 function toggleKeyboard() {
     if (isRunning) return;
     keyboardVisible = !keyboardVisible;
-    const mathButton = document.getElementById('mainMathBtn');
     if (keyboardVisible) {
         mathKeyboard.classList.add('show');
-        if (mathButton) mathButton.classList.add('active');
+        mathBtn.classList.add('active');
+        document.getElementById('mainMathBtn')?.classList.add('active');
         settingsPanel.classList.remove('show');
         settingsBtn.classList.remove('active');
     } else {
         mathKeyboard.classList.remove('show');
-        if (mathButton) mathButton.classList.remove('active');
+        mathBtn.classList.remove('active');
+        document.getElementById('mainMathBtn')?.classList.remove('active');
     }
 }
 
 function closeKeyboard() {
     keyboardVisible = false;
     mathKeyboard.classList.remove('show');
-    const mathButton = document.getElementById('mainMathBtn');
-    if (mathButton) mathButton.classList.remove('active');
+    mathBtn.classList.remove('active');
+    document.getElementById('mainMathBtn')?.classList.remove('active');
 }
 
 function toggleRun() {
@@ -346,9 +322,11 @@ function handleReset() {
         settingsBtn.style.display = 'flex';
         donateBtn.style.display = 'flex';
         isRunning = false;
-        if (mainInput) { const currentText = mainInput.value; const latex = parseToLaTeX(currentText); saveData({ latex, raw: currentText }); }
+        const input = document.getElementById('mainInput');
+        if (input) { const currentText = input.value; const latex = parseToLaTeX(currentText); saveData({ latex, raw: currentText }); }
     } else {
-        if (mainInput) mainInput.value = t.banner;
+        const input = document.getElementById('mainInput');
+        if (input) input.value = t.banner;
         scrollingText.innerHTML = '\\(' + t.banner + '\\)';
         if (window.MathJax) MathJax.typesetPromise([scrollingText]).then(() => applyColorToMath()).catch(()=>{});
         currentColor = 'white'; currentSpeed = 15; currentSize = 15;
@@ -365,8 +343,9 @@ function handleReset() {
 }
 
 function insertMathSymbol(symbol) {
-    if (!mainInput) return;
-    const start = mainInput.selectionStart, end = mainInput.selectionEnd, text = mainInput.value;
+    const input = document.getElementById('mainInput');
+    if (!input) return;
+    const start = input.selectionStart, end = input.selectionEnd, text = input.value;
     let insertText = symbol;
     if (symbol === '√') insertText = '√[]';
     else if (symbol === '∛') insertText = '∛[]';
@@ -376,14 +355,14 @@ function insertMathSymbol(symbol) {
     else if (symbol === 'a/b' || symbol === 'frac') insertText = '(/)';
     else if (symbol === 'Δ' || symbol === '\\Delta') insertText = 'Δ';
     const newText = text.substring(0, start) + insertText + text.substring(end);
-    mainInput.value = newText;
+    input.value = newText;
     let newPos = start + insertText.length;
     if (insertText.includes('[]')) newPos = start + insertText.length - 1;
     else if (insertText === '{}') newPos = start + 1;
     else if (insertText === '(/)') newPos = start + 2;
     else if (insertText === '/n/√[]') newPos = start + 3;
-    mainInput.setSelectionRange(newPos, newPos);
-    mainInput.focus();
+    input.setSelectionRange(newPos, newPos);
+    input.focus();
     const latex = parseToLaTeX(newText);
     scrollingText.innerHTML = '\\(' + latex + '\\)';
     if (window.MathJax) MathJax.typesetPromise([scrollingText]).then(() => applyColorToMath()).catch(()=>{});
@@ -466,4 +445,4 @@ tg.BackButton.onClick(() => {
 });
 tg.BackButton.show();
 
-console.log('✅ LED BANNER - FIXED MOBILE VERSION');
+console.log('✅ LED BANNER - FRACTION FORMAT: (/)');
