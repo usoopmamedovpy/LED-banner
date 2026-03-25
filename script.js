@@ -349,14 +349,14 @@ function insertMathSymbol(symbol) {
     else if (symbol === '∜') insertText = '∜[]';
     else if (symbol === 'n√' || symbol === '√[n]') insertText = '/n/√[]';
     else if (symbol === '→' || symbol === '\\vec' || symbol === '⃗') insertText = '{}';
-    else if (symbol === 'a/b' || symbol === 'frac') insertText = '()';
+    else if (symbol === 'a/b' || symbol === 'frac') insertText = '(/)';  // ← ИСПРАВЛЕНО: (/) ВМЕСТО ()
     else if (symbol === 'Δ' || symbol === '\\Delta') insertText = 'Δ';
     const newText = text.substring(0, start) + insertText + text.substring(end);
     input.value = newText;
     let newPos = start + insertText.length;
     if (insertText.includes('[]')) newPos = start + insertText.length - 1;
     else if (insertText === '{}') newPos = start + 1;
-    else if (insertText === '()') newPos = start + 1;
+    else if (insertText === '(/)') newPos = start + 2;  // ← курсор между скобками
     else if (insertText === '/n/√[]') newPos = start + 3;
     input.setSelectionRange(newPos, newPos);
     input.focus();
@@ -442,4 +442,4 @@ tg.BackButton.onClick(() => {
 });
 tg.BackButton.show();
 
-console.log('✅ LED BANNER - FRACTIONS WITHOUT BRACKETS IN RENDER');
+console.log('✅ LED BANNER - FRACTIONS WITH (/)');
