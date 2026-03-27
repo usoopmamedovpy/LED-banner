@@ -12,15 +12,22 @@ document.documentElement.style.backgroundColor = '#000000';
 document.body.style.backgroundColor = '#000000';
 document.body.style.color = '#ffffff';
 
-const userLang = tg.initDataUnsafe?.user?.language_code || navigator.language || 'en';
-const isRussian = userLang.startsWith('ru') || userLang.startsWith('be');
-const t = (isRussian ? {
-    banner: 'LED бегущая строка', inputPlaceholder: 'Введите текст...', settings: 'Настройки',
-    textSize: 'Размер текста (8-40)', speed: 'Скорость (2-30 сек)', color: 'Цвет текста', run: 'RUN', math: 'MATH'
-} : {
-    banner: 'LED banner', inputPlaceholder: 'Enter text...', settings: 'Settings',
-    textSize: 'Text size (8-40)', speed: 'Speed (2-30 sec)', color: 'Text color', run: 'RUN', math: 'MATH'
-});
+// ============================================
+// ТОЛЬКО АНГЛИЙСКИЙ
+// ============================================
+const texts = {
+    banner: 'LED banner',
+    inputPlaceholder: 'Enter text...',
+    settings: 'Settings',
+    textSize: 'Text size (8-40)',
+    speed: 'Speed (2-30 sec)',
+    color: 'Text color',
+    run: 'RUN',
+    math: 'MATH',
+    welcomeHint: 'Examples: √[x+1] | (a/b) | {vector} | αβγ'
+};
+
+const t = texts;
 
 const scrollingText = document.getElementById('scrollingText');
 const resetBtn = document.getElementById('resetBtn');
@@ -90,7 +97,7 @@ function createUnifiedInterface() {
     textInput.type = 'text';
     textInput.id = 'mainInput';
     textInput.className = 'text-input';
-    textInput.placeholder = t.inputPlaceholder;
+    textInput.placeholder = t.inputPlaceholder + ' ' + t.welcomeHint;
     textInput.value = t.banner;
     textInput.style.cssText = 'flex:1; min-width:0; background:#111; border:2px solid #fff; border-radius:30px; padding:14px 18px; font-size:16px; color:#fff; outline:none; transition:all 0.2s ease;';
     
@@ -155,51 +162,29 @@ function parseToLaTeX(text) {
     if (!text) return '';
     let result = text;
     
-    // 1. Сохраняем пробелы
     result = result.replace(/ /g, '\\ ');
-    
-    // 2. Векторы
     result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
     
-    // 3. ФОРМАТ ДРОБИ: (выражение/выражение) — скобки удаляются, остаётся только дробь
     let prevResult;
     do {
         prevResult = result;
-        // Ищем любой текст в скобках, содержащий /
         result = result.replace(/\(([^()/]+)\/([^()/]+)\)/g, '\\frac{$1}{$2}');
-        // Для выражений со скобками внутри
         result = result.replace(/\(((?:[^()]|\([^()]*\))*)\/((?:[^()]|\([^()]*\))*)\)/g, '\\frac{$1}{$2}');
     } while (result !== prevResult);
     
-    // 4. Пустая дробь (/) для начала ввода
     result = result.replace(/\(\/\)/g, '\\frac{}{}');
-    
-    // 5. Простые дроби (число/число) без скобок — для обратной совместимости
     result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
-    
-    // 6. КОРЕНЬ n-Й СТЕПЕНИ
     result = result.replace(/\/(\d+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
     result = result.replace(/\/([a-zA-Zα-ω]+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
-    
-    // 7. КУБИЧЕСКИЙ КОРЕНЬ
     result = result.replace(/∛\[([^\]]+)\]/g, '\\sqrt[3]{$1}');
-    
-    // 8. КОРЕНЬ 4-Й СТЕПЕНИ
     result = result.replace(/∜\[([^\]]+)\]/g, '\\sqrt[4]{$1}');
-    
-    // 9. ОБЫЧНЫЙ КОРЕНЬ: √[выражение] → \sqrt{выражение}
     result = result.replace(/√\[([^\]]+)\]/g, '\\sqrt{$1}');
     result = result.replace(/√([a-zA-Z0-9α-ω])/g, '\\sqrt{$1}');
-    
-    // 10. Степени
     result = result.replace(/([a-zA-Z0-9α-ω])\^\(([^)]+)\)/g, '$1^{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])\^([a-zA-Z0-9α-ω])/g, '$1^{$2}');
-    
-    // 11. Индексы
     result = result.replace(/([a-zA-Z0-9α-ω])_\(([^)]+)\)/g, '$1_{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])_([a-zA-Z0-9α-ω])/g, '$1_{$2}');
     
-    // 12. Греческие буквы
     const greekMap = {
         'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
         'ε': '\\epsilon', 'ζ': '\\zeta', 'η': '\\eta', 'θ': '\\theta',
@@ -219,7 +204,6 @@ function parseToLaTeX(text) {
         result = result.replace(new RegExp(char, 'g'), latex);
     }
     
-    // 13. Функции
     const funcs = ['sin', 'cos', 'tan', 'cot', 'arcsin', 'arccos', 'arctan', 'arccot', 'log', 'ln', 'exp', 'lim'];
     funcs.forEach(func => {
         result = result.replace(new RegExp(func + '\\s*\\(', 'g'), func + '(');
@@ -247,7 +231,7 @@ function loadSavedData() {
         if (saved) {
             const data = JSON.parse(saved);
             if (data.color) { currentColor = data.color; setTimeout(() => applyColorToMath(), 100); }
-            if (data.speed) { currentSpeed = data.speed; speedSlider.value = currentSpeed; speedValue.textContent = currentSpeed + (isRussian ? ' сек' : ' sec'); }
+            if (data.speed) { currentSpeed = data.speed; speedSlider.value = currentSpeed; speedValue.textContent = currentSpeed + ' sec'; }
             if (data.size) { currentSize = data.size; sizeSlider.value = currentSize; sizeValue.textContent = currentSize + 'vw'; scrollingText.style.fontSize = currentSize + 'vw'; }
             if (data.raw) {
                 const input = document.getElementById('mainInput');
@@ -301,7 +285,7 @@ function toggleRun() {
     } else {
         scrollingText.style.fontSize = currentSize + 'vw';
         sizeValue.textContent = currentSize + 'vw';
-        speedValue.textContent = currentSpeed + (isRussian ? ' сек' : ' sec');
+        speedValue.textContent = currentSpeed + ' sec';
         restartAnimation();
         applyColorToMath();
         inputArea.style.display = 'none';
@@ -328,11 +312,11 @@ function handleReset() {
         if (window.MathJax) MathJax.typesetPromise([scrollingText]).then(() => applyColorToMath()).catch(()=>{});
         currentColor = 'white'; currentSpeed = 15; currentSize = 15;
         sizeSlider.value = 15; speedSlider.value = 15;
-        sizeValue.textContent = '15vw'; speedValue.textContent = currentSpeed + (isRussian ? ' сек' : ' sec');
+        sizeValue.textContent = '15vw'; speedValue.textContent = '15 sec';
         scrollingText.style.fontSize = '15vw';
         applyColorToMath();
         restartAnimation();
-        saveData({ latex: 'LED\\ ' + (isRussian ? 'бегущая строка' : 'banner'), raw: t.banner });
+        saveData({ latex: 'LED\\ banner', raw: t.banner });
     }
     closeKeyboard();
     settingsPanel.classList.remove('show');
@@ -349,14 +333,14 @@ function insertMathSymbol(symbol) {
     else if (symbol === '∜') insertText = '∜[]';
     else if (symbol === 'n√' || symbol === '√[n]') insertText = '/n/√[]';
     else if (symbol === '→' || symbol === '\\vec' || symbol === '⃗') insertText = '{}';
-    else if (symbol === 'a/b' || symbol === 'frac') insertText = '(/)';  // ← ИСПРАВЛЕНО: (/) ВМЕСТО ()
+    else if (symbol === 'a/b' || symbol === 'frac') insertText = '(/)';
     else if (symbol === 'Δ' || symbol === '\\Delta') insertText = 'Δ';
     const newText = text.substring(0, start) + insertText + text.substring(end);
     input.value = newText;
     let newPos = start + insertText.length;
     if (insertText.includes('[]')) newPos = start + insertText.length - 1;
     else if (insertText === '{}') newPos = start + 1;
-    else if (insertText === '(/)') newPos = start + 2;  // ← курсор между скобками
+    else if (insertText === '(/)') newPos = start + 2;
     else if (insertText === '/n/√[]') newPos = start + 3;
     input.setSelectionRange(newPos, newPos);
     input.focus();
@@ -415,7 +399,7 @@ sizeSlider.addEventListener('input', () => {
 });
 speedSlider.addEventListener('input', () => {
     currentSpeed = parseInt(speedSlider.value);
-    speedValue.textContent = currentSpeed + (isRussian ? ' сек' : ' sec');
+    speedValue.textContent = currentSpeed + ' sec';
     restartAnimation();
     saveData({});
 });
@@ -442,4 +426,4 @@ tg.BackButton.onClick(() => {
 });
 tg.BackButton.show();
 
-console.log('✅ LED BANNER - FRACTIONS WITH (/)');
+console.log('✅ LED BANNER - ENGLISH ONLY');
