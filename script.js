@@ -17,14 +17,13 @@ document.body.style.color = '#ffffff';
 // ============================================
 const texts = {
     banner: 'LED banner',
-    inputPlaceholder: 'Enter text...',
+    inputPlaceholder: 'Enter text...',  // ← только это
     settings: 'Settings',
     textSize: 'Text size (8-40)',
     speed: 'Speed (2-30 sec)',
     color: 'Text color',
     run: 'RUN',
-    math: 'MATH',
-    welcomeHint: 'Examples: √[x+1] | (a/b) | {vector} | αβγ'
+    math: 'MATH'
 };
 
 const t = texts;
@@ -97,7 +96,7 @@ function createUnifiedInterface() {
     textInput.type = 'text';
     textInput.id = 'mainInput';
     textInput.className = 'text-input';
-    textInput.placeholder = t.inputPlaceholder + ' ' + t.welcomeHint;
+    textInput.placeholder = t.inputPlaceholder;  // ← только Enter text...
     textInput.value = t.banner;
     textInput.style.cssText = 'flex:1; min-width:0; background:#111; border:2px solid #fff; border-radius:30px; padding:14px 18px; font-size:16px; color:#fff; outline:none; transition:all 0.2s ease;';
     
