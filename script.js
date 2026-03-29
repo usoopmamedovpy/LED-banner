@@ -12,12 +12,9 @@ document.documentElement.style.backgroundColor = '#000000';
 document.body.style.backgroundColor = '#000000';
 document.body.style.color = '#ffffff';
 
-// ============================================
-// ТОЛЬКО АНГЛИЙСКИЙ
-// ============================================
 const texts = {
     banner: 'LED banner',
-    inputPlaceholder: 'Enter text...',  // ← только это
+    inputPlaceholder: 'Enter text...',
     settings: 'Settings',
     textSize: 'Text size (8-40)',
     speed: 'Speed (2-30 sec)',
@@ -41,7 +38,14 @@ const sizeSlider = document.getElementById('sizeSlider');
 const sizeValue = document.getElementById('sizeValue');
 const speedSlider = document.getElementById('speedSlider');
 const speedValue = document.getElementById('speedValue');
-const colorButtons = document.querySelectorAll('.color-btn');
+
+// Цветовой пикер
+const colorPreview = document.getElementById('colorPreview');
+const colorPalette = document.getElementById('colorPalette');
+const paletteIndicator = document.getElementById('paletteIndicator');
+const brightnessSlider = document.getElementById('brightnessSlider');
+const brightnessValue = document.getElementById('brightnessValue');
+const shadesScroll = document.getElementById('shadesScroll');
 
 const tabFunctions = document.getElementById('tabFunctions');
 const tabGreek = document.getElementById('tabGreek');
@@ -56,13 +60,33 @@ const physicsSubtabs = document.querySelectorAll('.physics-subtab-btn');
 const physicsCategories = document.querySelectorAll('.physics-category');
 const physicsKeys = document.querySelectorAll('.physics-category .math-key');
 
-let currentSpeed = 15, currentColor = 'white', currentSize = 15, isRunning = false, keyboardVisible = false;
-const colorMap = { 'white': '#ffffff', 'red': '#ff3b30', 'blue': '#007aff', 'green': '#34c759', 'yellow': '#ffcc00' };
+let currentSpeed = 15, currentColor = '#ffffff', currentSize = 15, isRunning = false, keyboardVisible = false;
+
+// Дефолтные цвета
+const defaultColors = [
+    { name: 'white', hex: '#ffffff', shades: ['#ffffff', '#f5f5f5', '#e0e0e0', '#cccccc', '#b3b3b3'] },
+    { name: 'black', hex: '#000000', shades: ['#000000', '#1a1a1a', '#333333', '#4d4d4d', '#666666'] },
+    { name: 'red', hex: '#ff3b30', shades: ['#ff3b30', '#ff5e5e', '#ff8a8a', '#ffb5b5', '#ffd1d1'] },
+    { name: 'orange', hex: '#ff9500', shades: ['#ff9500', '#ffaa33', '#ffbf66', '#ffd499', '#ffeacc'] },
+    { name: 'yellow', hex: '#ffcc00', shades: ['#ffcc00', '#ffd633', '#ffe066', '#ffeb99', '#fff5cc'] },
+    { name: 'green', hex: '#34c759', shades: ['#34c759', '#5ad37a', '#80de9b', '#a6e9bc', '#ccf4dd'] },
+    { name: 'cyan', hex: '#5ac8fa', shades: ['#5ac8fa', '#7bd4fb', '#9ce0fc', '#bdecfe', '#def8ff'] },
+    { name: 'blue', hex: '#007aff', shades: ['#007aff', '#3395ff', '#66b0ff', '#99cbff', '#cce5ff'] },
+    { name: 'purple', hex: '#af52de', shades: ['#af52de', '#bf77e4', '#cf9cea', '#dfc1f0', '#efe6f8'] },
+    { name: 'pink', hex: '#ff2d55', shades: ['#ff2d55', '#ff5d7d', '#ff8da6', '#ffbdce', '#ffdee7'] }
+];
+
+let ctx = null;
+let isDragging = false;
+let currentHue = 0;
+let currentBright = 50;
+let currentRGB = { r: 255, g: 255, b: 255 };
 
 window.addEventListener('load', function() {
     updateTexts();
     createUnifiedInterface();
     loadSavedData();
+    initColorPicker();
     setTimeout(applyColorToMath, 500);
     scrollingText.style.textShadow = 'none';
 });
@@ -96,7 +120,7 @@ function createUnifiedInterface() {
     textInput.type = 'text';
     textInput.id = 'mainInput';
     textInput.className = 'text-input';
-    textInput.placeholder = t.inputPlaceholder;  // ← только Enter text...
+    textInput.placeholder = t.inputPlaceholder;
     textInput.value = t.banner;
     textInput.style.cssText = 'flex:1; min-width:0; background:#111; border:2px solid #fff; border-radius:30px; padding:14px 18px; font-size:16px; color:#fff; outline:none; transition:all 0.2s ease;';
     
@@ -160,7 +184,6 @@ function createUnifiedInterface() {
 function parseToLaTeX(text) {
     if (!text) return '';
     let result = text;
-    
     result = result.replace(/ /g, '\\ ');
     result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
     
@@ -198,30 +221,24 @@ function parseToLaTeX(text) {
         'Σ': '\\Sigma', 'Τ': '\\Tau', 'Υ': '\\Upsilon', 'Φ': '\\Phi',
         'Χ': '\\Chi', 'Ψ': '\\Psi', 'Ω': '\\Omega'
     };
-    
-    for (let [char, latex] of Object.entries(greekMap)) {
-        result = result.replace(new RegExp(char, 'g'), latex);
-    }
+    for (let [char, latex] of Object.entries(greekMap)) result = result.replace(new RegExp(char, 'g'), latex);
     
     const funcs = ['sin', 'cos', 'tan', 'cot', 'arcsin', 'arccos', 'arctan', 'arccot', 'log', 'ln', 'exp', 'lim'];
-    funcs.forEach(func => {
-        result = result.replace(new RegExp(func + '\\s*\\(', 'g'), func + '(');
-    });
+    funcs.forEach(func => { result = result.replace(new RegExp(func + '\\s*\\(', 'g'), func + '('); });
     
     return result;
 }
 
 function applyColorToMath() {
-    const color = colorMap[currentColor];
-    scrollingText.style.color = color;
-    scrollingText.querySelectorAll('mjx-container').forEach(el => el.style.color = color);
+    scrollingText.style.color = currentColor;
+    scrollingText.querySelectorAll('mjx-container').forEach(el => el.style.color = currentColor);
+    if (colorPreview) colorPreview.style.backgroundColor = currentColor;
     const oldStyle = document.getElementById('mathColorStyle');
     if (oldStyle) oldStyle.remove();
     const style = document.createElement('style');
     style.id = 'mathColorStyle';
-    style.textContent = `#scrollingText, #scrollingText mjx-container { color: ${color} !important; }`;
+    style.textContent = `#scrollingText, #scrollingText mjx-container { color: ${currentColor} !important; }`;
     document.head.appendChild(style);
-    colorButtons.forEach(btn => btn.classList.toggle('active', btn.classList.contains(currentColor)));
 }
 
 function loadSavedData() {
@@ -229,7 +246,7 @@ function loadSavedData() {
         const saved = localStorage.getItem('ledBannerData');
         if (saved) {
             const data = JSON.parse(saved);
-            if (data.color) { currentColor = data.color; setTimeout(() => applyColorToMath(), 100); }
+            if (data.color) { currentColor = data.color; applyColorToMath(); }
             if (data.speed) { currentSpeed = data.speed; speedSlider.value = currentSpeed; speedValue.textContent = currentSpeed + ' sec'; }
             if (data.size) { currentSize = data.size; sizeSlider.value = currentSize; sizeValue.textContent = currentSize + 'vw'; scrollingText.style.fontSize = currentSize + 'vw'; }
             if (data.raw) {
@@ -309,7 +326,8 @@ function handleReset() {
         if (input) input.value = t.banner;
         scrollingText.innerHTML = '\\(' + t.banner + '\\)';
         if (window.MathJax) MathJax.typesetPromise([scrollingText]).then(() => applyColorToMath()).catch(()=>{});
-        currentColor = 'white'; currentSpeed = 15; currentSize = 15;
+        currentColor = '#ffffff';
+        currentSpeed = 15; currentSize = 15;
         sizeSlider.value = 15; speedSlider.value = 15;
         sizeValue.textContent = '15vw'; speedValue.textContent = '15 sec';
         scrollingText.style.fontSize = '15vw';
@@ -376,20 +394,6 @@ mathKeys.forEach(btn => {
     });
 });
 
-colorButtons.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        e.stopPropagation(); e.preventDefault();
-        let color = 'white';
-        if (btn.classList.contains('red')) color = 'red';
-        else if (btn.classList.contains('blue')) color = 'blue';
-        else if (btn.classList.contains('green')) color = 'green';
-        else if (btn.classList.contains('yellow')) color = 'yellow';
-        currentColor = color;
-        applyColorToMath();
-        saveData({});
-    });
-});
-
 sizeSlider.addEventListener('input', () => {
     currentSize = parseInt(sizeSlider.value);
     scrollingText.style.fontSize = currentSize + 'vw';
@@ -425,4 +429,196 @@ tg.BackButton.onClick(() => {
 });
 tg.BackButton.show();
 
-console.log('✅ LED BANNER - ENGLISH ONLY');
+// ============================================
+// ЦВЕТОВОЙ ПИКЕР
+// ============================================
+
+function initColorPicker() {
+    if (!colorPalette) return;
+    ctx = colorPalette.getContext('2d');
+    drawColorPalette();
+    
+    colorPalette.addEventListener('mousedown', startDrag);
+    colorPalette.addEventListener('mousemove', drag);
+    colorPalette.addEventListener('mouseup', stopDrag);
+    colorPalette.addEventListener('click', pickColor);
+    colorPalette.addEventListener('touchstart', startDragTouch);
+    colorPalette.addEventListener('touchmove', dragTouch);
+    colorPalette.addEventListener('touchend', stopDrag);
+    
+    brightnessSlider.addEventListener('input', updateBrightness);
+    createShadesGrid();
+    updateColorFromRGB(255, 255, 255);
+}
+
+function drawColorPalette() {
+    if (!ctx || !colorPalette) return;
+    const width = colorPalette.width;
+    const height = colorPalette.height;
+    for (let x = 0; x < width; x++) {
+        const hue = (x / width) * 360;
+        const gradient = ctx.createLinearGradient(0, 0, 0, height);
+        gradient.addColorStop(0, `hsl(${hue}, 100%, 50%)`);
+        gradient.addColorStop(1, `hsl(${hue}, 100%, 0%)`);
+        ctx.fillStyle = gradient;
+        ctx.fillRect(x, 0, 1, height);
+    }
+}
+
+function startDrag(e) { isDragging = true; pickColorFromEvent(e); }
+function startDragTouch(e) { e.preventDefault(); isDragging = true; pickColorFromTouch(e); }
+function drag(e) { if (isDragging) pickColorFromEvent(e); }
+function dragTouch(e) { if (isDragging) pickColorFromTouch(e); }
+function stopDrag() { isDragging = false; }
+
+function pickColorFromEvent(e) {
+    const rect = colorPalette.getBoundingClientRect();
+    const scaleX = colorPalette.width / rect.width;
+    const scaleY = colorPalette.height / rect.height;
+    let x = (e.clientX - rect.left) * scaleX;
+    let y = (e.clientY - rect.top) * scaleY;
+    x = Math.max(0, Math.min(colorPalette.width, x));
+    y = Math.max(0, Math.min(colorPalette.height, y));
+    const hue = (x / colorPalette.width) * 360;
+    const brightness = 1 - (y / colorPalette.height);
+    currentHue = hue;
+    currentBright = brightness * 100;
+    brightnessSlider.value = currentBright;
+    brightnessValue.textContent = Math.round(currentBright) + '%';
+    updateColorFromHSL(hue, 100, currentBright);
+    updateIndicatorPosition(x, y);
+}
+
+function pickColorFromTouch(e) {
+    e.preventDefault();
+    const rect = colorPalette.getBoundingClientRect();
+    const touch = e.touches[0];
+    const scaleX = colorPalette.width / rect.width;
+    const scaleY = colorPalette.height / rect.height;
+    let x = (touch.clientX - rect.left) * scaleX;
+    let y = (touch.clientY - rect.top) * scaleY;
+    x = Math.max(0, Math.min(colorPalette.width, x));
+    y = Math.max(0, Math.min(colorPalette.height, y));
+    const hue = (x / colorPalette.width) * 360;
+    const brightness = 1 - (y / colorPalette.height);
+    currentHue = hue;
+    currentBright = brightness * 100;
+    brightnessSlider.value = currentBright;
+    brightnessValue.textContent = Math.round(currentBright) + '%';
+    updateColorFromHSL(hue, 100, currentBright);
+    updateIndicatorPosition(x, y);
+}
+
+function pickColor(e) { pickColorFromEvent(e); }
+
+function updateIndicatorPosition(x, y) {
+    if (!paletteIndicator) return;
+    const rect = colorPalette.getBoundingClientRect();
+    const scaleX = rect.width / colorPalette.width;
+    const scaleY = rect.height / colorPalette.height;
+    paletteIndicator.style.display = 'block';
+    paletteIndicator.style.left = (rect.left + x * scaleX) + 'px';
+    paletteIndicator.style.top = (rect.top + y * scaleY) + 'px';
+}
+
+function updateBrightness() {
+    currentBright = parseInt(brightnessSlider.value);
+    brightnessValue.textContent = currentBright + '%';
+    updateColorFromHSL(currentHue, 100, currentBright);
+}
+
+function updateColorFromHSL(h, s, l) {
+    const rgb = hslToRgb(h / 360, s / 100, l / 100);
+    currentRGB = rgb;
+    updateColorFromRGB(rgb.r, rgb.g, rgb.b);
+}
+
+function hslToRgb(h, s, l) {
+    let r, g, b;
+    if (s === 0) { r = g = b = l; }
+    else {
+        const hue2rgb = (p, q, t) => {
+            if (t < 0) t += 1;
+            if (t > 1) t -= 1;
+            if (t < 1/6) return p + (q - p) * 6 * t;
+            if (t < 1/2) return q;
+            if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+            return p;
+        };
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1/3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1/3);
+    }
+    return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+}
+
+function updateColorFromRGB(r, g, b) {
+    const hex = '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    if (colorPreview) colorPreview.style.backgroundColor = hex;
+    scrollingText.style.color = hex;
+    currentColor = hex;
+    updateActiveShade(hex);
+    saveData({});
+}
+
+function createShadesGrid() {
+    if (!shadesScroll) return;
+    shadesScroll.innerHTML = '';
+    defaultColors.forEach(color => {
+        color.shades.forEach(shade => {
+            const shadeBtn = document.createElement('button');
+            shadeBtn.className = 'shade-btn';
+            shadeBtn.style.backgroundColor = shade;
+            shadeBtn.setAttribute('data-color', shade);
+            shadeBtn.addEventListener('click', () => { updateColorFromHex(shade); });
+            shadesScroll.appendChild(shadeBtn);
+        });
+    });
+}
+
+function updateColorFromHex(hex) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const rgb = { r, g, b };
+    const hsl = rgbToHsl(r, g, b);
+    currentHue = hsl.h * 360;
+    currentBright = hsl.l * 100;
+    brightnessSlider.value = currentBright;
+    brightnessValue.textContent = Math.round(currentBright) + '%';
+    const x = (currentHue / 360) * colorPalette.width;
+    const y = (1 - currentBright / 100) * colorPalette.height;
+    updateIndicatorPosition(x, y);
+    updateColorFromRGB(r, g, b);
+}
+
+function rgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+    if (max === min) { h = s = 0; }
+    else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+    return { h, s, l };
+}
+
+function updateActiveShade(hex) {
+    const shadeBtns = document.querySelectorAll('.shade-btn');
+    shadeBtns.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.style.backgroundColor === hex) btn.classList.add('active');
+    });
+}
+
+console.log('✅ LED BANNER - WITH COLOR PICKER');
