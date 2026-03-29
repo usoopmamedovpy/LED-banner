@@ -2,7 +2,6 @@
 /* LED BANNER - ФИНАЛЬНАЯ ВЕРСИЯ */
 /* ============================================ */
 
-/* Мягкий сброс */
 * {
     margin: 0;
     padding: 0;
@@ -34,7 +33,6 @@ body {
     position: relative;
 }
 
-/* Фоновая подложка - закрывает щели */
 .app-bg-fix {
     position: fixed;
     top: 0;
@@ -46,7 +44,6 @@ body {
     pointer-events: none;
 }
 
-/* СПЕЦИАЛЬНЫЙ ФИКС ДЛЯ УГЛОВОГО ПИКСЕЛЯ */
 .corner-pixel-fix {
     position: fixed;
     top: 0;
@@ -71,7 +68,7 @@ body {
 }
 
 /* ============================================ */
-/* КНОПКИ УПРАВЛЕНИЯ (КРЕСТИК, ДОНАТ, ШЕСТЕРЕНКА) */
+/* КНОПКИ УПРАВЛЕНИЯ */
 /* ============================================ */
 .reset-btn, .settings-btn, .donate-btn {
     position: absolute;
@@ -136,19 +133,9 @@ body {
     transform: scale(0.95);
 }
 
-.reset-btn:active svg {
-    stroke: #000000;
-}
-
-.settings-btn:active .settings-emoji {
-    transform: scale(0.9);
-    filter: drop-shadow(0 0 4px rgba(0,0,0,0.5));
-}
-
-.donate-btn:active .donate-emoji {
-    transform: scale(0.9);
-    filter: drop-shadow(0 0 4px rgba(255,0,0,0.5));
-}
+.reset-btn:active svg { stroke: #000000; }
+.settings-btn:active .settings-emoji { transform: scale(0.9); filter: drop-shadow(0 0 4px rgba(0,0,0,0.5)); }
+.donate-btn:active .donate-emoji { transform: scale(0.9); filter: drop-shadow(0 0 4px rgba(255,0,0,0.5)); }
 
 .settings-btn.active {
     background: #ffffff;
@@ -158,7 +145,6 @@ body {
     filter: drop-shadow(0 0 4px rgba(0,0,0,0.8));
 }
 
-/* Адаптация для мобилок */
 @media (max-width: 480px) {
     .reset-btn, .settings-btn, .donate-btn {
         width: 40px;
@@ -174,7 +160,7 @@ body {
 }
 
 /* ============================================ */
-/* ОСНОВНОЙ ЭКРАН */
+/* ОСНОВНОЙ ЭКРАН И АНИМАЦИЯ */
 /* ============================================ */
 .mobile-view {
     display: flex;
@@ -186,9 +172,6 @@ body {
     min-height: 0;
 }
 
-/* ============================================ */
-/* АНИМАЦИЯ - 2D, БЕЗ 3D */
-/* ============================================ */
 .banner-area {
     flex: 1;
     width: 100%;
@@ -229,21 +212,21 @@ body {
     to { transform: translateX(calc(-100% - 50px)); }
 }
 
-/* MathJax стили */
 .scrolling-text mjx-container {
     text-shadow: none !important;
     box-shadow: none !important;
     background: transparent !important;
 }
 
-/* Контейнер для ввода */
+/* ============================================ */
+/* ОБЛАСТЬ ВВОДА И КЛАВИАТУРА */
+/* ============================================ */
 .input-container {
     width: 100%;
     position: relative;
     z-index: 100;
 }
 
-/* Область ввода */
 .input-area {
     display: flex;
     gap: 10px;
@@ -257,7 +240,6 @@ body {
     z-index: 101;
 }
 
-/* MATH кнопка */
 .math-btn {
     width: 70px;
     height: 60px;
@@ -275,18 +257,9 @@ body {
     backface-visibility: hidden;
 }
 
-.math-btn.active {
-    background: #ffffff;
-    color: #000000;
-}
+.math-btn.active { background: #ffffff; color: #000000; }
+.math-btn:active { background: #ffffff; color: #000000; transform: scale(0.95); }
 
-.math-btn:active {
-    background: #ffffff;
-    color: #000000;
-    transform: scale(0.95);
-}
-
-/* Поле ввода */
 .text-input {
     flex: 1;
     background: #111111;
@@ -299,16 +272,9 @@ body {
     transition: all 0.2s ease;
 }
 
-.text-input:focus {
-    outline: none;
-    border-color: #ffffff;
-}
+.text-input:focus { outline: none; border-color: #ffffff; }
+.text-input::placeholder { color: rgba(255,255,255,0.5); }
 
-.text-input::placeholder {
-    color: rgba(255,255,255,0.5);
-}
-
-/* RUN кнопка */
 .run-btn {
     width: 70px;
     height: 60px;
@@ -329,15 +295,9 @@ body {
     backface-visibility: hidden;
 }
 
-.run-btn:active {
-    background: #ffffff;
-    color: #000000;
-    transform: scale(0.95);
-}
+.run-btn:active { background: #ffffff; color: #000000; transform: scale(0.95); }
 
-/* ============================================ */
-/* МАТЕМАТИЧЕСКАЯ КЛАВИАТУРА */
-/* ============================================ */
+/* Математическая клавиатура */
 .math-keyboard {
     position: fixed;
     left: 0;
@@ -355,11 +315,8 @@ body {
     -webkit-overflow-scrolling: touch;
 }
 
-.math-keyboard.show {
-    transform: translateY(0);
-}
+.math-keyboard.show { transform: translateY(0); }
 
-/* Вкладки клавиатуры */
 .keyboard-tabs {
     display: flex;
     gap: 10px;
@@ -379,27 +336,12 @@ body {
     transition: all 0.2s ease;
 }
 
-.tab-btn.active {
-    background: #ffffff;
-    color: #000000;
-}
+.tab-btn.active { background: #ffffff; color: #000000; }
+.tab-btn:active { background: #ffffff; color: #000000; transform: scale(0.95); }
 
-.tab-btn:active {
-    background: #ffffff;
-    color: #000000;
-    transform: scale(0.95);
-}
+.tab-content { display: none; }
+.tab-content.active { display: block; }
 
-/* Содержимое вкладок */
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
-}
-
-/* Сетка кнопок */
 .keyboard-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -426,15 +368,9 @@ body {
     justify-content: center;
 }
 
-.math-key:active {
-    background: #ffffff;
-    color: #000000;
-    transform: scale(0.95);
-}
+.math-key:active { background: #ffffff; color: #000000; transform: scale(0.95); }
 
-/* ============================================ */
-/* ФИЗИЧЕСКАЯ КЛАВИАТУРА */
-/* ============================================ */
+/* Физическая клавиатура */
 .physics-subtabs {
     display: flex;
     gap: 15px;
@@ -461,86 +397,93 @@ body {
     backface-visibility: hidden;
 }
 
-.physics-subtab-btn.active {
-    background: #ffffff;
-    color: #000000;
+.physics-subtab-btn.active { background: #ffffff; color: #000000; }
+.physics-subtab-btn:active { background: #ffffff; color: #000000; transform: scale(0.95); }
+.physics-category { display: none; }
+.physics-category.active { display: block; }
+
+/* ============================================ */
+/* ЦВЕТОВОЙ ПИКЕР */
+/* ============================================ */
+.color-picker-item {
+    padding-bottom: 5px;
 }
 
-.physics-subtab-btn:active {
-    background: #ffffff;
-    color: #000000;
-    transform: scale(0.95);
+.color-preview {
+    width: 100%;
+    height: 50px;
+    border-radius: 25px;
+    border: 2px solid #ffffff;
+    margin-bottom: 15px;
+    transition: background-color 0.1s ease;
+    background-color: #ffffff;
 }
 
-.physics-category {
+.color-palette-container {
+    position: relative;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.color-palette {
+    width: 100%;
+    height: 200px;
+    border-radius: 15px;
+    border: 2px solid #ffffff;
+    cursor: crosshair;
+    background: linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
+}
+
+.palette-indicator {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    background: transparent;
+    box-shadow: 0 0 4px rgba(0,0,0,0.5);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
     display: none;
 }
 
-.physics-category.active {
-    display: block;
+.brightness-slider-container {
+    margin-bottom: 15px;
 }
 
-/* ============================================ */
-/* АДАПТИВНЫЕ КНОПКИ - ОБРЕЗАНИЕ ДЛИННЫХ ФОРМУЛ */
-/* ============================================ */
-
-/* Десктоп — полный текст */
-@media (min-width: 768px) {
-    .math-key {
-        white-space: normal;
-        text-overflow: clip;
-        word-break: break-word;
-        font-size: 14px;
-        height: auto;
-        min-height: 50px;
-        padding: 10px 8px;
-    }
+.brightness-slider {
+    background: linear-gradient(to right, #000000, #ffffff);
 }
 
-/* Мобилки — обрезаем длинные формулы */
-@media (max-width: 767px) {
-    .math-key {
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        font-size: 12px;
-        padding: 8px 6px;
-    }
+.shades-container {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
 }
 
-/* Очень маленькие экраны — 3 колонки */
-@media (max-width: 480px) {
-    .keyboard-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 6px;
-    }
-    
-    .math-key {
-        font-size: 11px;
-        padding: 8px 4px;
-        height: auto;
-        min-height: 45px;
-        white-space: normal;
-        line-height: 1.3;
-        text-overflow: clip;
-    }
-    
-    .physics-subtab-btn {
-        width: 50px;
-        height: 40px;
-        font-size: 20px;
-    }
+.shades-scroll {
+    display: flex;
+    gap: 8px;
+    padding: 5px 0 10px 0;
+    min-width: min-content;
 }
 
-/* Для планшетов */
-@media (min-width: 768px) and (max-width: 1024px) {
-    .keyboard-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
-    
-    .math-key {
-        font-size: 13px;
-        padding: 10px 6px;
-    }
+.shade-btn {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.shade-btn.active {
+    border-width: 4px;
+    transform: scale(1.1);
+    box-shadow: 0 0 15px currentColor;
 }
 
 /* ============================================ */
@@ -559,9 +502,7 @@ body {
     z-index: 3000;
 }
 
-.settings-panel.show {
-    display: flex;
-}
+.settings-panel.show { display: flex; }
 
 .settings-content {
     background: #111111;
@@ -570,6 +511,8 @@ body {
     padding: 25px;
     width: 90%;
     max-width: 400px;
+    max-height: 85vh;
+    overflow-y: auto;
 }
 
 .settings-content h3 {
@@ -636,37 +579,35 @@ body {
     font-weight: bold;
 }
 
-/* Кнопки цвета */
-.color-buttons {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    justify-content: center;
-    background: #1a1a1a;
-    padding: 15px;
-    border-radius: 30px;
-    margin-top: 5px;
+/* ============================================ */
+/* АДАПТАЦИЯ */
+/* ============================================ */
+@media (max-width: 480px) {
+    .math-btn, .run-btn {
+        width: 60px;
+        height: 50px;
+        font-size: 16px;
+    }
+    .text-input {
+        padding: 12px 16px;
+        font-size: 16px;
+    }
+    .math-keyboard { max-height: 400px; }
+    .keyboard-grid { gap: 5px; }
+    .math-key { height: 45px; font-size: 12px; }
+    .tab-btn { height: 40px; font-size: 14px; }
+    .settings-content { padding: 20px; }
+    .color-palette { height: 180px; }
+    .shade-btn { width: 40px; height: 40px; }
+    .physics-subtab-btn { width: 50px; height: 40px; font-size: 20px; }
 }
 
-.color-btn {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    border: 3px solid #ffffff;
-    cursor: pointer;
-    transition: all 0.2s ease;
+@media (max-width: 480px) and (max-width: 480px) {
+    .keyboard-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
 }
-
-.color-btn.active {
-    border-width: 4px;
-    transform: scale(1.1);
-}
-
-.color-btn.white { background: #ffffff; }
-.color-btn.red { background: #ff3b30; }
-.color-btn.blue { background: #007aff; }
-.color-btn.green { background: #34c759; }
-.color-btn.yellow { background: #ffcc00; }
 
 /* ============================================ */
 /* ПОДДЕРЖКА ТЕЛЕГРАММА */
@@ -677,8 +618,8 @@ body, html, .app-container, .mobile-view, .banner-area,
 }
 
 .math-btn, .run-btn, .reset-btn, .settings-btn, 
-.tab-btn, .math-key, .color-btn, .text-input, .donate-btn,
-.physics-subtab-btn {
+.tab-btn, .math-key, .text-input, .donate-btn,
+.physics-subtab-btn, .shade-btn {
     border-color: #ffffff;
     color: #ffffff;
 }
@@ -704,7 +645,7 @@ body, html, .app-container, .mobile-view, .banner-area,
 
 .math-key:active, .run-btn:active, .reset-btn:active, 
 .settings-btn:active, .tab-btn:active, .donate-btn:active,
-.physics-subtab-btn:active {
+.physics-subtab-btn:active, .shade-btn:active {
     background: #ffffff;
     color: #000000;
     transform: scale(0.95);
