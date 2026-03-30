@@ -430,7 +430,7 @@ tg.BackButton.onClick(() => {
 tg.BackButton.show();
 
 // ============================================
-// ЦВЕТОВОЙ ПИКЕР - НОВАЯ ВЕРСИЯ
+// ЦВЕТОВОЙ ПИКЕР - ИСПРАВЛЕННАЯ ВЕРСИЯ
 // ============================================
 
 function initColorPicker() {
@@ -479,9 +479,7 @@ function drawColorPalette(hue) {
 function updateHue() {
     currentHue = parseInt(hueSlider.value);
     drawColorPalette(currentHue);
-    if (currentSat !== undefined && currentLight !== undefined) {
-        updateColorFromHSL(currentHue, currentSat, currentLight);
-    }
+    updateColorFromHSL(currentHue, currentSat, currentLight);
 }
 
 function startDrag(e) { isDragging = true; pickColorFromEvent(e); }
@@ -494,8 +492,10 @@ function pickColorFromEvent(e) {
     const rect = colorPalette.getBoundingClientRect();
     const scaleX = colorPalette.width / rect.width;
     const scaleY = colorPalette.height / rect.height;
+    
     let x = (e.clientX - rect.left) * scaleX;
     let y = (e.clientY - rect.top) * scaleY;
+    
     x = Math.max(0, Math.min(colorPalette.width, x));
     y = Math.max(0, Math.min(colorPalette.height, y));
     
@@ -515,8 +515,10 @@ function pickColorFromTouch(e) {
     const touch = e.touches[0];
     const scaleX = colorPalette.width / rect.width;
     const scaleY = colorPalette.height / rect.height;
+    
     let x = (touch.clientX - rect.left) * scaleX;
     let y = (touch.clientY - rect.top) * scaleY;
+    
     x = Math.max(0, Math.min(colorPalette.width, x));
     y = Math.max(0, Math.min(colorPalette.height, y));
     
@@ -534,12 +536,14 @@ function pickColor(e) { pickColorFromEvent(e); }
 
 function updateIndicatorPosition(x, y) {
     if (!paletteIndicator) return;
+    
     const rect = colorPalette.getBoundingClientRect();
-    const scaleX = rect.width / colorPalette.width;
-    const scaleY = rect.height / colorPalette.height;
+    const indicatorX = rect.left + (x / colorPalette.width) * rect.width;
+    const indicatorY = rect.top + (y / colorPalette.height) * rect.height;
+    
     paletteIndicator.style.display = 'block';
-    paletteIndicator.style.left = (rect.left + x * scaleX) + 'px';
-    paletteIndicator.style.top = (rect.top + y * scaleY) + 'px';
+    paletteIndicator.style.left = indicatorX + 'px';
+    paletteIndicator.style.top = indicatorY + 'px';
 }
 
 function updateColorFromHSL(h, s, l) {
@@ -550,8 +554,9 @@ function updateColorFromHSL(h, s, l) {
 
 function hslToRgb(h, s, l) {
     let r, g, b;
-    if (s === 0) { r = g = b = l; }
-    else {
+    if (s === 0) {
+        r = g = b = l;
+    } else {
         const hue2rgb = (p, q, t) => {
             if (t < 0) t += 1;
             if (t > 1) t -= 1;
@@ -599,11 +604,14 @@ function updateColorFromHex(hex) {
     const b = parseInt(hex.slice(5, 7), 16);
     const rgb = { r, g, b };
     const hsl = rgbToHsl(r, g, b);
+    
     currentHue = hsl.h * 360;
     currentSat = hsl.s * 100;
     currentLight = hsl.l * 100;
+    
     hueSlider.value = currentHue;
     drawColorPalette(currentHue);
+    
     const x = (currentSat / 100) * colorPalette.width;
     const y = (1 - currentLight / 100) * colorPalette.height;
     updateIndicatorPosition(x, y);
@@ -615,8 +623,10 @@ function rgbToHsl(r, g, b) {
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
     let h, s, l = (max + min) / 2;
-    if (max === min) { h = s = 0; }
-    else {
+    
+    if (max === min) {
+        h = s = 0;
+    } else {
         const d = max - min;
         s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
         switch (max) {
@@ -637,4 +647,4 @@ function updateActiveShade(hex) {
     });
 }
 
-console.log('✅ LED BANNER - WITH NEW COLOR PICKER');
+console.log('✅ LED BANNER - WITH FIXED COLOR PICKER');
