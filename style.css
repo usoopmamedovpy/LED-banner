@@ -403,7 +403,7 @@ body {
 .physics-category.active { display: block; }
 
 /* ============================================ */
-/* ЦВЕТОВОЙ ПИКЕР - НОВАЯ ВЕРСИЯ */
+/* ЦВЕТОВОЙ ПИКЕР */
 /* ============================================ */
 .color-picker-item {
     padding-bottom: 5px;
@@ -431,7 +431,6 @@ body {
     border-radius: 15px;
     border: 2px solid #ffffff;
     cursor: crosshair;
-    background: linear-gradient(to right, #ffffff, #ff0000);
 }
 
 .palette-indicator {
@@ -445,11 +444,11 @@ body {
     transform: translate(-50%, -50%);
     pointer-events: none;
     z-index: 10;
+    display: none;
 }
 
 .hue-slider-container {
     margin-bottom: 15px;
-    position: relative;
 }
 
 .hue-slider {
