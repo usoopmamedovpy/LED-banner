@@ -43,8 +43,7 @@ const speedValue = document.getElementById('speedValue');
 const colorPreview = document.getElementById('colorPreview');
 const colorPalette = document.getElementById('colorPalette');
 const paletteIndicator = document.getElementById('paletteIndicator');
-const brightnessSlider = document.getElementById('brightnessSlider');
-const brightnessValue = document.getElementById('brightnessValue');
+const hueSlider = document.getElementById('hueSlider');
 const shadesScroll = document.getElementById('shadesScroll');
 
 const tabFunctions = document.getElementById('tabFunctions');
@@ -79,7 +78,8 @@ const defaultColors = [
 let ctx = null;
 let isDragging = false;
 let currentHue = 0;
-let currentBright = 50;
+let currentSat = 100;
+let currentLight = 50;
 let currentRGB = { r: 255, g: 255, b: 255 };
 
 window.addEventListener('load', function() {
@@ -430,14 +430,18 @@ tg.BackButton.onClick(() => {
 tg.BackButton.show();
 
 // ============================================
-// ЦВЕТОВОЙ ПИКЕР
+// ЦВЕТОВОЙ ПИКЕР - НОВАЯ ВЕРСИЯ
 // ============================================
 
 function initColorPicker() {
     if (!colorPalette) return;
-    ctx = colorPalette.getContext('2d');
-    drawColorPalette();
     
+    ctx = colorPalette.getContext('2d');
+    
+    // Рисуем начальную палитру
+    drawColorPalette(currentHue);
+    
+    // Обработчики для квадрата-палитры
     colorPalette.addEventListener('mousedown', startDrag);
     colorPalette.addEventListener('mousemove', drag);
     colorPalette.addEventListener('mouseup', stopDrag);
@@ -446,22 +450,37 @@ function initColorPicker() {
     colorPalette.addEventListener('touchmove', dragTouch);
     colorPalette.addEventListener('touchend', stopDrag);
     
-    brightnessSlider.addEventListener('input', updateBrightness);
+    // Обработчик для ползунка-палитры (радуга)
+    hueSlider.addEventListener('input', updateHue);
+    
+    // Создаём сетку оттенков
     createShadesGrid();
+    
+    // Устанавливаем начальный цвет
     updateColorFromRGB(255, 255, 255);
 }
 
-function drawColorPalette() {
+function drawColorPalette(hue) {
     if (!ctx || !colorPalette) return;
+    
     const width = colorPalette.width;
     const height = colorPalette.height;
+    
     for (let x = 0; x < width; x++) {
-        const hue = (x / width) * 360;
+        const saturation = x / width;
         const gradient = ctx.createLinearGradient(0, 0, 0, height);
-        gradient.addColorStop(0, `hsl(${hue}, 100%, 50%)`);
-        gradient.addColorStop(1, `hsl(${hue}, 100%, 0%)`);
+        gradient.addColorStop(0, `hsl(${hue}, ${saturation * 100}%, 100%)`);
+        gradient.addColorStop(1, `hsl(${hue}, ${saturation * 100}%, 0%)`);
         ctx.fillStyle = gradient;
         ctx.fillRect(x, 0, 1, height);
+    }
+}
+
+function updateHue() {
+    currentHue = parseInt(hueSlider.value);
+    drawColorPalette(currentHue);
+    if (currentSat !== undefined && currentLight !== undefined) {
+        updateColorFromHSL(currentHue, currentSat, currentLight);
     }
 }
 
@@ -479,13 +498,14 @@ function pickColorFromEvent(e) {
     let y = (e.clientY - rect.top) * scaleY;
     x = Math.max(0, Math.min(colorPalette.width, x));
     y = Math.max(0, Math.min(colorPalette.height, y));
-    const hue = (x / colorPalette.width) * 360;
-    const brightness = 1 - (y / colorPalette.height);
-    currentHue = hue;
-    currentBright = brightness * 100;
-    brightnessSlider.value = currentBright;
-    brightnessValue.textContent = Math.round(currentBright) + '%';
-    updateColorFromHSL(hue, 100, currentBright);
+    
+    const saturation = (x / colorPalette.width) * 100;
+    const lightness = 100 - (y / colorPalette.height) * 100;
+    
+    currentSat = saturation;
+    currentLight = lightness;
+    
+    updateColorFromHSL(currentHue, currentSat, currentLight);
     updateIndicatorPosition(x, y);
 }
 
@@ -499,13 +519,14 @@ function pickColorFromTouch(e) {
     let y = (touch.clientY - rect.top) * scaleY;
     x = Math.max(0, Math.min(colorPalette.width, x));
     y = Math.max(0, Math.min(colorPalette.height, y));
-    const hue = (x / colorPalette.width) * 360;
-    const brightness = 1 - (y / colorPalette.height);
-    currentHue = hue;
-    currentBright = brightness * 100;
-    brightnessSlider.value = currentBright;
-    brightnessValue.textContent = Math.round(currentBright) + '%';
-    updateColorFromHSL(hue, 100, currentBright);
+    
+    const saturation = (x / colorPalette.width) * 100;
+    const lightness = 100 - (y / colorPalette.height) * 100;
+    
+    currentSat = saturation;
+    currentLight = lightness;
+    
+    updateColorFromHSL(currentHue, currentSat, currentLight);
     updateIndicatorPosition(x, y);
 }
 
@@ -519,12 +540,6 @@ function updateIndicatorPosition(x, y) {
     paletteIndicator.style.display = 'block';
     paletteIndicator.style.left = (rect.left + x * scaleX) + 'px';
     paletteIndicator.style.top = (rect.top + y * scaleY) + 'px';
-}
-
-function updateBrightness() {
-    currentBright = parseInt(brightnessSlider.value);
-    brightnessValue.textContent = currentBright + '%';
-    updateColorFromHSL(currentHue, 100, currentBright);
 }
 
 function updateColorFromHSL(h, s, l) {
@@ -585,11 +600,12 @@ function updateColorFromHex(hex) {
     const rgb = { r, g, b };
     const hsl = rgbToHsl(r, g, b);
     currentHue = hsl.h * 360;
-    currentBright = hsl.l * 100;
-    brightnessSlider.value = currentBright;
-    brightnessValue.textContent = Math.round(currentBright) + '%';
-    const x = (currentHue / 360) * colorPalette.width;
-    const y = (1 - currentBright / 100) * colorPalette.height;
+    currentSat = hsl.s * 100;
+    currentLight = hsl.l * 100;
+    hueSlider.value = currentHue;
+    drawColorPalette(currentHue);
+    const x = (currentSat / 100) * colorPalette.width;
+    const y = (1 - currentLight / 100) * colorPalette.height;
     updateIndicatorPosition(x, y);
     updateColorFromRGB(r, g, b);
 }
@@ -621,4 +637,4 @@ function updateActiveShade(hex) {
     });
 }
 
-console.log('✅ LED BANNER - WITH COLOR PICKER');
+console.log('✅ LED BANNER - WITH NEW COLOR PICKER');
