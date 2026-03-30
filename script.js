@@ -443,16 +443,11 @@ function resizeCanvasToDisplaySize() {
     if (!colorPalette) return;
     
     const rect = colorPalette.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
     
-    const w = Math.round(rect.width * dpr);
-    const h = Math.round(rect.height * dpr);
-    
-    if (colorPalette.width !== w) colorPalette.width = w;
-    if (colorPalette.height !== h) colorPalette.height = h;
+    colorPalette.width = rect.width;
+    colorPalette.height = rect.height;
     
     ctx = colorPalette.getContext('2d');
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     
     displayW = rect.width;
     displayH = rect.height;
@@ -484,11 +479,19 @@ function drawColorPalette(hue) {
     const width = displayW;
     const height = displayH;
     
+    // Очищаем canvas
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, width, height);
+    
+    // Рисуем цветовую палитру
     for (let x = 0; x < width; x++) {
         const saturation = x / width;
+        
         const gradient = ctx.createLinearGradient(0, 0, 0, height);
         gradient.addColorStop(0, `hsl(${hue}, ${saturation * 100}%, 100%)`);
+        gradient.addColorStop(0.5, `hsl(${hue}, ${saturation * 100}%, 50%)`);
         gradient.addColorStop(1, `hsl(${hue}, ${saturation * 100}%, 0%)`);
+        
         ctx.fillStyle = gradient;
         ctx.fillRect(x, 0, 1, height);
     }
@@ -588,10 +591,31 @@ function hslToRgb(h, s, l) {
 
 function updateColorFromRGB(r, g, b) {
     const hex = '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    
+    // Обновляем предпросмотр
     if (colorPreview) colorPreview.style.backgroundColor = hex;
+    
+    // ПРИНУДИТЕЛЬНО применяем цвет к бегущей строке
     scrollingText.style.color = hex;
     currentColor = hex;
+    
+    // Обновляем стиль MathJax
+    scrollingText.querySelectorAll('mjx-container').forEach(el => {
+        el.style.color = hex;
+    });
+    
+    // Обновляем CSS-стиль
+    const oldStyle = document.getElementById('mathColorStyle');
+    if (oldStyle) oldStyle.remove();
+    const style = document.createElement('style');
+    style.id = 'mathColorStyle';
+    style.textContent = `#scrollingText, #scrollingText mjx-container { color: ${hex} !important; }`;
+    document.head.appendChild(style);
+    
+    // Обновляем активную кнопку в дефолтных цветах
     updateActiveShade(hex);
+    
+    // Сохраняем
     saveData({});
 }
 
