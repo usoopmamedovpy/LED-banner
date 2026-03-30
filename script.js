@@ -81,6 +81,12 @@ let currentHue = 0;
 let currentSat = 100;
 let currentLight = 50;
 let currentRGB = { r: 255, g: 255, b: 255 };
+let displayW = 0;
+let displayH = 0;
+
+function clamp(v, min, max) {
+    return Math.max(min, Math.min(max, v));
+}
 
 window.addEventListener('load', function() {
     updateTexts();
@@ -433,15 +439,31 @@ tg.BackButton.show();
 // ЦВЕТОВОЙ ПИКЕР - ИСПРАВЛЕННАЯ ВЕРСИЯ
 // ============================================
 
+function resizeCanvasToDisplaySize() {
+    if (!colorPalette) return;
+    
+    const rect = colorPalette.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    
+    const w = Math.round(rect.width * dpr);
+    const h = Math.round(rect.height * dpr);
+    
+    if (colorPalette.width !== w) colorPalette.width = w;
+    if (colorPalette.height !== h) colorPalette.height = h;
+    
+    ctx = colorPalette.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    
+    displayW = rect.width;
+    displayH = rect.height;
+}
+
 function initColorPicker() {
     if (!colorPalette) return;
     
-    ctx = colorPalette.getContext('2d');
-    
-    // Рисуем начальную палитру
+    resizeCanvasToDisplaySize();
     drawColorPalette(currentHue);
     
-    // Обработчики для квадрата-палитры
     colorPalette.addEventListener('mousedown', startDrag);
     colorPalette.addEventListener('mousemove', drag);
     colorPalette.addEventListener('mouseup', stopDrag);
@@ -450,21 +472,17 @@ function initColorPicker() {
     colorPalette.addEventListener('touchmove', dragTouch);
     colorPalette.addEventListener('touchend', stopDrag);
     
-    // Обработчик для ползунка-палитры (радуга)
     hueSlider.addEventListener('input', updateHue);
     
-    // Создаём сетку оттенков
     createShadesGrid();
-    
-    // Устанавливаем начальный цвет
     updateColorFromRGB(255, 255, 255);
 }
 
 function drawColorPalette(hue) {
     if (!ctx || !colorPalette) return;
     
-    const width = colorPalette.width;
-    const height = colorPalette.height;
+    const width = displayW;
+    const height = displayH;
     
     for (let x = 0; x < width; x++) {
         const saturation = x / width;
@@ -490,60 +508,54 @@ function stopDrag() { isDragging = false; }
 
 function pickColorFromEvent(e) {
     const rect = colorPalette.getBoundingClientRect();
-    const scaleX = colorPalette.width / rect.width;
-    const scaleY = colorPalette.height / rect.height;
     
-    let x = (e.clientX - rect.left) * scaleX;
-    let y = (e.clientY - rect.top) * scaleY;
+    const xCss = clamp(e.clientX - rect.left, 0, rect.width);
+    const yCss = clamp(e.clientY - rect.top, 0, rect.height);
     
-    x = Math.max(0, Math.min(colorPalette.width, x));
-    y = Math.max(0, Math.min(colorPalette.height, y));
-    
-    const saturation = (x / colorPalette.width) * 100;
-    const lightness = 100 - (y / colorPalette.height) * 100;
+    const saturation = (xCss / rect.width) * 100;
+    const lightness = 100 - (yCss / rect.height) * 100;
     
     currentSat = saturation;
     currentLight = lightness;
     
     updateColorFromHSL(currentHue, currentSat, currentLight);
-    updateIndicatorPosition(x, y);
+    updateIndicatorPosition(xCss, yCss);
 }
 
 function pickColorFromTouch(e) {
     e.preventDefault();
+    
     const rect = colorPalette.getBoundingClientRect();
     const touch = e.touches[0];
-    const scaleX = colorPalette.width / rect.width;
-    const scaleY = colorPalette.height / rect.height;
     
-    let x = (touch.clientX - rect.left) * scaleX;
-    let y = (touch.clientY - rect.top) * scaleY;
+    const xCss = clamp(touch.clientX - rect.left, 0, rect.width);
+    const yCss = clamp(touch.clientY - rect.top, 0, rect.height);
     
-    x = Math.max(0, Math.min(colorPalette.width, x));
-    y = Math.max(0, Math.min(colorPalette.height, y));
-    
-    const saturation = (x / colorPalette.width) * 100;
-    const lightness = 100 - (y / colorPalette.height) * 100;
+    const saturation = (xCss / rect.width) * 100;
+    const lightness = 100 - (yCss / rect.height) * 100;
     
     currentSat = saturation;
     currentLight = lightness;
     
     updateColorFromHSL(currentHue, currentSat, currentLight);
-    updateIndicatorPosition(x, y);
+    updateIndicatorPosition(xCss, yCss);
 }
 
 function pickColor(e) { pickColorFromEvent(e); }
 
-function updateIndicatorPosition(x, y) {
+function updateIndicatorPosition(xCss, yCss) {
     if (!paletteIndicator) return;
     
-    const rect = colorPalette.getBoundingClientRect();
-    const indicatorX = rect.left + (x / colorPalette.width) * rect.width;
-    const indicatorY = rect.top + (y / colorPalette.height) * rect.height;
+    const wrap = colorPalette.parentElement;
+    const wrapRect = wrap.getBoundingClientRect();
+    const paletteRect = colorPalette.getBoundingClientRect();
+    
+    const left = (paletteRect.left - wrapRect.left) + xCss;
+    const top = (paletteRect.top - wrapRect.top) + yCss;
     
     paletteIndicator.style.display = 'block';
-    paletteIndicator.style.left = indicatorX + 'px';
-    paletteIndicator.style.top = indicatorY + 'px';
+    paletteIndicator.style.left = left + 'px';
+    paletteIndicator.style.top = top + 'px';
 }
 
 function updateColorFromHSL(h, s, l) {
@@ -612,8 +624,8 @@ function updateColorFromHex(hex) {
     hueSlider.value = currentHue;
     drawColorPalette(currentHue);
     
-    const x = (currentSat / 100) * colorPalette.width;
-    const y = (1 - currentLight / 100) * colorPalette.height;
+    const x = (currentSat / 100) * displayW;
+    const y = (1 - currentLight / 100) * displayH;
     updateIndicatorPosition(x, y);
     updateColorFromRGB(r, g, b);
 }
