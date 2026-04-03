@@ -433,6 +433,7 @@ body {
     cursor: crosshair;
     touch-action: none;
     user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .palette-indicator {
@@ -600,7 +601,7 @@ body {
 }
 
 /* ============================================ */
-/* АДАПТАЦИЯ */
+/* АДАПТАЦИЯ ДЛЯ МОБИЛОК */
 /* ============================================ */
 @media (max-width: 480px) {
     .math-btn, .run-btn {
@@ -622,6 +623,11 @@ body {
     .physics-subtab-btn { width: 50px; height: 40px; font-size: 20px; }
     .hue-slider { height: 10px; }
     .hue-slider::-webkit-slider-thumb { width: 18px; height: 18px; }
+    .palette-indicator {
+        width: 20px;
+        height: 20px;
+        border-width: 2.5px;
+    }
 }
 
 @media (max-width: 480px) and (max-width: 480px) {
