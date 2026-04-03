@@ -83,6 +83,7 @@ let currentLight = 50;
 let currentRGB = { r: 255, g: 255, b: 255 };
 let displayW = 0;
 let displayH = 0;
+let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 function clamp(v, min, max) {
     return Math.max(min, Math.min(max, v));
@@ -436,7 +437,7 @@ tg.BackButton.onClick(() => {
 tg.BackButton.show();
 
 // ============================================
-// ЦВЕТОВОЙ ПИКЕР - ИСПРАВЛЕННАЯ ВЕРСИЯ
+// ЦВЕТОВОЙ ПИКЕР - МОБИЛЬНАЯ ВЕРСИЯ
 // ============================================
 
 function resizeCanvasToDisplaySize() {
@@ -451,6 +452,8 @@ function resizeCanvasToDisplaySize() {
     
     displayW = rect.width;
     displayH = rect.height;
+    
+    console.log('Canvas size:', displayW, 'x', displayH, 'Mobile:', isMobile);
 }
 
 function initColorPicker() {
@@ -459,12 +462,22 @@ function initColorPicker() {
     resizeCanvasToDisplaySize();
     drawColorPalette(currentHue);
     
+    window.addEventListener('resize', function() {
+        setTimeout(function() {
+            resizeCanvasToDisplaySize();
+            drawColorPalette(currentHue);
+            const x = (currentSat / 100) * displayW;
+            const y = (1 - currentLight / 100) * displayH;
+            updateIndicatorPosition(x, y);
+        }, 100);
+    });
+    
     colorPalette.addEventListener('mousedown', startDrag);
     colorPalette.addEventListener('mousemove', drag);
     colorPalette.addEventListener('mouseup', stopDrag);
     colorPalette.addEventListener('click', pickColor);
-    colorPalette.addEventListener('touchstart', startDragTouch);
-    colorPalette.addEventListener('touchmove', dragTouch);
+    colorPalette.addEventListener('touchstart', startDragTouch, { passive: false });
+    colorPalette.addEventListener('touchmove', dragTouch, { passive: false });
     colorPalette.addEventListener('touchend', stopDrag);
     
     hueSlider.addEventListener('input', updateHue);
@@ -479,11 +492,11 @@ function drawColorPalette(hue) {
     const width = displayW;
     const height = displayH;
     
-    // Очищаем canvas
+    if (width === 0 || height === 0) return;
+    
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, width, height);
     
-    // Рисуем цветовую палитру
     for (let x = 0; x < width; x++) {
         const saturation = x / width;
         
@@ -506,14 +519,18 @@ function updateHue() {
 function startDrag(e) { isDragging = true; pickColorFromEvent(e); }
 function startDragTouch(e) { e.preventDefault(); isDragging = true; pickColorFromTouch(e); }
 function drag(e) { if (isDragging) pickColorFromEvent(e); }
-function dragTouch(e) { if (isDragging) pickColorFromTouch(e); }
+function dragTouch(e) { if (isDragging) { e.preventDefault(); pickColorFromTouch(e); } }
 function stopDrag() { isDragging = false; }
 
 function pickColorFromEvent(e) {
     const rect = colorPalette.getBoundingClientRect();
+    if (rect.width === 0) return;
     
-    const xCss = clamp(e.clientX - rect.left, 0, rect.width);
-    const yCss = clamp(e.clientY - rect.top, 0, rect.height);
+    let xCss = e.clientX - rect.left;
+    let yCss = e.clientY - rect.top;
+    
+    xCss = clamp(xCss, 0, rect.width);
+    yCss = clamp(yCss, 0, rect.height);
     
     const saturation = (xCss / rect.width) * 100;
     const lightness = 100 - (yCss / rect.height) * 100;
@@ -526,13 +543,17 @@ function pickColorFromEvent(e) {
 }
 
 function pickColorFromTouch(e) {
-    e.preventDefault();
-    
     const rect = colorPalette.getBoundingClientRect();
-    const touch = e.touches[0];
+    if (rect.width === 0) return;
     
-    const xCss = clamp(touch.clientX - rect.left, 0, rect.width);
-    const yCss = clamp(touch.clientY - rect.top, 0, rect.height);
+    const touch = e.touches[0];
+    if (!touch) return;
+    
+    let xCss = touch.clientX - rect.left;
+    let yCss = touch.clientY - rect.top;
+    
+    xCss = clamp(xCss, 0, rect.width);
+    yCss = clamp(yCss, 0, rect.height);
     
     const saturation = (xCss / rect.width) * 100;
     const lightness = 100 - (yCss / rect.height) * 100;
@@ -592,19 +613,15 @@ function hslToRgb(h, s, l) {
 function updateColorFromRGB(r, g, b) {
     const hex = '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
     
-    // Обновляем предпросмотр
     if (colorPreview) colorPreview.style.backgroundColor = hex;
     
-    // ПРИНУДИТЕЛЬНО применяем цвет к бегущей строке
     scrollingText.style.color = hex;
     currentColor = hex;
     
-    // Обновляем стиль MathJax
     scrollingText.querySelectorAll('mjx-container').forEach(el => {
         el.style.color = hex;
     });
     
-    // Обновляем CSS-стиль
     const oldStyle = document.getElementById('mathColorStyle');
     if (oldStyle) oldStyle.remove();
     const style = document.createElement('style');
@@ -612,10 +629,8 @@ function updateColorFromRGB(r, g, b) {
     style.textContent = `#scrollingText, #scrollingText mjx-container { color: ${hex} !important; }`;
     document.head.appendChild(style);
     
-    // Обновляем активную кнопку в дефолтных цветах
     updateActiveShade(hex);
     
-    // Сохраняем
     saveData({});
 }
 
@@ -628,7 +643,7 @@ function createShadesGrid() {
             shadeBtn.className = 'shade-btn';
             shadeBtn.style.backgroundColor = shade;
             shadeBtn.setAttribute('data-color', shade);
-            shadeBtn.addEventListener('click', () => { updateColorFromHex(shade); });
+            shadeBtn.addEventListener('click', function() { updateColorFromHex(shade); });
             shadesScroll.appendChild(shadeBtn);
         });
     });
@@ -683,4 +698,4 @@ function updateActiveShade(hex) {
     });
 }
 
-console.log('✅ LED BANNER - WITH FIXED COLOR PICKER');
+console.log('✅ LED BANNER - WITH MOBILE COLOR PICKER');
