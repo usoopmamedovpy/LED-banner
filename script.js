@@ -415,17 +415,40 @@ speedSlider.addEventListener('input', () => {
 });
 
 resetBtn.addEventListener('click', handleReset);
-settingsBtn.addEventListener('click', () => {
+
+// ВАЖНО: ОБРАБОТЧИК ОТКРЫТИЯ НАСТРОЕК С ПЕРЕРИСОВКОЙ CANVAS
+settingsBtn.addEventListener('click', function() {
     if (isRunning) return;
+    
     if (settingsPanel.classList.contains('show')) {
         settingsPanel.classList.remove('show');
-        settingsBtn.classList.remove('active');
+        this.classList.remove('active');
     } else {
         settingsPanel.classList.add('show');
-        settingsBtn.classList.add('active');
+        this.classList.add('active');
         closeKeyboard();
+        
+        // ПЕРЕРИСОВЫВАЕМ CANVAS ПОСЛЕ ОТКРЫТИЯ
+        setTimeout(function() {
+            if (colorPalette) {
+                const rect = colorPalette.getBoundingClientRect();
+                if (rect.width > 0 && rect.height > 0) {
+                    colorPalette.width = rect.width;
+                    colorPalette.height = rect.height;
+                    ctx = colorPalette.getContext('2d');
+                    displayW = rect.width;
+                    displayH = rect.height;
+                    drawColorPalette(currentHue);
+                    
+                    const x = (currentSat / 100) * displayW;
+                    const y = (1 - currentLight / 100) * displayH;
+                    updateIndicatorPosition(x, y);
+                }
+            }
+        }, 50);
     }
 });
+
 settingsPanel.addEventListener('click', (e) => { if (e.target === settingsPanel) { settingsPanel.classList.remove('show'); settingsBtn.classList.remove('active'); } });
 
 tg.BackButton.onClick(() => {
@@ -437,40 +460,30 @@ tg.BackButton.onClick(() => {
 tg.BackButton.show();
 
 // ============================================
-// ЦВЕТОВОЙ ПИКЕР - МОБИЛЬНАЯ ВЕРСИЯ
+// ЦВЕТОВОЙ ПИКЕР
 // ============================================
 
-function resizeCanvasToDisplaySize() {
+function resizeColorPaletteCanvas() {
     if (!colorPalette) return;
     
     const rect = colorPalette.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
     
     colorPalette.width = rect.width;
     colorPalette.height = rect.height;
     
-    ctx = colorPalette.getContext('2d');
+    ctx = colorPalette.getContext('2d', { alpha: false });
     
     displayW = rect.width;
     displayH = rect.height;
     
-    console.log('Canvas size:', displayW, 'x', displayH, 'Mobile:', isMobile);
+    drawColorPalette(currentHue);
 }
 
 function initColorPicker() {
     if (!colorPalette) return;
     
-    resizeCanvasToDisplaySize();
-    drawColorPalette(currentHue);
-    
-    window.addEventListener('resize', function() {
-        setTimeout(function() {
-            resizeCanvasToDisplaySize();
-            drawColorPalette(currentHue);
-            const x = (currentSat / 100) * displayW;
-            const y = (1 - currentLight / 100) * displayH;
-            updateIndicatorPosition(x, y);
-        }, 100);
-    });
+    resizeColorPaletteCanvas();
     
     colorPalette.addEventListener('mousedown', startDrag);
     colorPalette.addEventListener('mousemove', drag);
@@ -480,7 +493,22 @@ function initColorPicker() {
     colorPalette.addEventListener('touchmove', dragTouch, { passive: false });
     colorPalette.addEventListener('touchend', stopDrag);
     
-    hueSlider.addEventListener('input', updateHue);
+    hueSlider.addEventListener('input', function() {
+        currentHue = parseInt(hueSlider.value);
+        drawColorPalette(currentHue);
+        updateColorFromHSL(currentHue, currentSat, currentLight);
+    });
+    
+    window.addEventListener('resize', function() {
+        if (settingsPanel && settingsPanel.classList.contains('show')) {
+            setTimeout(function() {
+                resizeColorPaletteCanvas();
+                const x = (currentSat / 100) * displayW;
+                const y = (1 - currentLight / 100) * displayH;
+                updateIndicatorPosition(x, y);
+            }, 50);
+        }
+    });
     
     createShadesGrid();
     updateColorFromRGB(255, 255, 255);
@@ -488,25 +516,21 @@ function initColorPicker() {
 
 function drawColorPalette(hue) {
     if (!ctx || !colorPalette) return;
-    
-    const width = displayW;
-    const height = displayH;
-    
-    if (width === 0 || height === 0) return;
+    if (displayW === 0 || displayH === 0) return;
     
     ctx.fillStyle = '#000000';
-    ctx.fillRect(0, 0, width, height);
+    ctx.fillRect(0, 0, displayW, displayH);
     
-    for (let x = 0; x < width; x++) {
-        const saturation = x / width;
+    for (let x = 0; x < displayW; x++) {
+        const saturation = x / displayW;
         
-        const gradient = ctx.createLinearGradient(0, 0, 0, height);
+        const gradient = ctx.createLinearGradient(0, 0, 0, displayH);
         gradient.addColorStop(0, `hsl(${hue}, ${saturation * 100}%, 100%)`);
         gradient.addColorStop(0.5, `hsl(${hue}, ${saturation * 100}%, 50%)`);
         gradient.addColorStop(1, `hsl(${hue}, ${saturation * 100}%, 0%)`);
         
         ctx.fillStyle = gradient;
-        ctx.fillRect(x, 0, 1, height);
+        ctx.fillRect(x, 0, 1, displayH);
     }
 }
 
@@ -698,4 +722,4 @@ function updateActiveShade(hex) {
     });
 }
 
-console.log('✅ LED BANNER - WITH MOBILE COLOR PICKER');
+console.log('✅ LED BANNER - WITH FIXED COLOR PICKER');
