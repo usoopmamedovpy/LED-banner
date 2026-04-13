@@ -1,4 +1,8 @@
 let tg = window.Telegram.WebApp;
+
+// ============================================
+// ИНИЦИАЛИЗАЦИЯ TELEGRAM
+// ============================================
 tg.ready();
 tg.expand();
 
@@ -12,6 +16,39 @@ document.documentElement.style.backgroundColor = '#000000';
 document.body.style.backgroundColor = '#000000';
 document.body.style.color = '#ffffff';
 
+// ============================================
+// ЗАПРЕЩАЕМ СВОРАЧИВАНИЕ ПРИ ВЗАИМОДЕЙСТВИИ
+// ============================================
+function preventCollapse() {
+    tg.expand();
+}
+
+// При любом клике или касании
+document.body.addEventListener('click', preventCollapse);
+document.body.addEventListener('touchstart', preventCollapse);
+
+// Функция для добавления обработчиков на все элементы
+function addPreventCollapseToElements() {
+    document.querySelectorAll('button, .math-key, .text-input, .run-btn, .math-btn, .reset-btn, .settings-btn, .donate-btn, .tab-btn, .physics-subtab-btn, .shade-btn, .slider').forEach(el => {
+        el.addEventListener('click', preventCollapse);
+        el.addEventListener('touchstart', preventCollapse);
+    });
+}
+
+// Вызываем после загрузки
+window.addEventListener('load', function() {
+    addPreventCollapseToElements();
+});
+
+// Также при вводе текста
+document.querySelectorAll('input, textarea').forEach(input => {
+    input.addEventListener('focus', preventCollapse);
+    input.addEventListener('input', preventCollapse);
+});
+
+// ============================================
+// ТЕКСТЫ
+// ============================================
 const texts = {
     banner: 'LED banner',
     inputPlaceholder: 'Enter text...',
@@ -96,6 +133,7 @@ window.addEventListener('load', function() {
     initColorPicker();
     setTimeout(applyColorToMath, 500);
     scrollingText.style.textShadow = 'none';
+    addPreventCollapseToElements();
 });
 
 function updateTexts() {
@@ -141,8 +179,8 @@ function createUnifiedInterface() {
     inputArea.appendChild(textInput);
     inputArea.appendChild(runButton);
     
-    mathButton.addEventListener('click', (e) => { e.stopPropagation(); toggleKeyboard(); });
-    runButton.addEventListener('click', toggleRun);
+    mathButton.addEventListener('click', (e) => { e.stopPropagation(); toggleKeyboard(); preventCollapse(); });
+    runButton.addEventListener('click', (e) => { toggleRun(); preventCollapse(); });
     
     textInput.addEventListener('input', (e) => {
         const text = e.target.value;
@@ -150,12 +188,14 @@ function createUnifiedInterface() {
         scrollingText.innerHTML = '\\(' + latex + '\\)';
         if (window.MathJax) MathJax.typesetPromise([scrollingText]).then(() => applyColorToMath()).catch(()=>{});
         saveData({ latex: latex, raw: text });
+        preventCollapse();
     });
     
-    textInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') toggleRun(); });
+    textInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') toggleRun(); preventCollapse(); });
     
     document.addEventListener('click', (e) => {
         if (keyboardVisible && !mathKeyboard.contains(e.target) && !mathButton.contains(e.target)) closeKeyboard();
+        preventCollapse();
     });
     
     physicsKeys.forEach(btn => {
@@ -163,6 +203,7 @@ function createUnifiedInterface() {
             e.stopPropagation(); e.preventDefault();
             const formula = btn.dataset.formula;
             if (formula) insertMathSymbol(formula);
+            preventCollapse();
             return false;
         });
     });
@@ -174,6 +215,7 @@ function createUnifiedInterface() {
         physicsSubtabs.forEach(btn => btn.classList.remove('active'));
         document.getElementById('phys-mechanics').classList.add('active');
         physicsSubtabs[0].classList.add('active');
+        preventCollapse();
     });
     
     physicsSubtabs.forEach(btn => {
@@ -184,6 +226,7 @@ function createUnifiedInterface() {
             btn.classList.add('active');
             physicsCategories.forEach(catEl => catEl.classList.remove('active'));
             document.getElementById(`phys-${cat}`).classList.add('active');
+            preventCollapse();
         });
     });
 }
@@ -290,6 +333,7 @@ function toggleKeyboard() {
         mathBtn.classList.remove('active');
         document.getElementById('mainMathBtn')?.classList.remove('active');
     }
+    preventCollapse();
 }
 
 function closeKeyboard() {
@@ -297,6 +341,7 @@ function closeKeyboard() {
     mathKeyboard.classList.remove('show');
     mathBtn.classList.remove('active');
     document.getElementById('mainMathBtn')?.classList.remove('active');
+    preventCollapse();
 }
 
 function toggleRun() {
@@ -318,6 +363,7 @@ function toggleRun() {
         closeKeyboard();
         saveData({});
     }
+    preventCollapse();
 }
 
 function handleReset() {
@@ -345,6 +391,7 @@ function handleReset() {
     closeKeyboard();
     settingsPanel.classList.remove('show');
     settingsBtn.classList.remove('active');
+    preventCollapse();
 }
 
 function insertMathSymbol(symbol) {
@@ -372,19 +419,23 @@ function insertMathSymbol(symbol) {
     scrollingText.innerHTML = '\\(' + latex + '\\)';
     if (window.MathJax) MathJax.typesetPromise([scrollingText]).then(() => applyColorToMath()).catch(()=>{});
     saveData({ latex, raw: newText });
+    preventCollapse();
 }
 
 tabFunctions.addEventListener('click', () => {
     tabFunctions.classList.add('active'); tabGreek.classList.remove('active'); tabSymbols.classList.remove('active'); tabPhysics.classList.remove('active');
     functionsTab.classList.add('active'); greekTab.classList.remove('active'); symbolsTab.classList.remove('active'); physicsTab.classList.remove('active');
+    preventCollapse();
 });
 tabGreek.addEventListener('click', () => {
     tabGreek.classList.add('active'); tabFunctions.classList.remove('active'); tabSymbols.classList.remove('active'); tabPhysics.classList.remove('active');
     greekTab.classList.add('active'); functionsTab.classList.remove('active'); symbolsTab.classList.remove('active'); physicsTab.classList.remove('active');
+    preventCollapse();
 });
 tabSymbols.addEventListener('click', () => {
     tabSymbols.classList.add('active'); tabFunctions.classList.remove('active'); tabGreek.classList.remove('active'); tabPhysics.classList.remove('active');
     symbolsTab.classList.add('active'); functionsTab.classList.remove('active'); greekTab.classList.remove('active'); physicsTab.classList.remove('active');
+    preventCollapse();
 });
 
 mathKeys.forEach(btn => {
@@ -397,6 +448,7 @@ mathKeys.forEach(btn => {
         else if (dataCmd === '\\sqrt[n]' || cmd === 'n√') insertMathSymbol('n√');
         else if (dataCmd === '\\Delta' || cmd === 'Δ') insertMathSymbol('Δ');
         else insertMathSymbol(cmd);
+        preventCollapse();
         return false;
     });
 });
@@ -406,17 +458,19 @@ sizeSlider.addEventListener('input', () => {
     scrollingText.style.fontSize = currentSize + 'vw';
     sizeValue.textContent = currentSize + 'vw';
     saveData({});
+    preventCollapse();
 });
 speedSlider.addEventListener('input', () => {
     currentSpeed = parseInt(speedSlider.value);
     speedValue.textContent = currentSpeed + ' sec';
     restartAnimation();
     saveData({});
+    preventCollapse();
 });
 
-resetBtn.addEventListener('click', handleReset);
+resetBtn.addEventListener('click', () => { handleReset(); preventCollapse(); });
 
-// ВАЖНО: ОБРАБОТЧИК ОТКРЫТИЯ НАСТРОЕК С ПЕРЕРИСОВКОЙ CANVAS
+// ОБРАБОТЧИК ОТКРЫТИЯ НАСТРОЕК
 settingsBtn.addEventListener('click', function() {
     if (isRunning) return;
     
@@ -428,7 +482,6 @@ settingsBtn.addEventListener('click', function() {
         this.classList.add('active');
         closeKeyboard();
         
-        // ПЕРЕРИСОВЫВАЕМ CANVAS ПОСЛЕ ОТКРЫТИЯ
         setTimeout(function() {
             if (colorPalette) {
                 const rect = colorPalette.getBoundingClientRect();
@@ -447,15 +500,17 @@ settingsBtn.addEventListener('click', function() {
             }
         }, 50);
     }
+    preventCollapse();
 });
 
-settingsPanel.addEventListener('click', (e) => { if (e.target === settingsPanel) { settingsPanel.classList.remove('show'); settingsBtn.classList.remove('active'); } });
+settingsPanel.addEventListener('click', (e) => { if (e.target === settingsPanel) { settingsPanel.classList.remove('show'); settingsBtn.classList.remove('active'); } preventCollapse(); });
 
 tg.BackButton.onClick(() => {
     if (settingsPanel.classList.contains('show')) { settingsPanel.classList.remove('show'); settingsBtn.classList.remove('active'); }
     else if (keyboardVisible) closeKeyboard();
     else if (isRunning) { inputArea.style.display = 'flex'; settingsBtn.style.display = 'flex'; donateBtn.style.display = 'flex'; isRunning = false; }
     else tg.close();
+    preventCollapse();
 });
 tg.BackButton.show();
 
@@ -497,6 +552,7 @@ function initColorPicker() {
         currentHue = parseInt(hueSlider.value);
         drawColorPalette(currentHue);
         updateColorFromHSL(currentHue, currentSat, currentLight);
+        preventCollapse();
     });
     
     window.addEventListener('resize', function() {
@@ -564,6 +620,7 @@ function pickColorFromEvent(e) {
     
     updateColorFromHSL(currentHue, currentSat, currentLight);
     updateIndicatorPosition(xCss, yCss);
+    preventCollapse();
 }
 
 function pickColorFromTouch(e) {
@@ -587,6 +644,7 @@ function pickColorFromTouch(e) {
     
     updateColorFromHSL(currentHue, currentSat, currentLight);
     updateIndicatorPosition(xCss, yCss);
+    preventCollapse();
 }
 
 function pickColor(e) { pickColorFromEvent(e); }
@@ -667,7 +725,7 @@ function createShadesGrid() {
             shadeBtn.className = 'shade-btn';
             shadeBtn.style.backgroundColor = shade;
             shadeBtn.setAttribute('data-color', shade);
-            shadeBtn.addEventListener('click', function() { updateColorFromHex(shade); });
+            shadeBtn.addEventListener('click', function() { updateColorFromHex(shade); preventCollapse(); });
             shadesScroll.appendChild(shadeBtn);
         });
     });
@@ -722,4 +780,4 @@ function updateActiveShade(hex) {
     });
 }
 
-console.log('✅ LED BANNER - WITH FIXED COLOR PICKER');
+console.log('✅ LED BANNER - WITH PREVENT COLLAPSE');
