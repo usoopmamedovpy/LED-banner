@@ -1,14 +1,32 @@
 let tg = window.Telegram.WebApp;
 
 // ============================================
-// БЕЗОПАСНЫЙ INIT (БЕЗ ЦИКЛОВ)
+// ЖЕСТКИЙ СТАБИЛИЗИРУЮЩИЙ ПАТЧ
 // ============================================
 tg.ready();
 
-requestAnimationFrame(() => {
-    try { tg.expand(); } catch(_) {}
-});
+// НЕ ВЫЗЫВАЕМ expand() НА СТАРТЕ!
+let expandedOnce = false;
+let userInteracted = false;
+const appStartedAt = Date.now();
 
+function expandAfterUserGesture() {
+    if (expandedOnce) return;
+    expandedOnce = true;
+    try { tg.expand(); } catch(_) {}
+}
+
+// Первое касание пользователя - только тогда расширяем
+document.addEventListener('pointerdown', expandAfterUserGesture, { once: true });
+document.addEventListener('touchstart', expandAfterUserGesture, { once: true, passive: true });
+document.addEventListener('click', expandAfterUserGesture, { once: true });
+
+// Отмечаем взаимодействие пользователя
+document.addEventListener('pointerdown', () => { userInteracted = true; }, { passive: true });
+document.addEventListener('touchstart', () => { userInteracted = true; }, { passive: true });
+document.addEventListener('click', () => { userInteracted = true; });
+
+// Настройка цветов (без expand)
 try { tg.setHeaderColor('#000000'); } catch(_) {}
 try { tg.setBackgroundColor('#000000'); } catch(_) {}
 
@@ -17,7 +35,7 @@ document.body.style.backgroundColor = '#000000';
 document.body.style.color = '#ffffff';
 
 // ============================================
-// УМНЫЙ BACKBUTTON (НЕ ПОКАЗЫВАЕМ ВСЕГДА)
+// УМНЫЙ BACKBUTTON
 // ============================================
 function syncBackButton() {
     const shouldShow = settingsPanel.classList.contains('show') || keyboardVisible || isRunning;
@@ -301,16 +319,17 @@ function restartAnimation() { scrollingText.style.animation = 'none'; void scrol
 function toggleKeyboard() {
     if (isRunning) return;
     keyboardVisible = !keyboardVisible;
+    const mainMathBtn = document.getElementById('mainMathBtn');
     if (keyboardVisible) {
         mathKeyboard.classList.add('show');
         mathBtn.classList.add('active');
-        document.getElementById('mainMathBtn')?.classList.add('active');
+        if (mainMathBtn) mainMathBtn.classList.add('active');
         settingsPanel.classList.remove('show');
         settingsBtn.classList.remove('active');
     } else {
         mathKeyboard.classList.remove('show');
         mathBtn.classList.remove('active');
-        document.getElementById('mainMathBtn')?.classList.remove('active');
+        if (mainMathBtn) mainMathBtn.classList.remove('active');
     }
     syncBackButton();
 }
@@ -319,7 +338,8 @@ function closeKeyboard() {
     keyboardVisible = false;
     mathKeyboard.classList.remove('show');
     mathBtn.classList.remove('active');
-    document.getElementById('mainMathBtn')?.classList.remove('active');
+    const mainMathBtn = document.getElementById('mainMathBtn');
+    if (mainMathBtn) mainMathBtn.classList.remove('active');
     syncBackButton();
 }
 
@@ -497,6 +517,12 @@ tg.BackButton.onClick(() => {
         donateBtn.style.display = 'flex';
         isRunning = false;
     } else {
+        // ЗАЩИТА ОТ МГНОВЕННОГО ЗАКРЫТИЯ ПРИ СТАРТЕ
+        const startedRecently = Date.now() - appStartedAt < 1200;
+        if (startedRecently || !userInteracted) {
+            // Игнорируем случайный back при старте
+            return;
+        }
         tg.close();
     }
     syncBackButton();
@@ -766,4 +792,4 @@ function updateActiveShade(hex) {
     });
 }
 
-console.log('✅ LED BANNER - FIXED VERSION WITHOUT CYCLE');
+console.log('✅ LED BANNER - STABILIZED VERSION');
