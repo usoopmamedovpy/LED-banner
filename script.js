@@ -1,29 +1,32 @@
 let tg = window.Telegram.WebApp;
 
 // ============================================
-// ИНИЦИАЛИЗАЦИЯ TELEGRAM (БЕЗ REQUESTFULLSCREEN)
+// БЕЗОПАСНЫЙ INIT (БЕЗ ЦИКЛОВ)
 // ============================================
 tg.ready();
-tg.expand(); // только expand, без requestFullscreen!
 
-tg.setHeaderColor('#000000');
-tg.setBackgroundColor('#000000');
+requestAnimationFrame(() => {
+    try { tg.expand(); } catch(_) {}
+});
+
+try { tg.setHeaderColor('#000000'); } catch(_) {}
+try { tg.setBackgroundColor('#000000'); } catch(_) {}
+
 document.documentElement.style.backgroundColor = '#000000';
 document.body.style.backgroundColor = '#000000';
 document.body.style.color = '#ffffff';
 
 // ============================================
-// МЯГКОЕ УДЕРЖАНИЕ РАЗВЕРНУТОГО СОСТОЯНИЯ (БЕЗ СПАМА)
+// УМНЫЙ BACKBUTTON (НЕ ПОКАЗЫВАЕМ ВСЕГДА)
 // ============================================
-const safeExpand = () => {
-    try { tg.expand(); } catch(e) {}
-};
-
-tg.onEvent('viewportChanged', safeExpand);
-tg.onEvent('themeChanged', safeExpand);
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') safeExpand();
-});
+function syncBackButton() {
+    const shouldShow = settingsPanel.classList.contains('show') || keyboardVisible || isRunning;
+    if (shouldShow) {
+        tg.BackButton.show();
+    } else {
+        tg.BackButton.hide();
+    }
+}
 
 // ============================================
 // ТЕКСТЫ
@@ -112,6 +115,7 @@ window.addEventListener('load', function() {
     initColorPicker();
     setTimeout(applyColorToMath, 500);
     scrollingText.style.textShadow = 'none';
+    syncBackButton();
 });
 
 function updateTexts() {
@@ -190,6 +194,7 @@ function createUnifiedInterface() {
         physicsSubtabs.forEach(btn => btn.classList.remove('active'));
         document.getElementById('phys-mechanics').classList.add('active');
         physicsSubtabs[0].classList.add('active');
+        syncBackButton();
     });
     
     physicsSubtabs.forEach(btn => {
@@ -200,6 +205,7 @@ function createUnifiedInterface() {
             btn.classList.add('active');
             physicsCategories.forEach(catEl => catEl.classList.remove('active'));
             document.getElementById(`phys-${cat}`).classList.add('active');
+            syncBackButton();
         });
     });
 }
@@ -306,6 +312,7 @@ function toggleKeyboard() {
         mathBtn.classList.remove('active');
         document.getElementById('mainMathBtn')?.classList.remove('active');
     }
+    syncBackButton();
 }
 
 function closeKeyboard() {
@@ -313,6 +320,7 @@ function closeKeyboard() {
     mathKeyboard.classList.remove('show');
     mathBtn.classList.remove('active');
     document.getElementById('mainMathBtn')?.classList.remove('active');
+    syncBackButton();
 }
 
 function toggleRun() {
@@ -334,6 +342,7 @@ function toggleRun() {
         closeKeyboard();
         saveData({});
     }
+    syncBackButton();
 }
 
 function handleReset() {
@@ -361,6 +370,7 @@ function handleReset() {
     closeKeyboard();
     settingsPanel.classList.remove('show');
     settingsBtn.classList.remove('active');
+    syncBackButton();
 }
 
 function insertMathSymbol(symbol) {
@@ -393,14 +403,17 @@ function insertMathSymbol(symbol) {
 tabFunctions.addEventListener('click', () => {
     tabFunctions.classList.add('active'); tabGreek.classList.remove('active'); tabSymbols.classList.remove('active'); tabPhysics.classList.remove('active');
     functionsTab.classList.add('active'); greekTab.classList.remove('active'); symbolsTab.classList.remove('active'); physicsTab.classList.remove('active');
+    syncBackButton();
 });
 tabGreek.addEventListener('click', () => {
     tabGreek.classList.add('active'); tabFunctions.classList.remove('active'); tabSymbols.classList.remove('active'); tabPhysics.classList.remove('active');
     greekTab.classList.add('active'); functionsTab.classList.remove('active'); symbolsTab.classList.remove('active'); physicsTab.classList.remove('active');
+    syncBackButton();
 });
 tabSymbols.addEventListener('click', () => {
     tabSymbols.classList.add('active'); tabFunctions.classList.remove('active'); tabGreek.classList.remove('active'); tabPhysics.classList.remove('active');
     symbolsTab.classList.add('active'); functionsTab.classList.remove('active'); greekTab.classList.remove('active'); physicsTab.classList.remove('active');
+    syncBackButton();
 });
 
 mathKeys.forEach(btn => {
@@ -461,9 +474,16 @@ settingsBtn.addEventListener('click', function() {
             }
         }, 50);
     }
+    syncBackButton();
 });
 
-settingsPanel.addEventListener('click', (e) => { if (e.target === settingsPanel) { settingsPanel.classList.remove('show'); settingsBtn.classList.remove('active'); } });
+settingsPanel.addEventListener('click', (e) => { 
+    if (e.target === settingsPanel) { 
+        settingsPanel.classList.remove('show'); 
+        settingsBtn.classList.remove('active');
+        syncBackButton();
+    } 
+});
 
 tg.BackButton.onClick(() => {
     if (settingsPanel.classList.contains('show')) {
@@ -479,8 +499,9 @@ tg.BackButton.onClick(() => {
     } else {
         tg.close();
     }
+    syncBackButton();
 });
-tg.BackButton.show();
+syncBackButton();
 
 // ============================================
 // ЦВЕТОВОЙ ПИКЕР
@@ -745,4 +766,4 @@ function updateActiveShade(hex) {
     });
 }
 
-console.log('✅ LED BANNER - CLEAN VERSION WITHOUT AGGRESSIVE PREVENT COLLAPSE');
+console.log('✅ LED BANNER - FIXED VERSION WITHOUT CYCLE');
