@@ -308,10 +308,28 @@ function loadSavedData() {
     } catch(e) {}
 }
 
+// ============================================
+// СОХРАНЕНИЕ - БЕЗ SENDDATA НА СТАРТЕ!
+// ============================================
 function saveData(data) {
     const fullData = { ...data, color: currentColor, speed: currentSpeed, size: currentSize };
     localStorage.setItem('ledBannerData', JSON.stringify(fullData));
-    if (tg) try { tg.sendData(JSON.stringify({ action: 'save', data: fullData })); } catch(e) {}
+    // ОТКЛЮЧАЕМ sendData НА СТАРТЕ - ЭТО ВЫЗЫВАЛО СВОРАЧИВАНИЕ!
+    // sendData будет использоваться только при явном действии пользователя
+}
+
+// Отдельная функция для отправки в бота (если нужно)
+function sendToBot() {
+    try {
+        const data = {
+            color: currentColor,
+            speed: currentSpeed,
+            size: currentSize
+        };
+        tg.sendData(JSON.stringify({ action: 'save_all', data: data }));
+    } catch (e) {
+        console.log('sendData not available in this launch mode');
+    }
 }
 
 function restartAnimation() { scrollingText.style.animation = 'none'; void scrollingText.offsetWidth; scrollingText.style.animation = `scrollText ${currentSpeed}s linear infinite`; }
@@ -517,10 +535,8 @@ tg.BackButton.onClick(() => {
         donateBtn.style.display = 'flex';
         isRunning = false;
     } else {
-        // ЗАЩИТА ОТ МГНОВЕННОГО ЗАКРЫТИЯ ПРИ СТАРТЕ
         const startedRecently = Date.now() - appStartedAt < 1200;
         if (startedRecently || !userInteracted) {
-            // Игнорируем случайный back при старте
             return;
         }
         tg.close();
@@ -792,4 +808,4 @@ function updateActiveShade(hex) {
     });
 }
 
-console.log('✅ LED BANNER - STABILIZED VERSION');
+console.log('✅ LED BANNER - STABILIZED WITHOUT SENDDATA');
