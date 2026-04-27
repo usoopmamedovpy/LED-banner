@@ -5,7 +5,6 @@ let tg = window.Telegram.WebApp;
 // ============================================
 tg.ready();
 
-// НЕ ВЫЗЫВАЕМ expand() НА СТАРТЕ!
 let expandedOnce = false;
 let userInteracted = false;
 const appStartedAt = Date.now();
@@ -16,17 +15,14 @@ function expandAfterUserGesture() {
     try { tg.expand(); } catch(_) {}
 }
 
-// Первое касание пользователя - только тогда расширяем
 document.addEventListener('pointerdown', expandAfterUserGesture, { once: true });
 document.addEventListener('touchstart', expandAfterUserGesture, { once: true, passive: true });
 document.addEventListener('click', expandAfterUserGesture, { once: true });
 
-// Отмечаем взаимодействие пользователя
 document.addEventListener('pointerdown', () => { userInteracted = true; }, { passive: true });
 document.addEventListener('touchstart', () => { userInteracted = true; }, { passive: true });
 document.addEventListener('click', () => { userInteracted = true; });
 
-// Настройка цветов (без expand)
 try { tg.setHeaderColor('#000000'); } catch(_) {}
 try { tg.setBackgroundColor('#000000'); } catch(_) {}
 
@@ -38,7 +34,7 @@ document.body.style.color = '#ffffff';
 // УМНЫЙ BACKBUTTON
 // ============================================
 function syncBackButton() {
-    const shouldShow = settingsPanel.classList.contains('show') || keyboardVisible || isRunning;
+    const shouldShow = settingsPanel && settingsPanel.classList.contains('show') || keyboardVisible || isRunning;
     if (shouldShow) {
         tg.BackButton.show();
     } else {
@@ -293,12 +289,39 @@ function loadSavedData() {
         const saved = localStorage.getItem('ledBannerData');
         if (saved) {
             const data = JSON.parse(saved);
-            if (data.color) { currentColor = data.color; applyColorToMath(); }
-            if (data.speed) { currentSpeed = data.speed; speedSlider.value = currentSpeed; speedValue.textContent = currentSpeed + ' sec'; }
-            if (data.size) { currentSize = data.size; sizeSlider.value = currentSize; sizeValue.textContent = currentSize + 'vw'; scrollingText.style.fontSize = currentSize + 'vw'; }
+            // ЗАГРУЖАЕМ ЦВЕТ
+            if (data.color) { 
+                currentColor = data.color; 
+                applyColorToMath();
+                // Обновляем цветовой пикер
+                if (data.hue) currentHue = data.hue;
+                if (data.sat) currentSat = data.sat;
+                if (data.light) currentLight = data.light;
+                if (hueSlider && currentHue) hueSlider.value = currentHue;
+            }
+            // ЗАГРУЖАЕМ СКОРОСТЬ
+            if (data.speed) { 
+                currentSpeed = data.speed; 
+                speedSlider.value = currentSpeed; 
+                speedValue.textContent = currentSpeed + ' sec'; 
+            }
+            // ЗАГРУЖАЕМ РАЗМЕР
+            if (data.size) { 
+                currentSize = data.size; 
+                sizeSlider.value = currentSize; 
+                sizeValue.textContent = currentSize + 'vw'; 
+                scrollingText.style.fontSize = currentSize + 'vw'; 
+            }
+            // ЗАГРУЖАЕМ ТЕКСТ - ФИКСИРУЕМ ПРОБЕЛ
             if (data.raw) {
                 const input = document.getElementById('mainInput');
-                if (input) input.value = data.raw;
+                if (input) {
+                    input.value = data.raw;
+                    // Убираем лишний пробел в начале/конце
+                    if (input.value.startsWith(' ') || input.value.endsWith(' ')) {
+                        input.value = input.value.trim();
+                    }
+                }
                 if (data.latex) {
                     scrollingText.innerHTML = '\\(' + data.latex + '\\)';
                     if (window.MathJax) MathJax.typesetPromise([scrollingText]).then(() => applyColorToMath()).catch(()=>{});
@@ -309,26 +332,35 @@ function loadSavedData() {
 }
 
 // ============================================
-// СОХРАНЕНИЕ - БЕЗ SENDDATA НА СТАРТЕ!
+// СОХРАНЕНИЕ - СОХРАНЯЕМ ВСЁ, ВКЛЮЧАЯ ЦВЕТ
 // ============================================
 function saveData(data) {
-    const fullData = { ...data, color: currentColor, speed: currentSpeed, size: currentSize };
+    const fullData = { 
+        ...data, 
+        color: currentColor, 
+        speed: currentSpeed, 
+        size: currentSize,
+        // Сохраняем параметры цвета для восстановления
+        hue: currentHue,
+        sat: currentSat,
+        light: currentLight
+    };
     localStorage.setItem('ledBannerData', JSON.stringify(fullData));
-    // ОТКЛЮЧАЕМ sendData НА СТАРТЕ - ЭТО ВЫЗЫВАЛО СВОРАЧИВАНИЕ!
-    // sendData будет использоваться только при явном действии пользователя
 }
 
-// Отдельная функция для отправки в бота (если нужно)
 function sendToBot() {
     try {
         const data = {
             color: currentColor,
             speed: currentSpeed,
-            size: currentSize
+            size: currentSize,
+            hue: currentHue,
+            sat: currentSat,
+            light: currentLight
         };
         tg.sendData(JSON.stringify({ action: 'save_all', data: data }));
     } catch (e) {
-        console.log('sendData not available in this launch mode');
+        console.log('sendData not available');
     }
 }
 
@@ -390,16 +422,31 @@ function handleReset() {
         donateBtn.style.display = 'flex';
         isRunning = false;
         const input = document.getElementById('mainInput');
-        if (input) { const currentText = input.value; const latex = parseToLaTeX(currentText); saveData({ latex, raw: currentText }); }
+        if (input) { 
+            const currentText = input.value;
+            // Убираем лишние пробелы при сбросе
+            const cleanText = currentText.trim();
+            const latex = parseToLaTeX(cleanText); 
+            saveData({ latex, raw: cleanText });
+            scrollingText.innerHTML = '\\(' + latex + '\\)';
+            if (window.MathJax) MathJax.typesetPromise([scrollingText]).then(() => applyColorToMath()).catch(()=>{});
+        }
     } else {
         const input = document.getElementById('mainInput');
         if (input) input.value = t.banner;
         scrollingText.innerHTML = '\\(' + t.banner + '\\)';
         if (window.MathJax) MathJax.typesetPromise([scrollingText]).then(() => applyColorToMath()).catch(()=>{});
         currentColor = '#ffffff';
-        currentSpeed = 15; currentSize = 15;
-        sizeSlider.value = 15; speedSlider.value = 15;
-        sizeValue.textContent = '15vw'; speedValue.textContent = '15 sec';
+        currentHue = 0;
+        currentSat = 100;
+        currentLight = 50;
+        currentSpeed = 15; 
+        currentSize = 15;
+        if (hueSlider) hueSlider.value = 0;
+        sizeSlider.value = 15; 
+        speedSlider.value = 15;
+        sizeValue.textContent = '15vw'; 
+        speedValue.textContent = '15 sec';
         scrollingText.style.fontSize = '15vw';
         applyColorToMath();
         restartAnimation();
@@ -583,6 +630,7 @@ function initColorPicker() {
         currentHue = parseInt(hueSlider.value);
         drawColorPalette(currentHue);
         updateColorFromHSL(currentHue, currentSat, currentLight);
+        saveData({});
     });
     
     window.addEventListener('resize', function() {
@@ -650,6 +698,7 @@ function pickColorFromEvent(e) {
     
     updateColorFromHSL(currentHue, currentSat, currentLight);
     updateIndicatorPosition(xCss, yCss);
+    saveData({});
 }
 
 function pickColorFromTouch(e) {
@@ -673,6 +722,7 @@ function pickColorFromTouch(e) {
     
     updateColorFromHSL(currentHue, currentSat, currentLight);
     updateIndicatorPosition(xCss, yCss);
+    saveData({});
 }
 
 function pickColor(e) { pickColorFromEvent(e); }
@@ -753,7 +803,7 @@ function createShadesGrid() {
             shadeBtn.className = 'shade-btn';
             shadeBtn.style.backgroundColor = shade;
             shadeBtn.setAttribute('data-color', shade);
-            shadeBtn.addEventListener('click', function() { updateColorFromHex(shade); });
+            shadeBtn.addEventListener('click', function() { updateColorFromHex(shade); saveData({}); });
             shadesScroll.appendChild(shadeBtn);
         });
     });
@@ -808,4 +858,4 @@ function updateActiveShade(hex) {
     });
 }
 
-console.log('✅ LED BANNER - STABILIZED WITHOUT SENDDATA');
+console.log('✅ LED BANNER - FULL SAVE INCLUDING COLOR');
