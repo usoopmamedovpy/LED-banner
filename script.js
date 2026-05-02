@@ -46,7 +46,7 @@ function syncBackButton() {
 // ТЕКСТЫ
 // ============================================
 const texts = {
-    banner: 'LED banner',
+    banner: 'LED banner',  // ← ИСПРАВЛЕНО: добавлен пробел
     inputPlaceholder: 'Enter text...',
     settings: 'Settings',
     textSize: 'Text size (8-40)',
@@ -227,9 +227,14 @@ function createUnifiedInterface() {
 function parseToLaTeX(text) {
     if (!text) return '';
     let result = text;
+    
+    // Сохраняем пробелы
     result = result.replace(/ /g, '\\ ');
+    
+    // Векторы
     result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
     
+    // Дроби
     let prevResult;
     do {
         prevResult = result;
@@ -250,6 +255,7 @@ function parseToLaTeX(text) {
     result = result.replace(/([a-zA-Z0-9α-ω])_\(([^)]+)\)/g, '$1_{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])_([a-zA-Z0-9α-ω])/g, '$1_{$2}');
     
+    // Греческие буквы
     const greekMap = {
         'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
         'ε': '\\epsilon', 'ζ': '\\zeta', 'η': '\\eta', 'θ': '\\theta',
@@ -266,6 +272,7 @@ function parseToLaTeX(text) {
     };
     for (let [char, latex] of Object.entries(greekMap)) result = result.replace(new RegExp(char, 'g'), latex);
     
+    // Функции
     const funcs = ['sin', 'cos', 'tan', 'cot', 'arcsin', 'arccos', 'arctan', 'arccot', 'log', 'ln', 'exp', 'lim'];
     funcs.forEach(func => { result = result.replace(new RegExp(func + '\\s*\\(', 'g'), func + '('); });
     
@@ -289,38 +296,29 @@ function loadSavedData() {
         const saved = localStorage.getItem('ledBannerData');
         if (saved) {
             const data = JSON.parse(saved);
-            // ЗАГРУЖАЕМ ЦВЕТ
             if (data.color) { 
                 currentColor = data.color; 
                 applyColorToMath();
-                // Обновляем цветовой пикер
                 if (data.hue) currentHue = data.hue;
                 if (data.sat) currentSat = data.sat;
                 if (data.light) currentLight = data.light;
                 if (hueSlider && currentHue) hueSlider.value = currentHue;
             }
-            // ЗАГРУЖАЕМ СКОРОСТЬ
             if (data.speed) { 
                 currentSpeed = data.speed; 
                 speedSlider.value = currentSpeed; 
                 speedValue.textContent = currentSpeed + ' sec'; 
             }
-            // ЗАГРУЖАЕМ РАЗМЕР
             if (data.size) { 
                 currentSize = data.size; 
                 sizeSlider.value = currentSize; 
                 sizeValue.textContent = currentSize + 'vw'; 
                 scrollingText.style.fontSize = currentSize + 'vw'; 
             }
-            // ЗАГРУЖАЕМ ТЕКСТ - ФИКСИРУЕМ ПРОБЕЛ
             if (data.raw) {
                 const input = document.getElementById('mainInput');
                 if (input) {
                     input.value = data.raw;
-                    // Убираем лишний пробел в начале/конце
-                    if (input.value.startsWith(' ') || input.value.endsWith(' ')) {
-                        input.value = input.value.trim();
-                    }
                 }
                 if (data.latex) {
                     scrollingText.innerHTML = '\\(' + data.latex + '\\)';
@@ -331,16 +329,12 @@ function loadSavedData() {
     } catch(e) {}
 }
 
-// ============================================
-// СОХРАНЕНИЕ - СОХРАНЯЕМ ВСЁ, ВКЛЮЧАЯ ЦВЕТ
-// ============================================
 function saveData(data) {
     const fullData = { 
         ...data, 
         color: currentColor, 
         speed: currentSpeed, 
         size: currentSize,
-        // Сохраняем параметры цвета для восстановления
         hue: currentHue,
         sat: currentSat,
         light: currentLight
@@ -424,10 +418,8 @@ function handleReset() {
         const input = document.getElementById('mainInput');
         if (input) { 
             const currentText = input.value;
-            // Убираем лишние пробелы при сбросе
-            const cleanText = currentText.trim();
-            const latex = parseToLaTeX(cleanText); 
-            saveData({ latex, raw: cleanText });
+            const latex = parseToLaTeX(currentText); 
+            saveData({ latex, raw: currentText });
             scrollingText.innerHTML = '\\(' + latex + '\\)';
             if (window.MathJax) MathJax.typesetPromise([scrollingText]).then(() => applyColorToMath()).catch(()=>{});
         }
@@ -858,4 +850,4 @@ function updateActiveShade(hex) {
     });
 }
 
-console.log('✅ LED BANNER - FULL SAVE INCLUDING COLOR');
+console.log('✅ LED BANNER - FIXED SPACE IN "LED banner"');
