@@ -46,7 +46,7 @@ function syncBackButton() {
 // ТЕКСТЫ
 // ============================================
 const texts = {
-    banner: 'LED banner',  // ← ИСПРАВЛЕНО: добавлен пробел
+    banner: 'LED banner',
     inputPlaceholder: 'Enter text...',
     settings: 'Settings',
     textSize: 'Text size (8-40)',
@@ -122,12 +122,25 @@ function clamp(v, min, max) {
     return Math.max(min, Math.min(max, v));
 }
 
+// ============================================
+// ГЛАВНАЯ ФУНКЦИЯ ДЛЯ ОБНОВЛЕНИЯ БЕГУЩЕЙ СТРОКИ
+// ============================================
+function setScrollingFromRaw(raw) {
+    const latex = parseToLaTeX(raw || '');
+    scrollingText.innerHTML = '\\(' + latex + '\\)';
+    if (window.MathJax) {
+        MathJax.typesetPromise([scrollingText]).then(() => applyColorToMath()).catch(() => {});
+    } else {
+        applyColorToMath();
+    }
+}
+
 window.addEventListener('load', function() {
     updateTexts();
     createUnifiedInterface();
     loadSavedData();
     initColorPicker();
-    setTimeout(applyColorToMath, 500);
+    setTimeout(() => setScrollingFromRaw(t.banner), 500);
     scrollingText.style.textShadow = 'none';
     syncBackButton();
 });
@@ -141,7 +154,7 @@ function updateTexts() {
         settingLabels[1].textContent = t.speed;
         settingLabels[2].textContent = t.color;
     }
-    scrollingText.innerHTML = '\\(' + t.banner + '\\)';
+    setScrollingFromRaw(t.banner);
 }
 
 function createUnifiedInterface() {
@@ -180,10 +193,8 @@ function createUnifiedInterface() {
     
     textInput.addEventListener('input', (e) => {
         const text = e.target.value;
-        const latex = parseToLaTeX(text);
-        scrollingText.innerHTML = '\\(' + latex + '\\)';
-        if (window.MathJax) MathJax.typesetPromise([scrollingText]).then(() => applyColorToMath()).catch(()=>{});
-        saveData({ latex: latex, raw: text });
+        setScrollingFromRaw(text);
+        saveData({ latex: parseToLaTeX(text), raw: text });
     });
     
     textInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') toggleRun(); });
@@ -227,14 +238,9 @@ function createUnifiedInterface() {
 function parseToLaTeX(text) {
     if (!text) return '';
     let result = text;
-    
-    // Сохраняем пробелы
     result = result.replace(/ /g, '\\ ');
-    
-    // Векторы
     result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
     
-    // Дроби
     let prevResult;
     do {
         prevResult = result;
@@ -255,7 +261,6 @@ function parseToLaTeX(text) {
     result = result.replace(/([a-zA-Z0-9α-ω])_\(([^)]+)\)/g, '$1_{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])_([a-zA-Z0-9α-ω])/g, '$1_{$2}');
     
-    // Греческие буквы
     const greekMap = {
         'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
         'ε': '\\epsilon', 'ζ': '\\zeta', 'η': '\\eta', 'θ': '\\theta',
@@ -272,7 +277,6 @@ function parseToLaTeX(text) {
     };
     for (let [char, latex] of Object.entries(greekMap)) result = result.replace(new RegExp(char, 'g'), latex);
     
-    // Функции
     const funcs = ['sin', 'cos', 'tan', 'cot', 'arcsin', 'arccos', 'arctan', 'arccot', 'log', 'ln', 'exp', 'lim'];
     funcs.forEach(func => { result = result.replace(new RegExp(func + '\\s*\\(', 'g'), func + '('); });
     
@@ -321,8 +325,7 @@ function loadSavedData() {
                     input.value = data.raw;
                 }
                 if (data.latex) {
-                    scrollingText.innerHTML = '\\(' + data.latex + '\\)';
-                    if (window.MathJax) MathJax.typesetPromise([scrollingText]).then(() => applyColorToMath()).catch(()=>{});
+                    setScrollingFromRaw(data.raw);
                 }
             }
         }
@@ -418,16 +421,13 @@ function handleReset() {
         const input = document.getElementById('mainInput');
         if (input) { 
             const currentText = input.value;
-            const latex = parseToLaTeX(currentText); 
-            saveData({ latex, raw: currentText });
-            scrollingText.innerHTML = '\\(' + latex + '\\)';
-            if (window.MathJax) MathJax.typesetPromise([scrollingText]).then(() => applyColorToMath()).catch(()=>{});
+            setScrollingFromRaw(currentText);
+            saveData({ latex: parseToLaTeX(currentText), raw: currentText });
         }
     } else {
         const input = document.getElementById('mainInput');
         if (input) input.value = t.banner;
-        scrollingText.innerHTML = '\\(' + t.banner + '\\)';
-        if (window.MathJax) MathJax.typesetPromise([scrollingText]).then(() => applyColorToMath()).catch(()=>{});
+        setScrollingFromRaw(t.banner);
         currentColor = '#ffffff';
         currentHue = 0;
         currentSat = 100;
@@ -442,7 +442,7 @@ function handleReset() {
         scrollingText.style.fontSize = '15vw';
         applyColorToMath();
         restartAnimation();
-        saveData({ latex: 'LED\\ banner', raw: t.banner });
+        saveData({ latex: parseToLaTeX(t.banner), raw: t.banner });
     }
     closeKeyboard();
     settingsPanel.classList.remove('show');
@@ -471,10 +471,8 @@ function insertMathSymbol(symbol) {
     else if (insertText === '/n/√[]') newPos = start + 3;
     input.setSelectionRange(newPos, newPos);
     input.focus();
-    const latex = parseToLaTeX(newText);
-    scrollingText.innerHTML = '\\(' + latex + '\\)';
-    if (window.MathJax) MathJax.typesetPromise([scrollingText]).then(() => applyColorToMath()).catch(()=>{});
-    saveData({ latex, raw: newText });
+    setScrollingFromRaw(newText);
+    saveData({ latex: parseToLaTeX(newText), raw: newText });
 }
 
 tabFunctions.addEventListener('click', () => {
@@ -850,4 +848,4 @@ function updateActiveShade(hex) {
     });
 }
 
-console.log('✅ LED BANNER - FIXED SPACE IN "LED banner"');
+console.log('✅ LED BANNER - FIXED WITH setScrollingFromRaw');
