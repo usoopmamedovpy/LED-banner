@@ -61,18 +61,14 @@
                 
                 <div class="setting-item color-picker-item">
                     <label>Text color</label>
-                    
                     <div class="color-preview" id="colorPreview"></div>
-                    
                     <div class="color-palette-container">
                         <canvas id="colorPalette" class="color-palette"></canvas>
                         <div class="palette-indicator" id="paletteIndicator"></div>
                     </div>
-                    
                     <div class="hue-slider-container">
                         <input type="range" id="hueSlider" min="0" max="360" value="0" step="1" class="hue-slider">
                     </div>
-                    
                     <div class="shades-container">
                         <div class="shades-scroll" id="shadesScroll"></div>
                     </div>
@@ -83,7 +79,7 @@
         <div class="mobile-view">
             <div class="banner-area">
                 <div class="scrolling-wrapper">
-                    <div class="scrolling-text" id="scrollingText">\(LED banner\)</div>
+                    <div class="scrolling-text" id="scrollingText">\(LED\ banner\)</div>
                 </div>
             </div>
             
@@ -191,10 +187,13 @@
                             <button class="physics-subtab-btn" data-phys-cat="nuclear">⚛️</button>
                         </div>
                         
+                        <!-- МЕХАНИКА - БЕЗ ДУБЛИРОВАНИЯ -->
                         <div class="physics-category active" id="phys-mechanics">
                             <div class="keyboard-grid">
                                 <button class="math-key" data-formula="v = v₀ + at">v = v₀ + at</button>
-                                <button class="math-key" data-formula="s = v₀t + (at^2/2) = (v₀ + v/2)·t = (v^2 - v₀^2/2a)">s = v₀t + (at^2/2) = (v₀ + v/2)·t = (v^2 - v₀^2/2a)</button>
+                                <button class="math-key" data-formula="s = v₀t + (at^2/2)">s = v₀t + (at^2/2)</button>
+                                <button class="math-key" data-formula="s = ((v₀ + v)/2)·t">s = ((v₀ + v)/2)·t</button>
+                                <button class="math-key" data-formula="s = (v^2 - v₀^2)/(2a)">s = (v^2 - v₀^2)/(2a)</button>
                                 <button class="math-key" data-formula="v^2 = v₀^2 + 2as">v^2 = v₀^2 + 2as</button>
                                 <button class="math-key" data-formula="F = ma = (Δp/Δt)">F = ma = (Δp/Δt)</button>
                                 <button class="math-key" data-formula="p = mv">p = mv</button>
@@ -205,22 +204,24 @@
                                 <button class="math-key" data-formula="v = ωR">v = ωR</button>
                                 <button class="math-key" data-formula="a_c = (v^2/R) = ω^2R">a_c = (v^2/R) = ω^2R</button>
                                 <button class="math-key" data-formula="x = A·sin(ωt + φ₀)">x = A·sin(ωt + φ₀)</button>
-                                <button class="math-key" data-formula="T = 2π√[(m/k)] = (2π/ω)">T = 2π√[(m/k)] = (2π/ω)</button>
-                                <button class="math-key" data-formula="T = 2π√[(l/g)] = (2π/ω)">T = 2π√[(l/g)] = (2π/ω)</button>
+                                <button class="math-key" data-formula="T = 2π√[m/k] = (2π/ω)">T = 2π√[m/k] = (2π/ω)</button>
+                                <button class="math-key" data-formula="T = 2π√[l/g]">T = 2π√[l/g]</button>
                                 <button class="math-key" data-formula="x = v₀·cosα·t">x = v₀·cosα·t</button>
                                 <button class="math-key" data-formula="y = v₀·sinα·t - (gt^2/2)">y = v₀·sinα·t - (gt^2/2)</button>
-                                <button class="math-key" data-formula="H_max = (v₀²·sin²α/2g)">H_max = (v₀²·sin²α/2g)</button>
-                                <button class="math-key" data-formula="L = (v₀²·sin2α/g)">L = (v₀²·sin2α/g)</button>
+                                <button class="math-key" data-formula="H_max = (v₀²·sin²α)/(2g)">H_max = (v₀²·sin²α)/(2g)</button>
+                                <button class="math-key" data-formula="L = (v₀²·sin2α)/g">L = (v₀²·sin2α)/g</button>
                                 <button class="math-key" data-formula="h = v₀t - (gt^2/2)">h = v₀t - (gt^2/2)</button>
-                                <button class="math-key" data-formula="H_max = (v₀²/2g)">H_max = (v₀²/2g)</button>
-                                <button class="math-key" data-formula="ω = √[(k/m)] = (2π/T)">ω = √[(k/m)] = (2π/T)</button>
+                                <button class="math-key" data-formula="H_max = (v₀²/(2g))">H_max = (v₀²/(2g))</button>
+                                <button class="math-key" data-formula="ω = √[k/m] = (2π/T)">ω = √[k/m] = (2π/T)</button>
                                 <button class="math-key" data-formula="E = (kA^2/2) = (mv_max^2/2)">E = (kA^2/2) = (mv_max^2/2)</button>
                             </div>
                         </div>
                         
+                        <!-- ОПТИКА -->
                         <div class="physics-category" id="phys-optics">
                             <div class="keyboard-grid">
-                                <button class="math-key" data-formula="(1/f) = (1/d_o) + (1/d_i) = (n-1)·(1/R₁ - 1/R₂)">(1/f) = (1/d_o) + (1/d_i) = (n-1)·(1/R₁ - 1/R₂)</button>
+                                <button class="math-key" data-formula="(1/f) = (1/d_o) + (1/d_i)">(1/f) = (1/d_o) + (1/d_i)</button>
+                                <button class="math-key" data-formula="(1/f) = (n-1)·(1/R₁ - 1/R₂)">(1/f) = (n-1)·(1/R₁ - 1/R₂)</button>
                                 <button class="math-key" data-formula="M = -d_i/d_o = h_i/h_o">M = -d_i/d_o = h_i/h_o</button>
                                 <button class="math-key" data-formula="n = (c/v) = (λ₀/λ)">n = (c/v) = (λ₀/λ)</button>
                                 <button class="math-key" data-formula="n₁·sinθ₁ = n₂·sinθ₂">n₁·sinθ₁ = n₂·sinθ₂</button>
@@ -232,6 +233,7 @@
                             </div>
                         </div>
                         
+                        <!-- ЯДЕРНАЯ ФИЗИКА -->
                         <div class="physics-category" id="phys-nuclear">
                             <div class="keyboard-grid">
                                 <button class="math-key" data-formula="E = mc² = √[p²c² + m₀²c⁴]">E = mc² = √[p²c² + m₀²c⁴]</button>
