@@ -428,18 +428,34 @@ function handleReset() {
         const input = document.getElementById('mainInput');
         if (input) input.value = t.banner;
         setScrollingFromRaw(t.banner);
+        
+        // Сброс цвета в белый
         currentColor = '#ffffff';
         currentHue = 0;
-        currentSat = 100;
-        currentLight = 50;
+        currentSat = 0;
+        currentLight = 100;
+        
         currentSpeed = 15; 
         currentSize = 15;
+        
         if (hueSlider) hueSlider.value = 0;
         sizeSlider.value = 15; 
         speedSlider.value = 15;
         sizeValue.textContent = '15vw'; 
         speedValue.textContent = '15 sec';
         scrollingText.style.fontSize = '15vw';
+        
+        // Перерисовка палитры и сброс индикатора в левый верхний угол
+        if (colorPalette && ctx) {
+            drawColorPalette(0);
+            const rect = colorPalette.getBoundingClientRect();
+            if (rect.width > 0) {
+                const x = 0;
+                const y = 0;
+                updateIndicatorPosition(x, y);
+            }
+        }
+        
         applyColorToMath();
         restartAnimation();
         saveData({ latex: parseToLaTeX(t.banner), raw: t.banner });
@@ -608,6 +624,16 @@ function initColorPicker() {
     
     resizeColorPaletteCanvas();
     
+    // Устанавливаем начальную позицию кружка (белый цвет - левый верхний угол)
+    currentHue = 0;
+    currentSat = 0;
+    currentLight = 100;
+    
+    if (hueSlider) hueSlider.value = currentHue;
+    
+    // Принудительно устанавливаем белый цвет
+    updateColorFromHSL(currentHue, currentSat, currentLight);
+    
     colorPalette.addEventListener('mousedown', startDrag);
     colorPalette.addEventListener('mousemove', drag);
     colorPalette.addEventListener('mouseup', stopDrag);
@@ -635,7 +661,6 @@ function initColorPicker() {
     });
     
     createShadesGrid();
-    updateColorFromRGB(255, 255, 255);
 }
 
 function drawColorPalette(hue) {
@@ -810,7 +835,7 @@ function updateColorFromHex(hex) {
     currentSat = hsl.s * 100;
     currentLight = hsl.l * 100;
     
-    hueSlider.value = currentHue;
+    if (hueSlider) hueSlider.value = currentHue;
     drawColorPalette(currentHue);
     
     const x = (currentSat / 100) * displayW;
@@ -848,4 +873,4 @@ function updateActiveShade(hex) {
     });
 }
 
-console.log('✅ LED BANNER - FIXED WITH setScrollingFromRaw');
+console.log('✅ LED BANNER - FULLY FIXED VERSION');
