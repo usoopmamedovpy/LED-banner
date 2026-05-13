@@ -445,7 +445,7 @@ function handleReset() {
         speedValue.textContent = '15 sec';
         scrollingText.style.fontSize = '15vw';
         
-        // Перерисовка палитры и сброс индикатора в левый верхний угол
+        // Перерисовка палитры
         if (colorPalette && ctx) {
             drawColorPalette(0);
             const rect = colorPalette.getBoundingClientRect();
@@ -599,7 +599,7 @@ tg.BackButton.onClick(() => {
 syncBackButton();
 
 // ============================================
-// ЦВЕТОВОЙ ПИКЕР
+// ЦВЕТОВОЙ ПИКЕР - ИСПРАВЛЕННАЯ ВЕРСИЯ
 // ============================================
 
 function resizeColorPaletteCanvas() {
@@ -835,7 +835,7 @@ function updateColorFromHex(hex) {
     currentSat = hsl.s * 100;
     currentLight = hsl.l * 100;
     
-    if (hueSlider) hueSlider.value = currentHue;
+    hueSlider.value = currentHue;
     drawColorPalette(currentHue);
     
     const x = (currentSat / 100) * displayW;
@@ -873,4 +873,4 @@ function updateActiveShade(hex) {
     });
 }
 
-console.log('✅ LED BANNER - FULLY FIXED VERSION');
+console.log('✅ LED BANNER - FINAL WITH FIXED COLOR PICKER');
