@@ -557,6 +557,7 @@ settingsBtn.addEventListener('click', function() {
                     displayW = rect.width;
                     displayH = rect.height;
                     drawColorPalette(currentHue);
+                    drawHueBar();
                     
                     const x = (currentSat / 100) * displayW;
                     const y = (1 - currentLight / 100) * displayH;
@@ -599,7 +600,7 @@ tg.BackButton.onClick(() => {
 syncBackButton();
 
 // ============================================
-// ЦВЕТОВОЙ ПИКЕР - ИСПРАВЛЕННАЯ ВЕРСИЯ
+// ЦВЕТОВОЙ ПИКЕР
 // ============================================
 
 function resizeColorPaletteCanvas() {
@@ -619,10 +620,34 @@ function resizeColorPaletteCanvas() {
     drawColorPalette(currentHue);
 }
 
+function drawHueBar() {
+    const hueBar = document.getElementById('hueBar');
+    if (!hueBar) return;
+
+    const rect = hueBar.getBoundingClientRect();
+    if (rect.width <= 0) return;
+
+    const w = Math.max(1, Math.round(rect.width));
+    const h = 12;
+
+    hueBar.width = w;
+    hueBar.height = h;
+
+    const hctx = hueBar.getContext('2d');
+    if (!hctx) return;
+
+    for (let x = 0; x < w; x++) {
+        const hue = Math.round((x / Math.max(1, w - 1)) * 359);
+        hctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+        hctx.fillRect(x, 0, 1, h);
+    }
+}
+
 function initColorPicker() {
     if (!colorPalette) return;
     
     resizeColorPaletteCanvas();
+    drawHueBar();
     
     // Устанавливаем начальную позицию кружка (белый цвет - левый верхний угол)
     currentHue = 0;
@@ -643,7 +668,8 @@ function initColorPicker() {
     colorPalette.addEventListener('touchend', stopDrag);
     
     hueSlider.addEventListener('input', function() {
-        currentHue = parseInt(hueSlider.value);
+        currentHue = Math.min(359, parseInt(hueSlider.value, 10));
+        hueSlider.value = currentHue;
         drawColorPalette(currentHue);
         updateColorFromHSL(currentHue, currentSat, currentLight);
         saveData({});
@@ -653,6 +679,7 @@ function initColorPicker() {
         if (settingsPanel && settingsPanel.classList.contains('show')) {
             setTimeout(function() {
                 resizeColorPaletteCanvas();
+                drawHueBar();
                 const x = (currentSat / 100) * displayW;
                 const y = (1 - currentLight / 100) * displayH;
                 updateIndicatorPosition(x, y);
@@ -873,4 +900,4 @@ function updateActiveShade(hex) {
     });
 }
 
-console.log('✅ LED BANNER - FINAL WITH FIXED COLOR PICKER');
+console.log('✅ LED BANNER - FIXED COLOR PICKER WITH CANVAS HUE BAR');
