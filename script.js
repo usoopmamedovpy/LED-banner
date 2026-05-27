@@ -122,6 +122,10 @@ function clamp(v, min, max) {
     return Math.max(min, Math.min(max, v));
 }
 
+function clampHue(hue) {
+    return Math.max(0, Math.min(358, hue));
+}
+
 // ============================================
 // ГЛАВНАЯ ФУНКЦИЯ ДЛЯ ОБНОВЛЕНИЯ БЕГУЩЕЙ СТРОКИ
 // ============================================
@@ -303,10 +307,12 @@ function loadSavedData() {
             if (data.color) { 
                 currentColor = data.color; 
                 applyColorToMath();
-                if (data.hue) currentHue = data.hue;
+                if (data.hue) {
+                    currentHue = clampHue(data.hue);
+                    if (hueSlider) hueSlider.value = currentHue;
+                }
                 if (data.sat) currentSat = data.sat;
                 if (data.light) currentLight = data.light;
-                if (hueSlider && currentHue) hueSlider.value = currentHue;
             }
             if (data.speed) { 
                 currentSpeed = data.speed; 
@@ -637,7 +643,8 @@ function drawHueBar() {
     if (!hctx) return;
 
     for (let x = 0; x < w; x++) {
-        const hue = Math.round((x / Math.max(1, w - 1)) * 359);
+        // Диапазон от 0 до 358, чтобы не было дублирования красного
+        const hue = Math.floor((x / Math.max(1, w)) * 359);
         hctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
         hctx.fillRect(x, 0, 1, h);
     }
@@ -654,7 +661,7 @@ function initColorPicker() {
     currentSat = 0;
     currentLight = 100;
     
-    if (hueSlider) hueSlider.value = currentHue;
+    if (hueSlider) hueSlider.value = 0;
     
     // Принудительно устанавливаем белый цвет
     updateColorFromHSL(currentHue, currentSat, currentLight);
@@ -668,7 +675,9 @@ function initColorPicker() {
     colorPalette.addEventListener('touchend', stopDrag);
     
     hueSlider.addEventListener('input', function() {
-        currentHue = Math.min(359, parseInt(hueSlider.value, 10));
+        let rawValue = parseInt(hueSlider.value, 10);
+        if (isNaN(rawValue)) rawValue = 0;
+        currentHue = Math.max(0, Math.min(358, rawValue));
         hueSlider.value = currentHue;
         drawColorPalette(currentHue);
         updateColorFromHSL(currentHue, currentSat, currentLight);
@@ -858,7 +867,7 @@ function updateColorFromHex(hex) {
     const rgb = { r, g, b };
     const hsl = rgbToHsl(r, g, b);
     
-    currentHue = hsl.h * 360;
+    currentHue = clampHue(hsl.h * 360);
     currentSat = hsl.s * 100;
     currentLight = hsl.l * 100;
     
@@ -900,4 +909,4 @@ function updateActiveShade(hex) {
     });
 }
 
-console.log('✅ LED BANNER - FIXED COLOR PICKER WITH CANVAS HUE BAR');
+console.log('✅ LED BANNER - FIXED COLOR PICKER WITH HUE RANGE 0-358');
