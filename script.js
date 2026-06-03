@@ -118,12 +118,14 @@ let displayW = 0;
 let displayH = 0;
 let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
+const HUE_MAX = 300; // справа magenta, не red
+
 function clamp(v, min, max) {
     return Math.max(min, Math.min(max, v));
 }
 
 function clampHue(hue) {
-    return Math.max(0, Math.min(358, hue));
+    return Math.max(0, Math.min(HUE_MAX, hue));
 }
 
 // ============================================
@@ -643,8 +645,7 @@ function drawHueBar() {
     if (!hctx) return;
 
     for (let x = 0; x < w; x++) {
-        // Диапазон от 0 до 358, чтобы не было дублирования красного
-        const hue = Math.floor((x / Math.max(1, w)) * 359);
+        const hue = w === 1 ? 0 : Math.round((x / (w - 1)) * HUE_MAX);
         hctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
         hctx.fillRect(x, 0, 1, h);
     }
@@ -677,7 +678,7 @@ function initColorPicker() {
     hueSlider.addEventListener('input', function() {
         let rawValue = parseInt(hueSlider.value, 10);
         if (isNaN(rawValue)) rawValue = 0;
-        currentHue = Math.max(0, Math.min(358, rawValue));
+        currentHue = clampHue(rawValue);
         hueSlider.value = currentHue;
         drawColorPalette(currentHue);
         updateColorFromHSL(currentHue, currentSat, currentLight);
@@ -909,4 +910,4 @@ function updateActiveShade(hex) {
     });
 }
 
-console.log('✅ LED BANNER - FIXED COLOR PICKER WITH HUE RANGE 0-358');
+console.log('✅ LED BANNER - FINAL WITH HUE_MAX = 300');
