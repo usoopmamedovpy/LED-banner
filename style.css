@@ -486,6 +486,7 @@ body {
     position: relative;
     z-index: 2;
     margin: 0;
+    accent-color: transparent;
 }
 
 .hue-slider::-webkit-slider-runnable-track {
@@ -509,6 +510,10 @@ body {
     height: 12px;
     background: transparent;
     border: none;
+}
+
+.hue-slider::-moz-range-progress {
+    background: transparent;
 }
 
 .hue-slider::-moz-range-thumb {
