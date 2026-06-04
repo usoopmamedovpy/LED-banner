@@ -370,7 +370,46 @@ body {
 
 .math-key:active { background: #ffffff; color: #000000; transform: scale(0.95); }
 
-/* Физическая клавиатура */
+/* ============================================ */
+/* ТОЛЬКО ФИЗИЧЕСКИЕ ФОРМУЛЫ — MATHJAX В КНОПКЕ */
+/* ============================================ */
+
+.physics-category .keyboard-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+}
+
+.math-key.physics-formula-key {
+    width: 100%;
+    height: auto;
+    min-height: 48px;
+    max-height: 64px;
+    padding: 6px 10px;
+    white-space: normal;
+    text-overflow: clip;
+}
+
+.math-key.physics-formula-key .math-key-preview {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    text-align: center;
+    pointer-events: none;
+}
+
+.math-key.physics-formula-key .math-key-preview mjx-container {
+    margin: 0 auto !important;
+    max-width: 100% !important;
+    color: #ffffff !important;
+}
+
+.math-key.physics-formula-key:active .math-key-preview mjx-container {
+    color: #000000 !important;
+}
+
+/* ============================================ */
+/* ФИЗИЧЕСКАЯ КЛАВИАТУРА */
+/* ============================================ */
 .physics-subtabs {
     display: flex;
     gap: 15px;
@@ -442,8 +481,8 @@ body {
 
 .palette-indicator {
     position: absolute;
-    width: 10px;
-    height: 10px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     border: 2px solid #ffffff;
     background: transparent;
@@ -496,14 +535,14 @@ body {
 
 .hue-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
     background: #ffffff;
     border: 2px solid #ffffff;
     box-shadow: 0 0 6px rgba(0,0,0,0.45);
     cursor: pointer;
-    margin-top: -1px;
+    margin-top: -2px;
 }
 
 .hue-slider::-moz-range-track {
@@ -512,13 +551,9 @@ body {
     border: none;
 }
 
-.hue-slider::-moz-range-progress {
-    background: transparent;
-}
-
 .hue-slider::-moz-range-thumb {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
     background: #ffffff;
     border: 2px solid #ffffff;
@@ -675,12 +710,23 @@ body {
         width: 12px;
         height: 12px;
     }
+    .hue-slider::-webkit-slider-thumb {
+        width: 14px;
+        height: 14px;
+    }
+    .math-key.physics-formula-key {
+        min-height: 44px;
+        padding: 4px 6px;
+    }
 }
 
 @media (max-width: 480px) and (max-width: 480px) {
     .keyboard-grid {
         grid-template-columns: repeat(3, 1fr);
         gap: 6px;
+    }
+    .physics-category .keyboard-grid {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -720,8 +766,8 @@ body, html, .app-container, .mobile-view, .banner-area,
 
 .math-key:active, .run-btn:active, .reset-btn:active, 
 .settings-btn:active, .tab-btn:active, .donate-btn:active,
-.physics-subtab-btn:active, .shade-btn:active {
+.physics-subtab-btn:active, .shade-btn:active,
+.math-key.physics-formula-key:active .math-key-preview mjx-container {
     background: #ffffff;
     color: #000000;
-    transform: scale(0.95);
 }
