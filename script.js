@@ -78,6 +78,7 @@ const colorPalette = document.getElementById('colorPalette');
 const paletteIndicator = document.getElementById('paletteIndicator');
 const hueSlider = document.getElementById('hueSlider');
 const shadesScroll = document.getElementById('shadesScroll');
+const hueBar = document.getElementById('hueBar');
 
 const tabFunctions = document.getElementById('tabFunctions');
 const tabGreek = document.getElementById('tabGreek');
@@ -118,7 +119,7 @@ let displayW = 0;
 let displayH = 0;
 let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-const HUE_MAX = 300; // справа magenta, не red
+const HUE_MAX = 300;
 
 function clamp(v, min, max) {
     return Math.max(min, Math.min(max, v));
@@ -149,6 +150,14 @@ window.addEventListener('load', function() {
     setTimeout(() => setScrollingFromRaw(t.banner), 500);
     scrollingText.style.textShadow = 'none';
     syncBackButton();
+    
+    // Инициализация рендера кнопок MATH
+    mathKeys.forEach(btn => {
+        if (!btn.dataset.label) {
+            btn.dataset.label = (btn.textContent || btn.dataset.formula || '').trim();
+        }
+    });
+    scheduleMathKeysTypeset();
 });
 
 function updateTexts() {
@@ -161,6 +170,181 @@ function updateTexts() {
         settingLabels[2].textContent = t.color;
     }
     setScrollingFromRaw(t.banner);
+}
+
+// ============================================
+// MATH KEYBOARD — ПРЕВЬЮ + УКОРОЧЕНИЕ + ЗАКРЫТИЕ
+// ============================================
+let mathKeysTimer = null;
+
+function getFormulaMaxChars() {
+    const w = window.innerWidth || 360;
+    if (w < 340) return 14;
+    if (w < 400) return 20;
+    if (w < 480) return 26;
+    return 34;
+}
+
+function shortenFormulaRaw(raw, maxLen) {
+    if (!raw) return '';
+    if (raw.length <= maxLen) return raw;
+
+    const parts = raw.split(/\s*=\s*/);
+    if (parts.length <= 1) {
+        return raw.slice(0, Math.max(0, maxLen - 3)) + '...';
+    }
+
+    let out = parts[0].trim();
+    for (let i = 1; i < parts.length; i++) {
+        const piece = parts[i].trim();
+        const attempt = out + '=' + piece;
+        if (attempt.length > maxLen) {
+            return out + '=...';
+        }
+        out = attempt;
+    }
+    return out;
+}
+
+function getMathKeyInsertValue(btn) {
+    if (btn.dataset.formula) return btn.dataset.formula;
+    const cmd = btn.dataset.cmd || '';
+    const label = (btn.dataset.label || btn.textContent || '').trim();
+
+    if (cmd === 'frac' || label === 'a/b') return 'frac';
+    if (cmd === '\\vec' || label === '⃗' || label === '→') return '→';
+    if (cmd === '\\sqrt[n]' || label === 'n√') return 'n√';
+    if (cmd === '\\Delta' || label === 'Δ') return 'Δ';
+    if (cmd && cmd.startsWith('\\')) return cmd.replace(/^\\/, '');
+    if (cmd === '^') return '^';
+    if (cmd === '_') return '_';
+    return label || cmd;
+}
+
+function renderMathKeyPreview(btn) {
+    const formula = btn.dataset.formula;
+    const cmd = btn.dataset.cmd;
+    let displayRaw = '';
+
+    if (formula) {
+        displayRaw = shortenFormulaRaw(formula, getFormulaMaxChars());
+    } else if (cmd) {
+        if (cmd.startsWith('\\')) {
+            displayRaw = cmd.slice(1);
+        } else if (cmd === '^') displayRaw = 'x^{n}';
+        else if (cmd === '_') displayRaw = 'x_{n}';
+        else if (cmd === 'frac') displayRaw = 'a/b';
+        else displayRaw = cmd;
+    } else {
+        displayRaw = (btn.textContent || '').trim();
+    }
+
+    if (!displayRaw) return;
+
+    if (!btn.dataset.label) {
+        btn.dataset.label = (btn.textContent || formula || cmd || '').trim();
+    }
+
+    const latex = parseToLaTeX(displayRaw);
+    btn.innerHTML = '';
+    btn.classList.add('math-key-rendered');
+
+    const preview = document.createElement('span');
+    preview.className = 'math-key-preview';
+    preview.innerHTML = '\\(' + latex + '\\)';
+    btn.appendChild(preview);
+}
+
+function scheduleMathKeysTypeset() {
+    clearTimeout(mathKeysTimer);
+    mathKeysTimer = setTimeout(() => typesetMathKeyboardKeys(), 80);
+}
+
+function typesetMathKeyboardKeys() {
+    if (!mathKeyboard) return;
+
+    const activePanel = mathKeyboard.querySelector('.tab-content.active') ||
+                        mathKeyboard.querySelector('.tab-content');
+
+    if (!activePanel) return;
+
+    const keys = activePanel.querySelectorAll('.math-key');
+    keys.forEach(renderMathKeyPreview);
+
+    if (window.MathJax && MathJax.typesetPromise) {
+        MathJax.typesetPromise([activePanel]).catch(() => {});
+    }
+}
+
+function handleMathKeyClick(btn, e) {
+    if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+    const value = getMathKeyInsertValue(btn);
+    if (value) insertMathSymbol(value);
+    closeKeyboard();
+    return false;
+}
+
+// ============================================
+// ОБНОВЛЁННАЯ ВСТАВКА СИМВОЛОВ
+// ============================================
+function insertMathSymbol(symbol) {
+    const input = document.getElementById('mainInput');
+    if (!input) return;
+    const start = input.selectionStart, end = input.selectionEnd, text = input.value;
+    let insertText = symbol;
+    if (symbol === '√') insertText = '√[]';
+    else if (symbol === '∛') insertText = '∛[]';
+    else if (symbol === '∜') insertText = '∜[]';
+    else if (symbol === 'n√' || symbol === '√[n]') insertText = '/n/√[]';
+    else if (symbol === '→' || symbol === '\\vec' || symbol === '⃗') insertText = '{}';
+    else if (symbol === 'a/b' || symbol === 'frac') insertText = '(/)';
+    else if (symbol === 'Δ' || symbol === '\\Delta') insertText = 'Δ';
+    const newText = text.substring(0, start) + insertText + text.substring(end);
+    input.value = newText;
+    let newPos = start + insertText.length;
+    if (insertText.includes('[]')) newPos = start + insertText.length - 1;
+    else if (insertText === '{}') newPos = start + 1;
+    else if (insertText === '(/)') newPos = start + 2;
+    else if (insertText === '/n/√[]') newPos = start + 3;
+    input.setSelectionRange(newPos, newPos);
+    input.focus();
+    setScrollingFromRaw(newText);
+    saveData({ latex: parseToLaTeX(newText), raw: newText });
+    closeKeyboard();
+}
+
+// ============================================
+// ОБНОВЛЁННЫЙ TOGGLE KEYBOARD
+// ============================================
+function toggleKeyboard() {
+    if (isRunning) return;
+    keyboardVisible = !keyboardVisible;
+    const mainMathBtn = document.getElementById('mainMathBtn');
+    if (keyboardVisible) {
+        mathKeyboard.classList.add('show');
+        mathBtn.classList.add('active');
+        if (mainMathBtn) mainMathBtn.classList.add('active');
+        settingsPanel.classList.remove('show');
+        settingsBtn.classList.remove('active');
+        scheduleMathKeysTypeset();
+    } else {
+        mathKeyboard.classList.remove('show');
+        mathBtn.classList.remove('active');
+        if (mainMathBtn) mainMathBtn.classList.remove('active');
+    }
+    syncBackButton();
+}
+
+function closeKeyboard() {
+    keyboardVisible = false;
+    mathKeyboard.classList.remove('show');
+    mathBtn.classList.remove('active');
+    const mainMathBtn = document.getElementById('mainMathBtn');
+    if (mainMathBtn) mainMathBtn.classList.remove('active');
+    syncBackButton();
 }
 
 function createUnifiedInterface() {
@@ -209,15 +393,7 @@ function createUnifiedInterface() {
         if (keyboardVisible && !mathKeyboard.contains(e.target) && !mathButton.contains(e.target)) closeKeyboard();
     });
     
-    physicsKeys.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation(); e.preventDefault();
-            const formula = btn.dataset.formula;
-            if (formula) insertMathSymbol(formula);
-            return false;
-        });
-    });
-    
+    // Вкладка физики
     tabPhysics.addEventListener('click', () => {
         tabFunctions.classList.remove('active'); tabGreek.classList.remove('active'); tabSymbols.classList.remove('active'); tabPhysics.classList.add('active');
         functionsTab.classList.remove('active'); greekTab.classList.remove('active'); symbolsTab.classList.remove('active'); physicsTab.classList.add('active');
@@ -225,6 +401,7 @@ function createUnifiedInterface() {
         physicsSubtabs.forEach(btn => btn.classList.remove('active'));
         document.getElementById('phys-mechanics').classList.add('active');
         physicsSubtabs[0].classList.add('active');
+        scheduleMathKeysTypeset();
         syncBackButton();
     });
     
@@ -236,6 +413,7 @@ function createUnifiedInterface() {
             btn.classList.add('active');
             physicsCategories.forEach(catEl => catEl.classList.remove('active'));
             document.getElementById(`phys-${cat}`).classList.add('active');
+            scheduleMathKeysTypeset();
             syncBackButton();
         });
     });
@@ -306,97 +484,35 @@ function loadSavedData() {
         const saved = localStorage.getItem('ledBannerData');
         if (saved) {
             const data = JSON.parse(saved);
-            if (data.color) { 
-                currentColor = data.color; 
-                applyColorToMath();
-                if (data.hue) {
-                    currentHue = clampHue(data.hue);
-                    if (hueSlider) hueSlider.value = currentHue;
-                }
-                if (data.sat) currentSat = data.sat;
-                if (data.light) currentLight = data.light;
-            }
-            if (data.speed) { 
-                currentSpeed = data.speed; 
-                speedSlider.value = currentSpeed; 
-                speedValue.textContent = currentSpeed + ' sec'; 
-            }
-            if (data.size) { 
-                currentSize = data.size; 
-                sizeSlider.value = currentSize; 
-                sizeValue.textContent = currentSize + 'vw'; 
-                scrollingText.style.fontSize = currentSize + 'vw'; 
-            }
+            if (data.color) { currentColor = data.color; applyColorToMath(); }
+            if (data.hue !== undefined) { currentHue = clampHue(data.hue); if (hueSlider) hueSlider.value = currentHue; }
+            if (data.sat !== undefined) currentSat = data.sat;
+            if (data.light !== undefined) currentLight = data.light;
+            if (data.speed) { currentSpeed = data.speed; speedSlider.value = currentSpeed; speedValue.textContent = currentSpeed + ' sec'; }
+            if (data.size) { currentSize = data.size; sizeSlider.value = currentSize; sizeValue.textContent = currentSize + 'vw'; scrollingText.style.fontSize = currentSize + 'vw'; }
             if (data.raw) {
                 const input = document.getElementById('mainInput');
-                if (input) {
-                    input.value = data.raw;
-                }
-                if (data.latex) {
-                    setScrollingFromRaw(data.raw);
-                }
+                if (input) input.value = data.raw;
+                if (data.latex) setScrollingFromRaw(data.raw);
             }
         }
     } catch(e) {}
 }
 
 function saveData(data) {
-    const fullData = { 
-        ...data, 
-        color: currentColor, 
-        speed: currentSpeed, 
-        size: currentSize,
-        hue: currentHue,
-        sat: currentSat,
-        light: currentLight
-    };
+    const fullData = { ...data, color: currentColor, speed: currentSpeed, size: currentSize, hue: currentHue, sat: currentSat, light: currentLight };
     localStorage.setItem('ledBannerData', JSON.stringify(fullData));
+    if (tg) try { tg.sendData(JSON.stringify({ action: 'save_all', data: fullData })); } catch(e) {}
 }
 
 function sendToBot() {
     try {
-        const data = {
-            color: currentColor,
-            speed: currentSpeed,
-            size: currentSize,
-            hue: currentHue,
-            sat: currentSat,
-            light: currentLight
-        };
+        const data = { color: currentColor, speed: currentSpeed, size: currentSize, hue: currentHue, sat: currentSat, light: currentLight };
         tg.sendData(JSON.stringify({ action: 'save_all', data: data }));
-    } catch (e) {
-        console.log('sendData not available');
-    }
+    } catch (e) {}
 }
 
 function restartAnimation() { scrollingText.style.animation = 'none'; void scrollingText.offsetWidth; scrollingText.style.animation = `scrollText ${currentSpeed}s linear infinite`; }
-
-function toggleKeyboard() {
-    if (isRunning) return;
-    keyboardVisible = !keyboardVisible;
-    const mainMathBtn = document.getElementById('mainMathBtn');
-    if (keyboardVisible) {
-        mathKeyboard.classList.add('show');
-        mathBtn.classList.add('active');
-        if (mainMathBtn) mainMathBtn.classList.add('active');
-        settingsPanel.classList.remove('show');
-        settingsBtn.classList.remove('active');
-    } else {
-        mathKeyboard.classList.remove('show');
-        mathBtn.classList.remove('active');
-        if (mainMathBtn) mainMathBtn.classList.remove('active');
-    }
-    syncBackButton();
-}
-
-function closeKeyboard() {
-    keyboardVisible = false;
-    mathKeyboard.classList.remove('show');
-    mathBtn.classList.remove('active');
-    const mainMathBtn = document.getElementById('mainMathBtn');
-    if (mainMathBtn) mainMathBtn.classList.remove('active');
-    syncBackButton();
-}
 
 function toggleRun() {
     if (isRunning) {
@@ -427,7 +543,7 @@ function handleReset() {
         donateBtn.style.display = 'flex';
         isRunning = false;
         const input = document.getElementById('mainInput');
-        if (input) { 
+        if (input) {
             const currentText = input.value;
             setScrollingFromRaw(currentText);
             saveData({ latex: parseToLaTeX(currentText), raw: currentText });
@@ -436,34 +552,18 @@ function handleReset() {
         const input = document.getElementById('mainInput');
         if (input) input.value = t.banner;
         setScrollingFromRaw(t.banner);
-        
-        // Сброс цвета в белый
         currentColor = '#ffffff';
-        currentHue = 0;
-        currentSat = 0;
-        currentLight = 100;
-        
-        currentSpeed = 15; 
-        currentSize = 15;
-        
+        currentHue = 0; currentSat = 0; currentLight = 100;
+        currentSpeed = 15; currentSize = 15;
         if (hueSlider) hueSlider.value = 0;
-        sizeSlider.value = 15; 
-        speedSlider.value = 15;
-        sizeValue.textContent = '15vw'; 
-        speedValue.textContent = '15 sec';
+        sizeSlider.value = 15; speedSlider.value = 15;
+        sizeValue.textContent = '15vw'; speedValue.textContent = '15 sec';
         scrollingText.style.fontSize = '15vw';
-        
-        // Перерисовка палитры
         if (colorPalette && ctx) {
             drawColorPalette(0);
             const rect = colorPalette.getBoundingClientRect();
-            if (rect.width > 0) {
-                const x = 0;
-                const y = 0;
-                updateIndicatorPosition(x, y);
-            }
+            if (rect.width > 0) updateIndicatorPosition(0, 0);
         }
-        
         applyColorToMath();
         restartAnimation();
         saveData({ latex: parseToLaTeX(t.banner), raw: t.banner });
@@ -474,59 +574,32 @@ function handleReset() {
     syncBackButton();
 }
 
-function insertMathSymbol(symbol) {
-    const input = document.getElementById('mainInput');
-    if (!input) return;
-    const start = input.selectionStart, end = input.selectionEnd, text = input.value;
-    let insertText = symbol;
-    if (symbol === '√') insertText = '√[]';
-    else if (symbol === '∛') insertText = '∛[]';
-    else if (symbol === '∜') insertText = '∜[]';
-    else if (symbol === 'n√' || symbol === '√[n]') insertText = '/n/√[]';
-    else if (symbol === '→' || symbol === '\\vec' || symbol === '⃗') insertText = '{}';
-    else if (symbol === 'a/b' || symbol === 'frac') insertText = '(/)';
-    else if (symbol === 'Δ' || symbol === '\\Delta') insertText = 'Δ';
-    const newText = text.substring(0, start) + insertText + text.substring(end);
-    input.value = newText;
-    let newPos = start + insertText.length;
-    if (insertText.includes('[]')) newPos = start + insertText.length - 1;
-    else if (insertText === '{}') newPos = start + 1;
-    else if (insertText === '(/)') newPos = start + 2;
-    else if (insertText === '/n/√[]') newPos = start + 3;
-    input.setSelectionRange(newPos, newPos);
-    input.focus();
-    setScrollingFromRaw(newText);
-    saveData({ latex: parseToLaTeX(newText), raw: newText });
-}
-
 tabFunctions.addEventListener('click', () => {
     tabFunctions.classList.add('active'); tabGreek.classList.remove('active'); tabSymbols.classList.remove('active'); tabPhysics.classList.remove('active');
     functionsTab.classList.add('active'); greekTab.classList.remove('active'); symbolsTab.classList.remove('active'); physicsTab.classList.remove('active');
+    scheduleMathKeysTypeset();
     syncBackButton();
 });
 tabGreek.addEventListener('click', () => {
     tabGreek.classList.add('active'); tabFunctions.classList.remove('active'); tabSymbols.classList.remove('active'); tabPhysics.classList.remove('active');
     greekTab.classList.add('active'); functionsTab.classList.remove('active'); symbolsTab.classList.remove('active'); physicsTab.classList.remove('active');
+    scheduleMathKeysTypeset();
     syncBackButton();
 });
 tabSymbols.addEventListener('click', () => {
     tabSymbols.classList.add('active'); tabFunctions.classList.remove('active'); tabGreek.classList.remove('active'); tabPhysics.classList.remove('active');
     symbolsTab.classList.add('active'); functionsTab.classList.remove('active'); greekTab.classList.remove('active'); physicsTab.classList.remove('active');
+    scheduleMathKeysTypeset();
     syncBackButton();
 });
 
+// НОВЫЙ ОБРАБОТЧИК ДЛЯ ВСЕХ КНОПОК MATH
 mathKeys.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        e.stopPropagation(); e.preventDefault();
-        const cmd = btn.textContent;
-        const dataCmd = btn.dataset.cmd;
-        if (dataCmd === 'frac' || cmd === 'a/b') insertMathSymbol('frac');
-        else if (dataCmd === '\\vec' || cmd === '⃗' || cmd === '→') insertMathSymbol('→');
-        else if (dataCmd === '\\sqrt[n]' || cmd === 'n√') insertMathSymbol('n√');
-        else if (dataCmd === '\\Delta' || cmd === 'Δ') insertMathSymbol('Δ');
-        else insertMathSymbol(cmd);
-        return false;
-    });
+    btn.addEventListener('click', (e) => handleMathKeyClick(btn, e));
+});
+
+window.addEventListener('resize', () => {
+    if (keyboardVisible) scheduleMathKeysTypeset();
 });
 
 sizeSlider.addEventListener('input', () => {
@@ -546,7 +619,6 @@ resetBtn.addEventListener('click', handleReset);
 
 settingsBtn.addEventListener('click', function() {
     if (isRunning) return;
-    
     if (settingsPanel.classList.contains('show')) {
         settingsPanel.classList.remove('show');
         this.classList.remove('active');
@@ -554,7 +626,6 @@ settingsBtn.addEventListener('click', function() {
         settingsPanel.classList.add('show');
         this.classList.add('active');
         closeKeyboard();
-        
         setTimeout(function() {
             if (colorPalette) {
                 const rect = colorPalette.getBoundingClientRect();
@@ -565,8 +636,6 @@ settingsBtn.addEventListener('click', function() {
                     displayW = rect.width;
                     displayH = rect.height;
                     drawColorPalette(currentHue);
-                    drawHueBar();
-                    
                     const x = (currentSat / 100) * displayW;
                     const y = (1 - currentLight / 100) * displayH;
                     updateIndicatorPosition(x, y);
@@ -577,12 +646,12 @@ settingsBtn.addEventListener('click', function() {
     syncBackButton();
 });
 
-settingsPanel.addEventListener('click', (e) => { 
-    if (e.target === settingsPanel) { 
-        settingsPanel.classList.remove('show'); 
+settingsPanel.addEventListener('click', (e) => {
+    if (e.target === settingsPanel) {
+        settingsPanel.classList.remove('show');
         settingsBtn.classList.remove('active');
         syncBackButton();
-    } 
+    }
 });
 
 tg.BackButton.onClick(() => {
@@ -598,9 +667,7 @@ tg.BackButton.onClick(() => {
         isRunning = false;
     } else {
         const startedRecently = Date.now() - appStartedAt < 1200;
-        if (startedRecently || !userInteracted) {
-            return;
-        }
+        if (startedRecently || !userInteracted) return;
         tg.close();
     }
     syncBackButton();
@@ -613,37 +680,26 @@ syncBackButton();
 
 function resizeColorPaletteCanvas() {
     if (!colorPalette) return;
-    
     const rect = colorPalette.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) return;
-    
     colorPalette.width = rect.width;
     colorPalette.height = rect.height;
-    
     ctx = colorPalette.getContext('2d', { alpha: false });
-    
     displayW = rect.width;
     displayH = rect.height;
-    
     drawColorPalette(currentHue);
 }
 
 function drawHueBar() {
-    const hueBar = document.getElementById('hueBar');
     if (!hueBar) return;
-
     const rect = hueBar.getBoundingClientRect();
     if (rect.width <= 0) return;
-
     const w = Math.max(1, Math.round(rect.width));
     const h = 12;
-
     hueBar.width = w;
     hueBar.height = h;
-
     const hctx = hueBar.getContext('2d');
     if (!hctx) return;
-
     for (let x = 0; x < w; x++) {
         const hue = w === 1 ? 0 : Math.round((x / (w - 1)) * HUE_MAX);
         hctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
@@ -653,19 +709,9 @@ function drawHueBar() {
 
 function initColorPicker() {
     if (!colorPalette) return;
-    
     resizeColorPaletteCanvas();
     drawHueBar();
-    
-    // Устанавливаем начальную позицию кружка (белый цвет - левый верхний угол)
-    currentHue = 0;
-    currentSat = 0;
-    currentLight = 100;
-    
-    if (hueSlider) hueSlider.value = 0;
-    
-    // Принудительно устанавливаем белый цвет
-    updateColorFromHSL(currentHue, currentSat, currentLight);
+    if (hueSlider) hueSlider.value = currentHue;
     
     colorPalette.addEventListener('mousedown', startDrag);
     colorPalette.addEventListener('mousemove', drag);
@@ -698,32 +744,23 @@ function initColorPicker() {
     });
     
     createShadesGrid();
+    updateColorFromHSL(currentHue, currentSat, currentLight);
 }
 
 function drawColorPalette(hue) {
     if (!ctx || !colorPalette) return;
     if (displayW === 0 || displayH === 0) return;
-    
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, displayW, displayH);
-    
     for (let x = 0; x < displayW; x++) {
         const saturation = x / displayW;
-        
         const gradient = ctx.createLinearGradient(0, 0, 0, displayH);
         gradient.addColorStop(0, `hsl(${hue}, ${saturation * 100}%, 100%)`);
         gradient.addColorStop(0.5, `hsl(${hue}, ${saturation * 100}%, 50%)`);
         gradient.addColorStop(1, `hsl(${hue}, ${saturation * 100}%, 0%)`);
-        
         ctx.fillStyle = gradient;
         ctx.fillRect(x, 0, 1, displayH);
     }
-}
-
-function updateHue() {
-    currentHue = parseInt(hueSlider.value);
-    drawColorPalette(currentHue);
-    updateColorFromHSL(currentHue, currentSat, currentLight);
 }
 
 function startDrag(e) { isDragging = true; pickColorFromEvent(e); }
@@ -735,19 +772,14 @@ function stopDrag() { isDragging = false; }
 function pickColorFromEvent(e) {
     const rect = colorPalette.getBoundingClientRect();
     if (rect.width === 0) return;
-    
     let xCss = e.clientX - rect.left;
     let yCss = e.clientY - rect.top;
-    
     xCss = clamp(xCss, 0, rect.width);
     yCss = clamp(yCss, 0, rect.height);
-    
     const saturation = (xCss / rect.width) * 100;
     const lightness = 100 - (yCss / rect.height) * 100;
-    
     currentSat = saturation;
     currentLight = lightness;
-    
     updateColorFromHSL(currentHue, currentSat, currentLight);
     updateIndicatorPosition(xCss, yCss);
     saveData({});
@@ -756,22 +788,16 @@ function pickColorFromEvent(e) {
 function pickColorFromTouch(e) {
     const rect = colorPalette.getBoundingClientRect();
     if (rect.width === 0) return;
-    
     const touch = e.touches[0];
     if (!touch) return;
-    
     let xCss = touch.clientX - rect.left;
     let yCss = touch.clientY - rect.top;
-    
     xCss = clamp(xCss, 0, rect.width);
     yCss = clamp(yCss, 0, rect.height);
-    
     const saturation = (xCss / rect.width) * 100;
     const lightness = 100 - (yCss / rect.height) * 100;
-    
     currentSat = saturation;
     currentLight = lightness;
-    
     updateColorFromHSL(currentHue, currentSat, currentLight);
     updateIndicatorPosition(xCss, yCss);
     saveData({});
@@ -781,14 +807,11 @@ function pickColor(e) { pickColorFromEvent(e); }
 
 function updateIndicatorPosition(xCss, yCss) {
     if (!paletteIndicator) return;
-    
     const wrap = colorPalette.parentElement;
     const wrapRect = wrap.getBoundingClientRect();
     const paletteRect = colorPalette.getBoundingClientRect();
-    
     const left = (paletteRect.left - wrapRect.left) + xCss;
     const top = (paletteRect.top - wrapRect.top) + yCss;
-    
     paletteIndicator.style.display = 'block';
     paletteIndicator.style.left = left + 'px';
     paletteIndicator.style.top = top + 'px';
@@ -802,9 +825,8 @@ function updateColorFromHSL(h, s, l) {
 
 function hslToRgb(h, s, l) {
     let r, g, b;
-    if (s === 0) {
-        r = g = b = l;
-    } else {
+    if (s === 0) { r = g = b = l; }
+    else {
         const hue2rgb = (p, q, t) => {
             if (t < 0) t += 1;
             if (t > 1) t -= 1;
@@ -824,25 +846,17 @@ function hslToRgb(h, s, l) {
 
 function updateColorFromRGB(r, g, b) {
     const hex = '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-    
     if (colorPreview) colorPreview.style.backgroundColor = hex;
-    
     scrollingText.style.color = hex;
     currentColor = hex;
-    
-    scrollingText.querySelectorAll('mjx-container').forEach(el => {
-        el.style.color = hex;
-    });
-    
+    scrollingText.querySelectorAll('mjx-container').forEach(el => el.style.color = hex);
     const oldStyle = document.getElementById('mathColorStyle');
     if (oldStyle) oldStyle.remove();
     const style = document.createElement('style');
     style.id = 'mathColorStyle';
     style.textContent = `#scrollingText, #scrollingText mjx-container { color: ${hex} !important; }`;
     document.head.appendChild(style);
-    
     updateActiveShade(hex);
-    
     saveData({});
 }
 
@@ -855,7 +869,7 @@ function createShadesGrid() {
             shadeBtn.className = 'shade-btn';
             shadeBtn.style.backgroundColor = shade;
             shadeBtn.setAttribute('data-color', shade);
-            shadeBtn.addEventListener('click', function() { updateColorFromHex(shade); saveData({}); });
+            shadeBtn.addEventListener('click', function() { updateColorFromHex(shade); });
             shadesScroll.appendChild(shadeBtn);
         });
     });
@@ -865,16 +879,12 @@ function updateColorFromHex(hex) {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
-    const rgb = { r, g, b };
     const hsl = rgbToHsl(r, g, b);
-    
     currentHue = clampHue(hsl.h * 360);
     currentSat = hsl.s * 100;
     currentLight = hsl.l * 100;
-    
-    hueSlider.value = currentHue;
+    if (hueSlider) hueSlider.value = currentHue;
     drawColorPalette(currentHue);
-    
     const x = (currentSat / 100) * displayW;
     const y = (1 - currentLight / 100) * displayH;
     updateIndicatorPosition(x, y);
@@ -886,10 +896,8 @@ function rgbToHsl(r, g, b) {
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
     let h, s, l = (max + min) / 2;
-    
-    if (max === min) {
-        h = s = 0;
-    } else {
+    if (max === min) { h = s = 0; }
+    else {
         const d = max - min;
         s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
         switch (max) {
@@ -910,4 +918,4 @@ function updateActiveShade(hex) {
     });
 }
 
-console.log('✅ LED BANNER - FINAL WITH HUE_MAX = 300');
+console.log('✅ LED BANNER - UPDATED WITH MATH PREVIEW');
