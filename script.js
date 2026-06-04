@@ -91,7 +91,6 @@ const physicsTab = document.getElementById('physicsTab');
 
 const physicsSubtabs = document.querySelectorAll('.physics-subtab-btn');
 const physicsCategories = document.querySelectorAll('.physics-category');
-const physicsKeys = document.querySelectorAll('.physics-category .math-key');
 
 let currentSpeed = 15, currentColor = '#ffffff', currentSize = 15, isRunning = false, keyboardVisible = false;
 
@@ -142,40 +141,10 @@ function setScrollingFromRaw(raw) {
     }
 }
 
-window.addEventListener('load', function() {
-    updateTexts();
-    createUnifiedInterface();
-    loadSavedData();
-    initColorPicker();
-    setTimeout(() => setScrollingFromRaw(t.banner), 500);
-    scrollingText.style.textShadow = 'none';
-    syncBackButton();
-    
-    // Инициализация рендера кнопок MATH
-    mathKeys.forEach(btn => {
-        if (!btn.dataset.label) {
-            btn.dataset.label = (btn.textContent || btn.dataset.formula || '').trim();
-        }
-    });
-    scheduleMathKeysTypeset();
-});
-
-function updateTexts() {
-    const settingsTitle = document.querySelector('.settings-content h3');
-    if (settingsTitle) settingsTitle.textContent = t.settings;
-    const settingLabels = document.querySelectorAll('.setting-item label');
-    if (settingLabels.length >= 3) {
-        settingLabels[0].textContent = t.textSize;
-        settingLabels[1].textContent = t.speed;
-        settingLabels[2].textContent = t.color;
-    }
-    setScrollingFromRaw(t.banner);
-}
-
 // ============================================
-// MATH KEYBOARD — ПРЕВЬЮ + УКОРОЧЕНИЕ + ЗАКРЫТИЕ
+// ФИЗИКА — ПРЕВЬЮ MATHJAX + УКОРОЧЕНИЕ (ТОЛЬКО data-formula)
 // ============================================
-let mathKeysTimer = null;
+let physicsTypesetTimer = null;
 
 function getFormulaMaxChars() {
     const w = window.innerWidth || 360;
@@ -206,89 +175,41 @@ function shortenFormulaRaw(raw, maxLen) {
     return out;
 }
 
-function getMathKeyInsertValue(btn) {
-    if (btn.dataset.formula) return btn.dataset.formula;
-    const cmd = btn.dataset.cmd || '';
-    const label = (btn.dataset.label || btn.textContent || '').trim();
+function typesetPhysicsKeysIn(container) {
+    if (!container) return;
 
-    if (cmd === 'frac' || label === 'a/b') return 'frac';
-    if (cmd === '\\vec' || label === '⃗' || label === '→') return '→';
-    if (cmd === '\\sqrt[n]' || label === 'n√') return 'n√';
-    if (cmd === '\\Delta' || label === 'Δ') return 'Δ';
-    if (cmd && cmd.startsWith('\\')) return cmd.replace(/^\\/, '');
-    if (cmd === '^') return '^';
-    if (cmd === '_') return '_';
-    return label || cmd;
-}
+    const keys = container.querySelectorAll('.math-key[data-formula]');
+    keys.forEach(btn => {
+        const formula = btn.dataset.formula;
+        if (!formula) return;
 
-function renderMathKeyPreview(btn) {
-    const formula = btn.dataset.formula;
-    const cmd = btn.dataset.cmd;
-    let displayRaw = '';
+        const displayRaw = shortenFormulaRaw(formula, getFormulaMaxChars());
+        const latex = parseToLaTeX(displayRaw);
 
-    if (formula) {
-        displayRaw = shortenFormulaRaw(formula, getFormulaMaxChars());
-    } else if (cmd) {
-        if (cmd.startsWith('\\')) {
-            displayRaw = cmd.slice(1);
-        } else if (cmd === '^') displayRaw = 'x^{n}';
-        else if (cmd === '_') displayRaw = 'x_{n}';
-        else if (cmd === 'frac') displayRaw = 'a/b';
-        else displayRaw = cmd;
-    } else {
-        displayRaw = (btn.textContent || '').trim();
-    }
+        btn.innerHTML = '';
+        btn.classList.add('physics-formula-key');
 
-    if (!displayRaw) return;
-
-    if (!btn.dataset.label) {
-        btn.dataset.label = (btn.textContent || formula || cmd || '').trim();
-    }
-
-    const latex = parseToLaTeX(displayRaw);
-    btn.innerHTML = '';
-    btn.classList.add('math-key-rendered');
-
-    const preview = document.createElement('span');
-    preview.className = 'math-key-preview';
-    preview.innerHTML = '\\(' + latex + '\\)';
-    btn.appendChild(preview);
-}
-
-function scheduleMathKeysTypeset() {
-    clearTimeout(mathKeysTimer);
-    mathKeysTimer = setTimeout(() => typesetMathKeyboardKeys(), 80);
-}
-
-function typesetMathKeyboardKeys() {
-    if (!mathKeyboard) return;
-
-    const activePanel = mathKeyboard.querySelector('.tab-content.active') ||
-                        mathKeyboard.querySelector('.tab-content');
-
-    if (!activePanel) return;
-
-    const keys = activePanel.querySelectorAll('.math-key');
-    keys.forEach(renderMathKeyPreview);
+        const preview = document.createElement('span');
+        preview.className = 'math-key-preview';
+        preview.innerHTML = '\\(' + latex + '\\)';
+        btn.appendChild(preview);
+    });
 
     if (window.MathJax && MathJax.typesetPromise) {
-        MathJax.typesetPromise([activePanel]).catch(() => {});
+        MathJax.typesetPromise([container]).catch(() => {});
     }
 }
 
-function handleMathKeyClick(btn, e) {
-    if (e) {
-        e.stopPropagation();
-        e.preventDefault();
-    }
-    const value = getMathKeyInsertValue(btn);
-    if (value) insertMathSymbol(value);
-    closeKeyboard();
-    return false;
+function schedulePhysicsKeysTypeset() {
+    clearTimeout(physicsTypesetTimer);
+    physicsTypesetTimer = setTimeout(() => {
+        const activeCat = physicsTab && physicsTab.querySelector('.physics-category.active');
+        if (activeCat) typesetPhysicsKeysIn(activeCat);
+    }, 80);
 }
 
 // ============================================
-// ОБНОВЛЁННАЯ ВСТАВКА СИМВОЛОВ
+// ОБНОВЛЁННАЯ ВСТАВКА СИМВОЛОВ (С ЗАКРЫТИЕМ КЛАВИАТУРЫ)
 // ============================================
 function insertMathSymbol(symbol) {
     const input = document.getElementById('mainInput');
@@ -313,38 +234,29 @@ function insertMathSymbol(symbol) {
     input.focus();
     setScrollingFromRaw(newText);
     saveData({ latex: parseToLaTeX(newText), raw: newText });
-    closeKeyboard();
+    closeKeyboard(); // Закрываем клавиатуру после вставки
 }
 
-// ============================================
-// ОБНОВЛЁННЫЙ TOGGLE KEYBOARD
-// ============================================
-function toggleKeyboard() {
-    if (isRunning) return;
-    keyboardVisible = !keyboardVisible;
-    const mainMathBtn = document.getElementById('mainMathBtn');
-    if (keyboardVisible) {
-        mathKeyboard.classList.add('show');
-        mathBtn.classList.add('active');
-        if (mainMathBtn) mainMathBtn.classList.add('active');
-        settingsPanel.classList.remove('show');
-        settingsBtn.classList.remove('active');
-        scheduleMathKeysTypeset();
-    } else {
-        mathKeyboard.classList.remove('show');
-        mathBtn.classList.remove('active');
-        if (mainMathBtn) mainMathBtn.classList.remove('active');
+window.addEventListener('load', function() {
+    updateTexts();
+    createUnifiedInterface();
+    loadSavedData();
+    initColorPicker();
+    setTimeout(() => setScrollingFromRaw(t.banner), 500);
+    scrollingText.style.textShadow = 'none';
+    syncBackButton();
+});
+
+function updateTexts() {
+    const settingsTitle = document.querySelector('.settings-content h3');
+    if (settingsTitle) settingsTitle.textContent = t.settings;
+    const settingLabels = document.querySelectorAll('.setting-item label');
+    if (settingLabels.length >= 3) {
+        settingLabels[0].textContent = t.textSize;
+        settingLabels[1].textContent = t.speed;
+        settingLabels[2].textContent = t.color;
     }
-    syncBackButton();
-}
-
-function closeKeyboard() {
-    keyboardVisible = false;
-    mathKeyboard.classList.remove('show');
-    mathBtn.classList.remove('active');
-    const mainMathBtn = document.getElementById('mainMathBtn');
-    if (mainMathBtn) mainMathBtn.classList.remove('active');
-    syncBackButton();
+    setScrollingFromRaw(t.banner);
 }
 
 function createUnifiedInterface() {
@@ -401,7 +313,7 @@ function createUnifiedInterface() {
         physicsSubtabs.forEach(btn => btn.classList.remove('active'));
         document.getElementById('phys-mechanics').classList.add('active');
         physicsSubtabs[0].classList.add('active');
-        scheduleMathKeysTypeset();
+        schedulePhysicsKeysTypeset();
         syncBackButton();
     });
     
@@ -413,7 +325,7 @@ function createUnifiedInterface() {
             btn.classList.add('active');
             physicsCategories.forEach(catEl => catEl.classList.remove('active'));
             document.getElementById(`phys-${cat}`).classList.add('active');
-            scheduleMathKeysTypeset();
+            schedulePhysicsKeysTypeset();
             syncBackButton();
         });
     });
@@ -505,14 +417,37 @@ function saveData(data) {
     if (tg) try { tg.sendData(JSON.stringify({ action: 'save_all', data: fullData })); } catch(e) {}
 }
 
-function sendToBot() {
-    try {
-        const data = { color: currentColor, speed: currentSpeed, size: currentSize, hue: currentHue, sat: currentSat, light: currentLight };
-        tg.sendData(JSON.stringify({ action: 'save_all', data: data }));
-    } catch (e) {}
+function restartAnimation() { scrollingText.style.animation = 'none'; void scrollingText.offsetWidth; scrollingText.style.animation = `scrollText ${currentSpeed}s linear infinite`; }
+
+function toggleKeyboard() {
+    if (isRunning) return;
+    keyboardVisible = !keyboardVisible;
+    const mainMathBtn = document.getElementById('mainMathBtn');
+    if (keyboardVisible) {
+        mathKeyboard.classList.add('show');
+        mathBtn.classList.add('active');
+        if (mainMathBtn) mainMathBtn.classList.add('active');
+        settingsPanel.classList.remove('show');
+        settingsBtn.classList.remove('active');
+        if (physicsTab && physicsTab.classList.contains('active')) {
+            schedulePhysicsKeysTypeset();
+        }
+    } else {
+        mathKeyboard.classList.remove('show');
+        mathBtn.classList.remove('active');
+        if (mainMathBtn) mainMathBtn.classList.remove('active');
+    }
+    syncBackButton();
 }
 
-function restartAnimation() { scrollingText.style.animation = 'none'; void scrollingText.offsetWidth; scrollingText.style.animation = `scrollText ${currentSpeed}s linear infinite`; }
+function closeKeyboard() {
+    keyboardVisible = false;
+    mathKeyboard.classList.remove('show');
+    mathBtn.classList.remove('active');
+    const mainMathBtn = document.getElementById('mainMathBtn');
+    if (mainMathBtn) mainMathBtn.classList.remove('active');
+    syncBackButton();
+}
 
 function toggleRun() {
     if (isRunning) {
@@ -577,29 +512,47 @@ function handleReset() {
 tabFunctions.addEventListener('click', () => {
     tabFunctions.classList.add('active'); tabGreek.classList.remove('active'); tabSymbols.classList.remove('active'); tabPhysics.classList.remove('active');
     functionsTab.classList.add('active'); greekTab.classList.remove('active'); symbolsTab.classList.remove('active'); physicsTab.classList.remove('active');
-    scheduleMathKeysTypeset();
     syncBackButton();
 });
 tabGreek.addEventListener('click', () => {
     tabGreek.classList.add('active'); tabFunctions.classList.remove('active'); tabSymbols.classList.remove('active'); tabPhysics.classList.remove('active');
     greekTab.classList.add('active'); functionsTab.classList.remove('active'); symbolsTab.classList.remove('active'); physicsTab.classList.remove('active');
-    scheduleMathKeysTypeset();
     syncBackButton();
 });
 tabSymbols.addEventListener('click', () => {
     tabSymbols.classList.add('active'); tabFunctions.classList.remove('active'); tabGreek.classList.remove('active'); tabPhysics.classList.remove('active');
     symbolsTab.classList.add('active'); functionsTab.classList.remove('active'); greekTab.classList.remove('active'); physicsTab.classList.remove('active');
-    scheduleMathKeysTypeset();
     syncBackButton();
 });
 
-// НОВЫЙ ОБРАБОТЧИК ДЛЯ ВСЕХ КНОПОК MATH
+// ОБРАБОТЧИКИ ДЛЯ ВСЕХ КНОПОК MATH
 mathKeys.forEach(btn => {
-    btn.addEventListener('click', (e) => handleMathKeyClick(btn, e));
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+
+        // Физика — полная формула из data-formula
+        if (btn.dataset.formula) {
+            insertMathSymbol(btn.dataset.formula);
+            return false;
+        }
+
+        // Остальное — как было: sin, α, √, дробь...
+        const cmd = btn.textContent;
+        const dataCmd = btn.dataset.cmd;
+        if (dataCmd === 'frac' || cmd === 'a/b') insertMathSymbol('frac');
+        else if (dataCmd === '\\vec' || cmd === '⃗' || cmd === '→') insertMathSymbol('→');
+        else if (dataCmd === '\\sqrt[n]' || cmd === 'n√') insertMathSymbol('n√');
+        else if (dataCmd === '\\Delta' || cmd === 'Δ') insertMathSymbol('Δ');
+        else insertMathSymbol(cmd);
+        return false;
+    });
 });
 
 window.addEventListener('resize', () => {
-    if (keyboardVisible) scheduleMathKeysTypeset();
+    if (keyboardVisible && physicsTab && physicsTab.classList.contains('active')) {
+        schedulePhysicsKeysTypeset();
+    }
 });
 
 sizeSlider.addEventListener('input', () => {
@@ -918,4 +871,4 @@ function updateActiveShade(hex) {
     });
 }
 
-console.log('✅ LED BANNER - UPDATED WITH MATH PREVIEW');
+console.log('✅ LED BANNER - PHYSICS PREVIEW ONLY');
