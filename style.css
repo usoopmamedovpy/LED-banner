@@ -442,7 +442,7 @@ body {
 .physics-category.active { display: block; }
 
 /* ============================================ */
-/* ЦВЕТОВОЙ ПИКЕР */
+/* ЦВЕТОВОЙ ПИКЕР - ИСПРАВЛЕНИЕ ПОЛЗУНКА HUE */
 /* ============================================ */
 .color-picker-item {
     padding-bottom: 5px;
@@ -530,7 +530,16 @@ body {
 
 .hue-slider::-webkit-slider-runnable-track {
     height: 12px;
-    background: transparent;
+    border-radius: 6px;
+    background: linear-gradient(to right,
+        hsl(0, 100%, 50%),
+        hsl(60, 100%, 50%),
+        hsl(120, 100%, 50%),
+        hsl(180, 100%, 50%),
+        hsl(240, 100%, 50%),
+        hsl(300, 100%, 50%)
+    );
+    border: 2px solid rgba(255,255,255,0.25);
 }
 
 .hue-slider::-webkit-slider-thumb {
@@ -547,11 +556,44 @@ body {
 
 .hue-slider::-moz-range-track {
     height: 12px;
-    background: transparent;
-    border: none;
+    border-radius: 6px;
+    background: linear-gradient(to right,
+        hsl(0, 100%, 50%),
+        hsl(60, 100%, 50%),
+        hsl(120, 100%, 50%),
+        hsl(180, 100%, 50%),
+        hsl(240, 100%, 50%),
+        hsl(300, 100%, 50%)
+    );
+    border: 2px solid rgba(255,255,255,0.25);
 }
 
 .hue-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 6px rgba(0,0,0,0.45);
+    cursor: pointer;
+}
+
+.hue-slider::-ms-track {
+    height: 12px;
+    border-radius: 6px;
+    background: linear-gradient(to right,
+        hsl(0, 100%, 50%),
+        hsl(60, 100%, 50%),
+        hsl(120, 100%, 50%),
+        hsl(180, 100%, 50%),
+        hsl(240, 100%, 50%),
+        hsl(300, 100%, 50%)
+    );
+    border: 2px solid rgba(255,255,255,0.25);
+    color: transparent;
+}
+
+.hue-slider::-ms-thumb {
     width: 16px;
     height: 16px;
     border-radius: 50%;
