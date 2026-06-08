@@ -340,8 +340,9 @@ function parseToLaTeX(text) {
     
     // НОВЫЕ ПРАВИЛА ДЛЯ СТЕПЕНЕЙ И ИНДЕКСОВ С ЯВНЫМИ РАЗДЕЛИТЕЛЯМИ
     // Они должны быть ПЕРЕД существующими правилами для '^' и '_'
-    result = result.replace(/([a-zA-Z0-9α-ω])\^([^\^]+)\^/g, '$1^{$2}'); // x^content^ -> x^{content}
-    result = result.replace(/([a-zA-Z0-9α-ω])_([^_]+)_/g, '$1_{$2}');   // x_content_ -> x_{content}
+    // ИСПРАВЛЕНО: используем *? (ленивый квантификатор) и ставим ограничители
+    result = result.replace(/([a-zA-Z0-9α-ω])\^([^\^]*?)\^/g, '$1^{$2}'); // x^content^ -> x^{content}
+    result = result.replace(/([a-zA-Z0-9α-ω])_([^_]*?)_/g, '$1_{$2}');   // x_content_ -> x_{content}
     
     // Векторы
     result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
@@ -543,7 +544,7 @@ tabSymbols.addEventListener('click', () => {
 });
 
 // ============================================
-// ОБНОВЛЁННЫЕ ОБРАБОТЧИКИ ДЛЯ ВСЕХ КНОПОК MATH (С НОВЫМИ ПРАВИЛАМИ ДЛЯ СТЕПЕНЕЙ И ИНДЕКСОВ)
+// ОБРАБОТЧИКИ ДЛЯ ВСЕХ КНОПОК MATH
 // ============================================
 mathKeys.forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -575,7 +576,7 @@ mathKeys.forEach(btn => {
                 const start = input.selectionStart;
                 const newText = input.value.substring(0, start) + '^ ^' + input.value.substring(start);
                 input.value = newText;
-                const newPos = start + 1; // Курсор между ^ и ^
+                const newPos = start + 1;
                 input.setSelectionRange(newPos, newPos);
                 input.focus();
                 setScrollingFromRaw(newText);
@@ -589,7 +590,7 @@ mathKeys.forEach(btn => {
                 const start = input.selectionStart;
                 const newText = input.value.substring(0, start) + '_ _' + input.value.substring(start);
                 input.value = newText;
-                const newPos = start + 1; // Курсор между _ и _
+                const newPos = start + 1;
                 input.setSelectionRange(newPos, newPos);
                 input.focus();
                 setScrollingFromRaw(newText);
