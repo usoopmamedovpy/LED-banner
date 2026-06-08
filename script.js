@@ -234,7 +234,7 @@ function insertMathSymbol(symbol) {
     input.focus();
     setScrollingFromRaw(newText);
     saveData({ latex: parseToLaTeX(newText), raw: newText });
-    closeKeyboard(); // Закрываем клавиатуру после вставки
+    closeKeyboard();
 }
 
 window.addEventListener('load', function() {
@@ -334,9 +334,19 @@ function createUnifiedInterface() {
 function parseToLaTeX(text) {
     if (!text) return '';
     let result = text;
+    
+    // Сохраняем пробелы
     result = result.replace(/ /g, '\\ ');
+    
+    // НОВЫЕ ПРАВИЛА ДЛЯ СТЕПЕНЕЙ И ИНДЕКСОВ С ЯВНЫМИ РАЗДЕЛИТЕЛЯМИ
+    // Они должны быть ПЕРЕД существующими правилами для '^' и '_'
+    result = result.replace(/([a-zA-Z0-9α-ω])\^([^\^]+)\^/g, '$1^{$2}'); // x^content^ -> x^{content}
+    result = result.replace(/([a-zA-Z0-9α-ω])_([^_]+)_/g, '$1_{$2}');   // x_content_ -> x_{content}
+    
+    // Векторы
     result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
     
+    // Дроби
     let prevResult;
     do {
         prevResult = result;
@@ -346,17 +356,23 @@ function parseToLaTeX(text) {
     
     result = result.replace(/\(\/\)/g, '\\frac{}{}');
     result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
+    
+    // Корни
     result = result.replace(/\/(\d+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
     result = result.replace(/\/([a-zA-Zα-ω]+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
     result = result.replace(/∛\[([^\]]+)\]/g, '\\sqrt[3]{$1}');
     result = result.replace(/∜\[([^\]]+)\]/g, '\\sqrt[4]{$1}');
     result = result.replace(/√\[([^\]]+)\]/g, '\\sqrt{$1}');
     result = result.replace(/√([a-zA-Z0-9α-ω])/g, '\\sqrt{$1}');
+    
+    // СУЩЕСТВУЮЩИЕ ПРАВИЛА ДЛЯ СТЕПЕНЕЙ И ИНДЕКСОВ
+    // Они будут обрабатывать случаи, когда пользователь не использует новые разделители ^ ^ или _ _
     result = result.replace(/([a-zA-Z0-9α-ω])\^\(([^)]+)\)/g, '$1^{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])\^([a-zA-Z0-9α-ω])/g, '$1^{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])_\(([^)]+)\)/g, '$1_{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])_([a-zA-Z0-9α-ω])/g, '$1_{$2}');
     
+    // Греческие буквы
     const greekMap = {
         'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
         'ε': '\\epsilon', 'ζ': '\\zeta', 'η': '\\eta', 'θ': '\\theta',
@@ -373,6 +389,7 @@ function parseToLaTeX(text) {
     };
     for (let [char, latex] of Object.entries(greekMap)) result = result.replace(new RegExp(char, 'g'), latex);
     
+    // Функции
     const funcs = ['sin', 'cos', 'tan', 'cot', 'arcsin', 'arccos', 'arctan', 'arccot', 'log', 'ln', 'exp', 'lim'];
     funcs.forEach(func => { result = result.replace(new RegExp(func + '\\s*\\(', 'g'), func + '('); });
     
@@ -525,7 +542,9 @@ tabSymbols.addEventListener('click', () => {
     syncBackButton();
 });
 
-// ОБРАБОТЧИКИ ДЛЯ ВСЕХ КНОПОК MATH
+// ============================================
+// ОБНОВЛЁННЫЕ ОБРАБОТЧИКИ ДЛЯ ВСЕХ КНОПОК MATH (С НОВЫМИ ПРАВИЛАМИ ДЛЯ СТЕПЕНЕЙ И ИНДЕКСОВ)
+// ============================================
 mathKeys.forEach(btn => {
     btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -540,11 +559,46 @@ mathKeys.forEach(btn => {
         // Остальное — как было: sin, α, √, дробь...
         const cmd = btn.textContent;
         const dataCmd = btn.dataset.cmd;
-        if (dataCmd === 'frac' || cmd === 'a/b') insertMathSymbol('frac');
-        else if (dataCmd === '\\vec' || cmd === '⃗' || cmd === '→') insertMathSymbol('→');
-        else if (dataCmd === '\\sqrt[n]' || cmd === 'n√') insertMathSymbol('n√');
-        else if (dataCmd === '\\Delta' || cmd === 'Δ') insertMathSymbol('Δ');
-        else insertMathSymbol(cmd);
+
+        if (dataCmd === 'frac' || cmd === 'a/b') {
+            insertMathSymbol('(/)');
+        } else if (dataCmd === '\\vec' || cmd === '⃗' || cmd === '→') {
+            insertMathSymbol('{}');
+        } else if (dataCmd === '\\sqrt[n]' || cmd === 'n√') {
+            insertMathSymbol('/n/√[]');
+        } else if (dataCmd === '\\Delta' || cmd === 'Δ') {
+            insertMathSymbol('Δ');
+        } else if (dataCmd === '^' || cmd === 'xⁿ') {
+            // Обработка кнопки xⁿ (степень)
+            const input = document.getElementById('mainInput');
+            if (input) {
+                const start = input.selectionStart;
+                const newText = input.value.substring(0, start) + '^ ^' + input.value.substring(start);
+                input.value = newText;
+                const newPos = start + 1; // Курсор между ^ и ^
+                input.setSelectionRange(newPos, newPos);
+                input.focus();
+                setScrollingFromRaw(newText);
+                saveData({ latex: parseToLaTeX(newText), raw: newText });
+                closeKeyboard();
+            }
+        } else if (dataCmd === '_' || cmd === 'xₙ') {
+            // Обработка кнопки xₙ (индекс)
+            const input = document.getElementById('mainInput');
+            if (input) {
+                const start = input.selectionStart;
+                const newText = input.value.substring(0, start) + '_ _' + input.value.substring(start);
+                input.value = newText;
+                const newPos = start + 1; // Курсор между _ и _
+                input.setSelectionRange(newPos, newPos);
+                input.focus();
+                setScrollingFromRaw(newText);
+                saveData({ latex: parseToLaTeX(newText), raw: newText });
+                closeKeyboard();
+            }
+        } else {
+            insertMathSymbol(cmd);
+        }
         return false;
     });
 });
@@ -871,4 +925,4 @@ function updateActiveShade(hex) {
     });
 }
 
-console.log('✅ LED BANNER - PHYSICS PREVIEW ONLY');
+console.log('✅ LED BANNER - WITH POWER AND INDEX FIX');
