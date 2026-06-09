@@ -209,7 +209,7 @@ function schedulePhysicsKeysTypeset() {
 }
 
 // ============================================
-// ОБНОВЛЁННАЯ ВСТАВКА СИМВОЛОВ (С ЗАКРЫТИЕМ КЛАВИАТУРЫ)
+// ОБНОВЛЁННАЯ ВСТАВКА СИМВОЛОВ (ВЕКТОРЫ, ДРОБИ, КОРНИ)
 // ============================================
 function insertMathSymbol(symbol) {
     const input = document.getElementById('mainInput');
@@ -220,14 +220,14 @@ function insertMathSymbol(symbol) {
     else if (symbol === '∛') insertText = '∛[]';
     else if (symbol === '∜') insertText = '∜[]';
     else if (symbol === 'n√' || symbol === '√[n]') insertText = '/n/√[]';
-    else if (symbol === '→' || symbol === '\\vec' || symbol === '⃗') insertText = '{}';
+    else if (symbol === '→' || symbol === '\\vec' || symbol === '⃗') insertText = '\\vec{}'; // Теперь вставляем прямо \vec{}
     else if (symbol === 'a/b' || symbol === 'frac') insertText = '(/)';
     else if (symbol === 'Δ' || symbol === '\\Delta') insertText = 'Δ';
     const newText = text.substring(0, start) + insertText + text.substring(end);
     input.value = newText;
     let newPos = start + insertText.length;
     if (insertText.includes('[]')) newPos = start + insertText.length - 1;
-    else if (insertText === '{}') newPos = start + 1;
+    else if (insertText === '\\vec{}') newPos = start + 5; // Курсор внутри скобок \vec{}
     else if (insertText === '(/)') newPos = start + 2;
     else if (insertText === '/n/√[]') newPos = start + 3;
     input.setSelectionRange(newPos, newPos);
@@ -338,14 +338,11 @@ function parseToLaTeX(text) {
     // Сохраняем пробелы
     result = result.replace(/ /g, '\\ ');
     
+    // НЕТ АВТОМАТИЧЕСКОГО ПРЕОБРАЗОВАНИЯ {} В \vec{}!
+    
     // НОВЫЕ ПРАВИЛА ДЛЯ СТЕПЕНЕЙ И ИНДЕКСОВ С ЯВНЫМИ РАЗДЕЛИТЕЛЯМИ
-    // Они должны быть ПЕРЕД существующими правилами для '^' и '_'
-    // ИСПРАВЛЕНО: используем *? (ленивый квантификатор) и ставим ограничители
     result = result.replace(/([a-zA-Z0-9α-ω])\^([^\^]*?)\^/g, '$1^{$2}'); // x^content^ -> x^{content}
     result = result.replace(/([a-zA-Z0-9α-ω])_([^_]*?)_/g, '$1_{$2}');   // x_content_ -> x_{content}
-    
-    // Векторы
-    result = result.replace(/\{([^}]+)\}/g, '\\vec{$1}');
     
     // Дроби
     let prevResult;
@@ -367,7 +364,6 @@ function parseToLaTeX(text) {
     result = result.replace(/√([a-zA-Z0-9α-ω])/g, '\\sqrt{$1}');
     
     // СУЩЕСТВУЮЩИЕ ПРАВИЛА ДЛЯ СТЕПЕНЕЙ И ИНДЕКСОВ
-    // Они будут обрабатывать случаи, когда пользователь не использует новые разделители ^ ^ или _ _
     result = result.replace(/([a-zA-Z0-9α-ω])\^\(([^)]+)\)/g, '$1^{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])\^([a-zA-Z0-9α-ω])/g, '$1^{$2}');
     result = result.replace(/([a-zA-Z0-9α-ω])_\(([^)]+)\)/g, '$1_{$2}');
@@ -544,7 +540,7 @@ tabSymbols.addEventListener('click', () => {
 });
 
 // ============================================
-// ОБРАБОТЧИКИ ДЛЯ ВСЕХ КНОПОК MATH
+// ОБРАБОТЧИКИ ДЛЯ ВСЕХ КНОПОК MATH (С НОВЫМИ ПРАВИЛАМИ ДЛЯ СТЕПЕНЕЙ И ИНДЕКСОВ)
 // ============================================
 mathKeys.forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -560,23 +556,26 @@ mathKeys.forEach(btn => {
         // Остальное — как было: sin, α, √, дробь...
         const cmd = btn.textContent;
         const dataCmd = btn.dataset.cmd;
+        const input = document.getElementById('mainInput');
+        const start = input ? input.selectionStart : 0;
+        const end = input ? input.selectionEnd : 0;
+        const text = input ? input.value : '';
 
         if (dataCmd === 'frac' || cmd === 'a/b') {
             insertMathSymbol('(/)');
         } else if (dataCmd === '\\vec' || cmd === '⃗' || cmd === '→') {
-            insertMathSymbol('{}');
+            insertMathSymbol('\\vec{}');
         } else if (dataCmd === '\\sqrt[n]' || cmd === 'n√') {
             insertMathSymbol('/n/√[]');
         } else if (dataCmd === '\\Delta' || cmd === 'Δ') {
             insertMathSymbol('Δ');
         } else if (dataCmd === '^' || cmd === 'xⁿ') {
-            // Обработка кнопки xⁿ (степень)
-            const input = document.getElementById('mainInput');
+            // Обработка кнопки xⁿ (степень) - вставляем x^n^
             if (input) {
-                const start = input.selectionStart;
-                const newText = input.value.substring(0, start) + '^ ^' + input.value.substring(start);
+                const insertText = 'x^n^';
+                const newText = text.substring(0, start) + insertText + text.substring(end);
                 input.value = newText;
-                const newPos = start + 1;
+                const newPos = start + 2;
                 input.setSelectionRange(newPos, newPos);
                 input.focus();
                 setScrollingFromRaw(newText);
@@ -584,13 +583,12 @@ mathKeys.forEach(btn => {
                 closeKeyboard();
             }
         } else if (dataCmd === '_' || cmd === 'xₙ') {
-            // Обработка кнопки xₙ (индекс)
-            const input = document.getElementById('mainInput');
+            // Обработка кнопки xₙ (индекс) - вставляем x_n_
             if (input) {
-                const start = input.selectionStart;
-                const newText = input.value.substring(0, start) + '_ _' + input.value.substring(start);
+                const insertText = 'x_n_';
+                const newText = text.substring(0, start) + insertText + text.substring(end);
                 input.value = newText;
-                const newPos = start + 1;
+                const newPos = start + 2;
                 input.setSelectionRange(newPos, newPos);
                 input.focus();
                 setScrollingFromRaw(newText);
@@ -926,4 +924,4 @@ function updateActiveShade(hex) {
     });
 }
 
-console.log('✅ LED BANNER - WITH POWER AND INDEX FIX');
+console.log('✅ LED BANNER - WITH FIXED VECTORS AND POWER/INDEX BUTTONS');
