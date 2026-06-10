@@ -209,7 +209,7 @@ function schedulePhysicsKeysTypeset() {
 }
 
 // ============================================
-// ОБНОВЛЁННАЯ ВСТАВКА СИМВОЛОВ (ВЕКТОРЫ, ДРОБИ, КОРНИ)
+// ОБНОВЛЁННАЯ ВСТАВКА СИМВОЛОВ (ВЕКТОРЫ - ПРОСТО {})
 // ============================================
 function insertMathSymbol(symbol) {
     const input = document.getElementById('mainInput');
@@ -220,14 +220,14 @@ function insertMathSymbol(symbol) {
     else if (symbol === '∛') insertText = '∛[]';
     else if (symbol === '∜') insertText = '∜[]';
     else if (symbol === 'n√' || symbol === '√[n]') insertText = '/n/√[]';
-    else if (symbol === '→' || symbol === '\\vec' || symbol === '⃗') insertText = '\\vec{}'; // Теперь вставляем прямо \vec{}
+    else if (symbol === '→' || symbol === '\\vec' || symbol === '⃗') insertText = '{}'; // Вектор - просто {}
     else if (symbol === 'a/b' || symbol === 'frac') insertText = '(/)';
     else if (symbol === 'Δ' || symbol === '\\Delta') insertText = 'Δ';
     const newText = text.substring(0, start) + insertText + text.substring(end);
     input.value = newText;
     let newPos = start + insertText.length;
     if (insertText.includes('[]')) newPos = start + insertText.length - 1;
-    else if (insertText === '\\vec{}') newPos = start + 5; // Курсор внутри скобок \vec{}
+    else if (insertText === '{}') newPos = start + 1; // Курсор внутри скобок
     else if (insertText === '(/)') newPos = start + 2;
     else if (insertText === '/n/√[]') newPos = start + 3;
     input.setSelectionRange(newPos, newPos);
@@ -540,7 +540,7 @@ tabSymbols.addEventListener('click', () => {
 });
 
 // ============================================
-// ОБРАБОТЧИКИ ДЛЯ ВСЕХ КНОПОК MATH (С НОВЫМИ ПРАВИЛАМИ ДЛЯ СТЕПЕНЕЙ И ИНДЕКСОВ)
+// ОБРАБОТЧИКИ ДЛЯ ВСЕХ КНОПОК MATH
 // ============================================
 mathKeys.forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -564,7 +564,7 @@ mathKeys.forEach(btn => {
         if (dataCmd === 'frac' || cmd === 'a/b') {
             insertMathSymbol('(/)');
         } else if (dataCmd === '\\vec' || cmd === '⃗' || cmd === '→') {
-            insertMathSymbol('\\vec{}');
+            insertMathSymbol('{}'); // Вектор - просто {}
         } else if (dataCmd === '\\sqrt[n]' || cmd === 'n√') {
             insertMathSymbol('/n/√[]');
         } else if (dataCmd === '\\Delta' || cmd === 'Δ') {
