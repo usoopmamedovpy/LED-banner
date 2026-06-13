@@ -6,11 +6,11 @@
     <meta name="theme-color" content="#000000">
     <meta name="color-scheme" content="dark">
     <title>LED Banner Math</title>
-    
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.css">
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.min.js"></script>
-    
+
     <script>
         window.MathJax = {
             tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
@@ -19,13 +19,13 @@
         };
     </script>
     <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
-    
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app-bg-fix"></div>
     <div class="corner-pixel-fix"></div>
-    
+
     <div class="app-container">
         <button class="reset-btn" id="resetBtn">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -58,22 +58,22 @@
                         <span class="value-display" id="speedValue">15 sec</span>
                     </div>
                 </div>
-                
+
                 <div class="setting-item color-picker-item">
                     <label>Text color</label>
-                    
+
                     <div class="color-preview" id="colorPreview"></div>
-                    
+
                     <div class="color-palette-container">
                         <canvas id="colorPalette" class="color-palette"></canvas>
                         <div class="palette-indicator" id="paletteIndicator"></div>
                     </div>
-                    
+
                     <div class="hue-slider-container">
                         <canvas id="hueBar" class="hue-bar"></canvas>
                         <input type="range" id="hueSlider" min="0" max="300" value="0" step="1" class="hue-slider">
                     </div>
-                    
+
                     <div class="shades-container">
                         <div class="shades-scroll" id="shadesScroll"></div>
                     </div>
@@ -87,14 +87,14 @@
                     <div class="scrolling-text" id="scrollingText">\(LED banner\)</div>
                 </div>
             </div>
-            
+
             <div class="input-container">
                 <div class="input-area" id="inputArea">
                     <button class="math-btn" id="mathBtn">MATH</button>
                     <div class="math-field" id="mathField"></div>
                     <button class="run-btn" id="runBtn">RUN</button>
                 </div>
-                
+
                 <div class="math-keyboard" id="mathKeyboard">
                     <div class="keyboard-tabs">
                         <button class="tab-btn active" id="tabFunctions">ƒ(x)</button>
@@ -102,7 +102,7 @@
                         <button class="tab-btn" id="tabSymbols">∫∑</button>
                         <button class="tab-btn" id="tabPhysics">⚛️</button>
                     </div>
-                    
+
                     <div class="tab-content active" id="functionsTab">
                         <div class="keyboard-grid">
                             <button class="math-key" data-cmd="\sin">sin</button>
@@ -131,7 +131,7 @@
                             <button class="math-key" data-cmd="\lim">lim</button>
                         </div>
                     </div>
-                    
+
                     <div class="tab-content" id="greekTab">
                         <div class="keyboard-grid">
                             <button class="math-key" data-cmd="\alpha">α</button>
@@ -160,7 +160,7 @@
                             <button class="math-key" data-cmd="\Delta">Δ</button>
                         </div>
                     </div>
-                    
+
                     <div class="tab-content" id="symbolsTab">
                         <div class="keyboard-grid">
                             <button class="math-key" data-cmd="\infty">∞</button>
@@ -184,14 +184,14 @@
                             <button class="math-key" data-cmd="\propto">∝</button>
                         </div>
                     </div>
-                    
+
                     <div class="tab-content" id="physicsTab">
                         <div class="physics-subtabs">
                             <button class="physics-subtab-btn active" data-phys-cat="mechanics">🚗</button>
                             <button class="physics-subtab-btn" data-phys-cat="optics">👓</button>
                             <button class="physics-subtab-btn" data-phys-cat="nuclear">⚛️</button>
                         </div>
-                        
+
                         <div class="physics-category active" id="phys-mechanics">
                             <div class="keyboard-grid">
                                 <button class="math-key" data-formula="v = v_0_ + at">v = v_0_ + at</button>
@@ -202,7 +202,7 @@
                                 <button class="math-key" data-formula="E_k_ = (mv^2^/2) = (p^2^/2m)">E_k_ = (mv^2^/2) = (p^2^/2m)</button>
                                 <button class="math-key" data-formula="E_p_ = mgh">E_p_ = mgh</button>
                                 <button class="math-key" data-formula="F = G·(m_1_m_2_/r^2^)">F = G·(m_1_m_2_/r^2^)</button>
-                                <button class="math-key" data-formula="ω = (Δ φ/Δ t) = (2π/T) = 2π·f">ω = (Δ φ/Δ t) = (2π/T) = 2 π·f</button>
+                                <button class="math-key" data-formula="ω = (Δ φ/Δ t) = (2π/T) = 2π·f">ω = (Δ φ/Δ t) = (2π/T) = 2π·f</button>
                                 <button class="math-key" data-formula="v = ω·R">v = ω·R</button>
                                 <button class="math-key" data-formula="a_c_ = (v^2^/R) = ω^2^R">a_c_ = (v^2^/R) = ω^2^R</button>
                                 <button class="math-key" data-formula="x = A·sin(ω·t + φ_0_)">x = A·sin(ω·t + φ_0_)</button>
@@ -210,15 +210,15 @@
                                 <button class="math-key" data-formula="T = 2π√[l/g] = (2π/ω)">T = 2π√[l/g] = (2π/ω)</button>
                                 <button class="math-key" data-formula="x = v_0_·cosα·t">x = v_0_·cosα·t</button>
                                 <button class="math-key" data-formula="y = v_0_·sinα·t - (gt^2^/2)">y = v_0_·sinα·t - (gt^2^/2)</button>
-                                <button class="math-key" data-formula="H_max_ = (v_0_²·sin²α/(2g)">H_max_ = (v_0_²·sin²α/2g)</button>
+                                <button class="math-key" data-formula="H_max_ = (v_0_²·sin²α)/(2g)">H_max_ = (v_0_²·sin²α)/(2g)</button>
                                 <button class="math-key" data-formula="L = (v_0_²·sin2α)/g">L = (v_0_²·sin2α)/g</button>
                                 <button class="math-key" data-formula="h = v_0_t - (gt^2^/2)">h = v_0_t - (gt^2^/2)</button>
-                                <button class="math-key" data-formula="H_max_ = (v_0_²/2g)">H_max_ = (v_0_²/2g)</button>
+                                <button class="math-key" data-formula="H_max_ = (v_0_²/(2g))">H_max_ = (v_0_²/(2g))</button>
                                 <button class="math-key" data-formula="ω = √[k/m] = (2π/T)">ω = √[k/m] = (2π/T)</button>
                                 <button class="math-key" data-formula="E = (kA^2^/2) = (mv_max_^2^/2)">E = (kA^2^/2) = (mv_max_^2^/2)</button>
                             </div>
                         </div>
-                        
+
                         <div class="physics-category" id="phys-optics">
                             <div class="keyboard-grid">
                                 <button class="math-key" data-formula="(1/f) = (1/d_o_) + (1/d_i_) = (n-1)·(1/R_1_ - 1/R_2_)">(1/f) = (1/d_o_) + (1/d_i_)</button>
@@ -232,20 +232,20 @@
                                 <button class="math-key" data-formula="I = I_0_·cos²θ">I = I_0_·cos²θ</button>
                             </div>
                         </div>
-                        
+
                         <div class="physics-category" id="phys-nuclear">
                             <div class="keyboard-grid">
                                 <button class="math-key" data-formula="E = mc² = √[p²c² + m_0_²c⁴]">E = mc² = √[p²c² + m_0_²c⁴]</button>
                                 <button class="math-key" data-formula="Δ E = Δ m·c²">Δ E = Δ m·c²</button>
-                                <button class="math-key" data-formula="N = N_0_·e^-λ·t^ = N_0_·2^(-t/T_(1/2)_)^">N = N_0_·e^-λ·t^= N_0_·2^(-t/T_(1/2)_)</button>
-                                <button class="math-key" data-formula="T_(1/2)_ = (ln(2)/λ) = τ·ln(2)">T_(1/2)_ = (ln(2)/λ) = τ·ln(2)</button>
-                                <button class="math-key" data-formula="A = λ·N = A_0_·e^-λ·t^">A = λ·N = A_0_·e^-λ·t^</button>
+                                <button class="math-key" data-formula="N = N_0_·e^{-λt} = N_0_·2^{-t/T_1/2_}">N = N_0_·e^{-λt} = N_0_·2^{-t/T_1/2_}</button>
+                                <button class="math-key" data-formula="T_1/2_ = (ln(2)/λ) = τ·ln(2)">T_1/2_ = (ln(2)/λ) = τ·ln(2)</button>
+                                <button class="math-key" data-formula="A = λ·N = A_0_·e^{-λ·t}">A = λ·N = A_0_·e^{-λ·t}</button>
                                 <button class="math-key" data-formula="Q = (m_i_ - m_f_)c²">Q = (m_i_ - m_f_)c²</button>
-                                <button class="math-key" data-formula="E_b_ = Δm·c² = (Z·m_p_ + N·m_n_ - m_яд)·c²">E_b_ = Δm·c²</button>
-                                <button class="math-key" data-formula="R = R_0_·A^(1/3)^">R = R_0_·A^(1/3)^</button>
+                                <button class="math-key" data-formula="E_b_ = Δ m·c² = (Z·m_p_ + N·m_n_ - m_яд)·c²">E_b_ = Δ m·c²</button>
+                                <button class="math-key" data-formula="R = R_0_·A^{1/3}">R = R_0_·A^{1/3}</button>
                                 <button class="math-key" data-formula="{}^{235}U + n → {}^{141}Ba + {}^{92}Kr + 3n">{}^{235}U + n → {}^{141}Ba + {}^{92}Kr + 3n</button>
                                 <button class="math-key" data-formula="{}^{2}H + {}^{3}H → {}^{4}He + n">{}^{2}H + {}^{3}H → {}^{4}He + n</button>
-                                <button class="math-key" data-formula="λ = (ln(2)/T_(1/2)_) = (1/τ)">λ = (ln(2)/T_(1/2)_) = (1/τ)</button>
+                                <button class="math-key" data-formula="λ = (ln(2)/T_1/2_) = (1/τ)">λ = (ln(2)/T_1/2_) = (1/τ)</button>
                                 <button class="math-key" data-formula="p = (h/λ) = (E/c) = √[2mE_k_]">p = (h/λ) = (E/c) = √[2mE_k_]</button>
                                 <button class="math-key" data-formula="λ = (h/p) = h/√[2mE_k_]">λ = (h/p) = h/√[2mE_k_]</button>
                             </div>
