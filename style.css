@@ -83,7 +83,7 @@ body {
     cursor: pointer;
     z-index: 1000;
     padding: 0;
-    transition: all 0.2s ease;
+    transition: opacity 0.3s ease, transform 0.2s ease, background 0.2s ease;
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
     -webkit-backface-visibility: hidden;
@@ -812,4 +812,11 @@ body, html, .app-container, .mobile-view, .banner-area,
 .math-key.physics-formula-key:active .math-key-preview mjx-container {
     background: #ffffff;
     color: #000000;
+}
+
+/* ============================================ */
+/* ПЛАВНОЕ ПОЯВЛЕНИЕ/ИСЧЕЗАНИЕ КРЕСТИКА */
+/* ============================================ */
+.reset-btn {
+    transition: opacity 0.3s ease, transform 0.2s ease, background 0.2s ease;
 }
