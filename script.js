@@ -94,6 +94,35 @@ const physicsCategories = document.querySelectorAll('.physics-category');
 
 let currentSpeed = 15, currentColor = '#ffffff', currentSize = 15, isRunning = false, keyboardVisible = false;
 
+// ============================================
+// ПАУЗА ПРИ УДЕРЖАНИИ И АВТОСКРЫТИЕ КРЕСТИКА
+// ============================================
+let pauseTimer = null;
+let resetBtnTimer = null;
+
+function pauseAnimation() {
+    if (!isRunning) return;
+    scrollingText.style.animationPlayState = 'paused';
+}
+
+function resumeAnimation() {
+    if (!isRunning) return;
+    scrollingText.style.animationPlayState = 'running';
+}
+
+function showResetBtnTemporarily() {
+    if (!isRunning) return;
+    resetBtn.style.display = 'flex';
+    clearTimeout(resetBtnTimer);
+    resetBtnTimer = setTimeout(() => {
+        resetBtn.style.display = 'none';
+    }, 2000);
+}
+
+function hideResetBtn() {
+    resetBtn.style.display = 'none';
+}
+
 // Дефолтные цвета
 const defaultColors = [
     { name: 'white', hex: '#ffffff', shades: ['#ffffff', '#f5f5f5', '#e0e0e0', '#cccccc', '#b3b3b3'] },
@@ -220,14 +249,14 @@ function insertMathSymbol(symbol) {
     else if (symbol === '∛') insertText = '∛[]';
     else if (symbol === '∜') insertText = '∜[]';
     else if (symbol === 'n√' || symbol === '√[n]') insertText = '/n/√[]';
-    else if (symbol === '→' || symbol === '\\vec' || symbol === '⃗') insertText = '{}'; // Вектор - просто {}
+    else if (symbol === '→' || symbol === '\\vec' || symbol === '⃗') insertText = '{}';
     else if (symbol === 'a/b' || symbol === 'frac') insertText = '(/)';
     else if (symbol === 'Δ' || symbol === '\\Delta') insertText = 'Δ';
     const newText = text.substring(0, start) + insertText + text.substring(end);
     input.value = newText;
     let newPos = start + insertText.length;
     if (insertText.includes('[]')) newPos = start + insertText.length - 1;
-    else if (insertText === '{}') newPos = start + 1; // Курсор внутри скобок для вектора
+    else if (insertText === '{}') newPos = start + 1;
     else if (insertText === '(/)') newPos = start + 2;
     else if (insertText === '/n/√[]') newPos = start + 3;
     input.setSelectionRange(newPos, newPos);
@@ -262,16 +291,16 @@ function updateTexts() {
 function createUnifiedInterface() {
     const mathFieldElement = document.getElementById('mathField');
     if (!mathFieldElement) return;
-    
+
     inputArea.innerHTML = '';
     inputArea.style.cssText = 'display:flex; justify-content:flex-end; align-items:center; padding:16px; gap:10px; position:absolute; bottom:0; left:0; right:0; background:#000; border-top:2px solid rgba(255,255,255,0.2); z-index:100;';
-    
+
     const mathButton = document.createElement('button');
     mathButton.className = 'math-btn';
     mathButton.id = 'mainMathBtn';
     mathButton.textContent = t.math;
     mathButton.style.cssText = 'width:70px; height:60px; background:#000; border:2px solid #fff; border-radius:30px; color:#fff; font-weight:bold; font-size:18px; cursor:pointer; flex-shrink:0; transition:all 0.2s ease;';
-    
+
     const textInput = document.createElement('input');
     textInput.type = 'text';
     textInput.id = 'mainInput';
@@ -279,32 +308,32 @@ function createUnifiedInterface() {
     textInput.placeholder = t.inputPlaceholder;
     textInput.value = t.banner;
     textInput.style.cssText = 'flex:1; min-width:0; background:#111; border:2px solid #fff; border-radius:30px; padding:14px 18px; font-size:16px; color:#fff; outline:none; transition:all 0.2s ease;';
-    
+
     const runButton = document.createElement('button');
     runButton.className = 'run-btn';
     runButton.id = 'mainRunBtn';
     runButton.textContent = t.run;
     runButton.style.cssText = 'width:70px; height:60px; background:transparent; border:2px solid #fff; border-radius:30px; color:#fff; font-weight:bold; font-size:18px; cursor:pointer; flex-shrink:0; transition:all 0.2s ease;';
-    
+
     inputArea.appendChild(mathButton);
     inputArea.appendChild(textInput);
     inputArea.appendChild(runButton);
-    
+
     mathButton.addEventListener('click', (e) => { e.stopPropagation(); toggleKeyboard(); });
     runButton.addEventListener('click', toggleRun);
-    
+
     textInput.addEventListener('input', (e) => {
         const text = e.target.value;
         setScrollingFromRaw(text);
         saveData({ latex: parseToLaTeX(text), raw: text });
     });
-    
+
     textInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') toggleRun(); });
-    
+
     document.addEventListener('click', (e) => {
         if (keyboardVisible && !mathKeyboard.contains(e.target) && !mathButton.contains(e.target)) closeKeyboard();
     });
-    
+
     // Вкладка физики
     tabPhysics.addEventListener('click', () => {
         tabFunctions.classList.remove('active'); tabGreek.classList.remove('active'); tabSymbols.classList.remove('active'); tabPhysics.classList.add('active');
@@ -316,7 +345,7 @@ function createUnifiedInterface() {
         schedulePhysicsKeysTypeset();
         syncBackButton();
     });
-    
+
     physicsSubtabs.forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -473,7 +502,9 @@ function toggleRun() {
         inputArea.style.display = 'flex';
         settingsBtn.style.display = 'flex';
         donateBtn.style.display = 'flex';
+        resetBtn.style.display = 'flex';
         isRunning = false;
+        scrollingText.style.animationPlayState = 'running';
     } else {
         scrollingText.style.fontSize = currentSize + 'vw';
         sizeValue.textContent = currentSize + 'vw';
@@ -483,6 +514,7 @@ function toggleRun() {
         inputArea.style.display = 'none';
         settingsBtn.style.display = 'none';
         donateBtn.style.display = 'none';
+        resetBtn.style.display = 'none';
         isRunning = true;
         closeKeyboard();
         saveData({});
@@ -569,18 +601,17 @@ mathKeys.forEach(btn => {
         if (dataCmd === 'frac' || cmd === 'a/b') {
             insertMathSymbol('(/)');
         } else if (dataCmd === '\\vec' || cmd === '⃗' || cmd === '→') {
-            insertMathSymbol('{}'); // Вектор - просто {}
+            insertMathSymbol('{}');
         } else if (dataCmd === '\\sqrt[n]' || cmd === 'n√') {
             insertMathSymbol('/n/√[]');
         } else if (dataCmd === '\\Delta' || cmd === 'Δ') {
             insertMathSymbol('Δ');
         } else if (dataCmd === '^' || cmd === 'xⁿ') {
-            // Обработка кнопки xⁿ (степень) - вставляем ^ ^
             if (input) {
                 const insertText = '^ ^';
                 const newText = text.substring(0, start) + insertText + text.substring(end);
                 input.value = newText;
-                const newPos = start + 1; // Курсор между ^ и ^
+                const newPos = start + 1;
                 input.setSelectionRange(newPos, newPos);
                 input.focus();
                 setScrollingFromRaw(newText);
@@ -588,12 +619,11 @@ mathKeys.forEach(btn => {
                 closeKeyboard();
             }
         } else if (dataCmd === '_' || cmd === 'xₙ') {
-            // Обработка кнопки xₙ (индекс) - вставляем _ _
             if (input) {
                 const insertText = '_ _';
                 const newText = text.substring(0, start) + insertText + text.substring(end);
                 input.value = newText;
-                const newPos = start + 1; // Курсор между _ и _
+                const newPos = start + 1;
                 input.setSelectionRange(newPos, newPos);
                 input.focus();
                 setScrollingFromRaw(newText);
@@ -723,7 +753,7 @@ function initColorPicker() {
     resizeColorPaletteCanvas();
     drawHueBar();
     if (hueSlider) hueSlider.value = currentHue;
-    
+
     colorPalette.addEventListener('mousedown', startDrag);
     colorPalette.addEventListener('mousemove', drag);
     colorPalette.addEventListener('mouseup', stopDrag);
@@ -731,7 +761,7 @@ function initColorPicker() {
     colorPalette.addEventListener('touchstart', startDragTouch, { passive: false });
     colorPalette.addEventListener('touchmove', dragTouch, { passive: false });
     colorPalette.addEventListener('touchend', stopDrag);
-    
+
     hueSlider.addEventListener('input', function() {
         let rawValue = parseInt(hueSlider.value, 10);
         if (isNaN(rawValue)) rawValue = 0;
@@ -741,7 +771,7 @@ function initColorPicker() {
         updateColorFromHSL(currentHue, currentSat, currentLight);
         saveData({});
     });
-    
+
     window.addEventListener('resize', function() {
         if (settingsPanel && settingsPanel.classList.contains('show')) {
             setTimeout(function() {
@@ -753,7 +783,7 @@ function initColorPicker() {
             }, 50);
         }
     });
-    
+
     createShadesGrid();
     updateColorFromHSL(currentHue, currentSat, currentLight);
 }
@@ -929,4 +959,47 @@ function updateActiveShade(hex) {
     });
 }
 
-console.log('✅ LED BANNER - WITH FIXED VECTORS AND POWER/INDEX');
+// ============================================
+// ОБРАБОТЧИКИ ПАУЗЫ ПО НАЖАТИЮ НА ЭКРАН
+// ============================================
+document.addEventListener('pointerdown', (e) => {
+    if (!isRunning) return;
+    if (e.target.closest('button')) return;
+    
+    pauseAnimation();
+    showResetBtnTemporarily();
+});
+
+document.addEventListener('pointerup', (e) => {
+    if (!isRunning) return;
+    if (e.target.closest('button')) return;
+    
+    resumeAnimation();
+});
+
+document.addEventListener('pointerleave', (e) => {
+    if (!isRunning) return;
+    resumeAnimation();
+});
+
+document.addEventListener('touchstart', (e) => {
+    if (!isRunning) return;
+    if (e.target.closest('button')) return;
+    
+    pauseAnimation();
+    showResetBtnTemporarily();
+}, { passive: true });
+
+document.addEventListener('touchend', (e) => {
+    if (!isRunning) return;
+    if (e.target.closest('button')) return;
+    
+    resumeAnimation();
+});
+
+document.addEventListener('touchcancel', (e) => {
+    if (!isRunning) return;
+    resumeAnimation();
+});
+
+console.log('✅ LED BANNER - WITH PAUSE ON HOLD + AUTO-HIDE RESET');
