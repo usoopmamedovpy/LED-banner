@@ -514,6 +514,7 @@ function toggleRun() {
         isRunning = false;
         scrollingText.style.animationPlayState = 'running';
         scrollingText.classList.remove('paused');
+        isPaused = false;
     } else {
         scrollingText.style.fontSize = currentSize + 'vw';
         sizeValue.textContent = currentSize + 'vw';
@@ -539,6 +540,7 @@ function handleReset() {
         resetBtn.style.display = 'flex';
         isRunning = false;
         scrollingText.classList.remove('paused');
+        isPaused = false;
         const input = document.getElementById('mainInput');
         if (input) {
             const currentText = input.value;
@@ -716,7 +718,10 @@ tg.BackButton.onClick(() => {
         inputArea.style.display = 'flex';
         settingsBtn.style.display = 'flex';
         donateBtn.style.display = 'flex';
+        resetBtn.style.display = 'flex';
         isRunning = false;
+        scrollingText.classList.remove('paused');
+        isPaused = false;
     } else {
         const startedRecently = Date.now() - appStartedAt < 1200;
         if (startedRecently || !userInteracted) return;
@@ -974,153 +979,39 @@ function updateActiveShade(hex) {
 // ОБРАБОТЧИКИ ПАУЗЫ ПО НАЖАТИЮ НА ЭКРАН
 // ============================================
 const bannerArea = document.querySelector('.banner-area');
+let isHolding = false;
 
-// Общий обработчик для banner-area
 if (bannerArea) {
     bannerArea.addEventListener('pointerdown', (e) => {
-        if (!isRunning) return;
-        if (e.target.closest('button')) return;
+        if (!isRunning || e.target.closest('button')) return;
         e.preventDefault();
+        isHolding = true;
+        bannerArea.setPointerCapture(e.pointerId);
         pauseAnimation();
         showResetBtnTemporarily();
     });
 
     bannerArea.addEventListener('pointermove', (e) => {
-        if (!isRunning) return;
-        if (!isPaused) return;
-        if (e.target.closest('button')) return;
+        if (!isRunning || !isHolding) return;
+        e.preventDefault();
         pauseAnimation();
     });
 
-    bannerArea.addEventListener('pointerup', (e) => {
-        if (!isRunning) return;
-        if (e.target.closest('button')) return;
+    const releaseHold = (e) => {
+        if (!isRunning || !isHolding) return;
+        isHolding = false;
+        try { bannerArea.releasePointerCapture(e.pointerId); } catch(err) {}
         resumeAnimation();
+        clearTimeout(resetBtnTimer);
         resetBtnTimer = setTimeout(() => {
             if (isRunning && !isPaused) {
                 resetBtn.style.display = 'none';
             }
         }, 2000);
-    });
+    };
 
-    bannerArea.addEventListener('pointerleave', (e) => {
-        if (!isRunning) return;
-        if (!isPaused) return;
-        resumeAnimation();
-        resetBtnTimer = setTimeout(() => {
-            if (isRunning && !isPaused) {
-                resetBtn.style.display = 'none';
-            }
-        }, 2000);
-    });
-
-    // Тач-события
-    bannerArea.addEventListener('touchstart', (e) => {
-        if (!isRunning) return;
-        if (e.target.closest('button')) return;
-        pauseAnimation();
-        showResetBtnTemporarily();
-    }, { passive: false });
-
-    bannerArea.addEventListener('touchmove', (e) => {
-        if (!isRunning) return;
-        if (!isPaused) return;
-        if (e.target.closest('button')) return;
-        pauseAnimation();
-    }, { passive: false });
-
-    bannerArea.addEventListener('touchend', (e) => {
-        if (!isRunning) return;
-        if (e.target.closest('button')) return;
-        resumeAnimation();
-        resetBtnTimer = setTimeout(() => {
-            if (isRunning && !isPaused) {
-                resetBtn.style.display = 'none';
-            }
-        }, 2000);
-    });
-
-    bannerArea.addEventListener('touchcancel', (e) => {
-        if (!isRunning) return;
-        resumeAnimation();
-        resetBtnTimer = setTimeout(() => {
-            if (isRunning && !isPaused) {
-                resetBtn.style.display = 'none';
-            }
-        }, 2000);
-    });
+    bannerArea.addEventListener('pointerup', releaseHold);
+    bannerArea.addEventListener('pointercancel', releaseHold);
 }
 
-// Глобальные обработчики для всего экрана
-document.addEventListener('pointerdown', (e) => {
-    if (!isRunning) return;
-    if (e.target.closest('button')) return;
-    pauseAnimation();
-    showResetBtnTemporarily();
-});
-
-document.addEventListener('pointermove', (e) => {
-    if (!isRunning) return;
-    if (!isPaused) return;
-    if (e.target.closest('button')) return;
-    pauseAnimation();
-});
-
-document.addEventListener('pointerup', (e) => {
-    if (!isRunning) return;
-    if (e.target.closest('button')) return;
-    resumeAnimation();
-    resetBtnTimer = setTimeout(() => {
-        if (isRunning && !isPaused) {
-            resetBtn.style.display = 'none';
-        }
-    }, 2000);
-});
-
-document.addEventListener('pointerleave', (e) => {
-    if (!isRunning) return;
-    if (!isPaused) return;
-    resumeAnimation();
-    resetBtnTimer = setTimeout(() => {
-        if (isRunning && !isPaused) {
-            resetBtn.style.display = 'none';
-        }
-    }, 2000);
-});
-
-document.addEventListener('touchstart', (e) => {
-    if (!isRunning) return;
-    if (e.target.closest('button')) return;
-    pauseAnimation();
-    showResetBtnTemporarily();
-}, { passive: false });
-
-document.addEventListener('touchmove', (e) => {
-    if (!isRunning) return;
-    if (!isPaused) return;
-    if (e.target.closest('button')) return;
-    pauseAnimation();
-}, { passive: false });
-
-document.addEventListener('touchend', (e) => {
-    if (!isRunning) return;
-    if (e.target.closest('button')) return;
-    resumeAnimation();
-    resetBtnTimer = setTimeout(() => {
-        if (isRunning && !isPaused) {
-            resetBtn.style.display = 'none';
-        }
-    }, 2000);
-});
-
-document.addEventListener('touchcancel', (e) => {
-    if (!isRunning) return;
-    resumeAnimation();
-    resetBtnTimer = setTimeout(() => {
-        if (isRunning && !isPaused) {
-            resetBtn.style.display = 'none';
-        }
-    }, 2000);
-});
-
-console.log('✅ LED BANNER - WITH PAUSE ON HOLD + AUTO-HIDE RESET + DRAW-LIKE TOUCH');
+console.log('✅ LED BANNER - WITH POINTER CAPTURE PAUSE');
