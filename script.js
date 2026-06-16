@@ -131,6 +131,51 @@ function hideResetBtnIfRunning() {
     }
 }
 
+// ============================================
+// ШРИФТЫ
+// ============================================
+const availableFonts = [
+    'Arial', 'Helvetica', 'Times New Roman', 'Georgia', 'Courier New', 
+    'Verdana', 'Impact', 'Comic Sans MS', 'Trebuchet MS', 'Garamond', 
+    'Palatino', 'Consolas', 'Monaco', 'Calibri', 'Candara', 
+    'Futura', 'Didot', 'Optima', 'Baskerville', 'American Typewriter'
+];
+let currentFont = 'Arial';
+
+function createFontsGrid() {
+    const fontsGrid = document.getElementById('fontsGrid');
+    if (!fontsGrid) return;
+    fontsGrid.innerHTML = '';
+    
+    availableFonts.forEach(font => {
+        const btn = document.createElement('button');
+        btn.className = 'font-btn';
+        btn.style.fontFamily = font;
+        btn.setAttribute('data-font', font);
+        btn.textContent = 'Aa';
+        
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            currentFont = font;
+            applyFont();
+            saveData({});
+        });
+        
+        fontsGrid.appendChild(btn);
+    });
+}
+
+function applyFont() {
+    scrollingText.style.fontFamily = currentFont;
+    const fontBtns = document.querySelectorAll('.font-btn');
+    fontBtns.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-font') === currentFont) {
+            btn.classList.add('active');
+        }
+    });
+}
+
 // Дефолтные цвета
 const defaultColors = [
     { name: 'white', hex: '#ffffff', shades: ['#ffffff', '#f5f5f5', '#e0e0e0', '#cccccc', '#b3b3b3'] },
@@ -277,6 +322,7 @@ function insertMathSymbol(symbol) {
 window.addEventListener('load', function() {
     updateTexts();
     createUnifiedInterface();
+    createFontsGrid();
     loadSavedData();
     initColorPicker();
     setTimeout(() => setScrollingFromRaw(t.banner), 500);
@@ -372,23 +418,13 @@ function parseToLaTeX(text) {
     if (!text) return '';
     let result = text;
 
-    // Сохраняем пробелы
     result = result.replace(/ /g, '\\ ');
 
-    // ============================================
-    // ГЛАВНОЕ ПРАВИЛО: {} → \vec{содержимое}
-    // ============================================
     result = result.replace(/\{([^{}]*)\}/g, '\\vec{$1}');
 
-    // ============================================
-    // СТЕПЕНИ И ИНДЕКСЫ — БЕЗ ПРИВЯЗКИ К СИМВОЛУ СЛЕВА
-    // ============================================
-    // ^content^ → ^{content}
     result = result.replace(/\^([^\^]+?)\^/g, '^{$1}');
-    // _content_ → _{content}
     result = result.replace(/_([^_]+?)_/g, '_{$1}');
 
-    // Дроби
     let prevResult;
     do {
         prevResult = result;
@@ -399,7 +435,6 @@ function parseToLaTeX(text) {
     result = result.replace(/\(\/\)/g, '\\frac{}{}');
     result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
 
-    // Корни
     result = result.replace(/\/(\d+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
     result = result.replace(/\/([a-zA-Zα-ω]+)\/√\[([^\]]+)\]/g, '\\sqrt[$1]{$2}');
     result = result.replace(/∛\[([^\]]+)\]/g, '\\sqrt[3]{$1}');
@@ -407,7 +442,6 @@ function parseToLaTeX(text) {
     result = result.replace(/√\[([^\]]+)\]/g, '\\sqrt{$1}');
     result = result.replace(/√([a-zA-Z0-9α-ω])/g, '\\sqrt{$1}');
 
-    // Греческие буквы
     const greekMap = {
         'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
         'ε': '\\epsilon', 'ζ': '\\zeta', 'η': '\\eta', 'θ': '\\theta',
@@ -426,7 +460,6 @@ function parseToLaTeX(text) {
         result = result.replace(new RegExp(char, 'g'), latex);
     }
 
-    // Функции
     const funcs = ['sin', 'cos', 'tan', 'cot', 'arcsin', 'arccos', 'arctan', 'arccot', 'log', 'ln', 'exp', 'lim'];
     funcs.forEach(func => { 
         result = result.replace(new RegExp(func + '\\s*\\(', 'g'), func + '('); 
@@ -458,6 +491,7 @@ function loadSavedData() {
             if (data.light !== undefined) currentLight = data.light;
             if (data.speed) { currentSpeed = data.speed; speedSlider.value = currentSpeed; speedValue.textContent = currentSpeed + ' sec'; }
             if (data.size) { currentSize = data.size; sizeSlider.value = currentSize; sizeValue.textContent = currentSize + 'vw'; scrollingText.style.fontSize = currentSize + 'vw'; }
+            if (data.font) { currentFont = data.font; applyFont(); }
             if (data.raw) {
                 const input = document.getElementById('mainInput');
                 if (input) input.value = data.raw;
@@ -468,7 +502,7 @@ function loadSavedData() {
 }
 
 function saveData(data) {
-    const fullData = { ...data, color: currentColor, speed: currentSpeed, size: currentSize, hue: currentHue, sat: currentSat, light: currentLight };
+    const fullData = { ...data, color: currentColor, speed: currentSpeed, size: currentSize, hue: currentHue, sat: currentSat, light: currentLight, font: currentFont };
     localStorage.setItem('ledBannerData', JSON.stringify(fullData));
     if (tg) try { tg.sendData(JSON.stringify({ action: 'save_all', data: fullData })); } catch(e) {}
 }
@@ -521,6 +555,7 @@ function toggleRun() {
         speedValue.textContent = currentSpeed + ' sec';
         restartAnimation();
         applyColorToMath();
+        applyFont();
         inputArea.style.display = 'none';
         settingsBtn.style.display = 'none';
         donateBtn.style.display = 'none';
@@ -554,6 +589,8 @@ function handleReset() {
         currentColor = '#ffffff';
         currentHue = 0; currentSat = 0; currentLight = 100;
         currentSpeed = 15; currentSize = 15;
+        currentFont = 'Arial';
+        applyFont();
         if (hueSlider) hueSlider.value = 0;
         sizeSlider.value = 15; speedSlider.value = 15;
         sizeValue.textContent = '15vw'; speedValue.textContent = '15 sec';
@@ -597,13 +634,11 @@ mathKeys.forEach(btn => {
         e.stopPropagation();
         e.preventDefault();
 
-        // Физика — полная формула из data-formula
         if (btn.dataset.formula) {
             insertMathSymbol(btn.dataset.formula);
             return false;
         }
 
-        // Остальное — как было: sin, α, √, дробь...
         const cmd = btn.textContent;
         const dataCmd = btn.dataset.cmd;
         const input = document.getElementById('mainInput');
@@ -695,6 +730,7 @@ settingsBtn.addEventListener('click', function() {
                     updateIndicatorPosition(x, y);
                 }
             }
+            applyFont();
         }, 50);
     }
     syncBackButton();
@@ -1014,4 +1050,4 @@ if (bannerArea) {
     bannerArea.addEventListener('pointercancel', releaseHold);
 }
 
-console.log('✅ LED BANNER - WITH POINTER CAPTURE PAUSE');
+console.log('✅ LED BANNER - WITH FONTS + POINTER CAPTURE PAUSE');
