@@ -72,6 +72,7 @@ const sizeValue = document.getElementById('sizeValue');
 const speedSlider = document.getElementById('speedSlider');
 const speedValue = document.getElementById('speedValue');
 
+// Цветовой пикер
 const colorPreview = document.getElementById('colorPreview');
 const colorPalette = document.getElementById('colorPalette');
 const paletteIndicator = document.getElementById('paletteIndicator');
@@ -139,8 +140,7 @@ const availableFonts = [
     'Palatino', 'Consolas', 'Monaco', 'Calibri', 'Candara', 
     'Futura', 'Didot', 'Optima', 'Baskerville', 'American Typewriter'
 ];
-// СДЕЛАНО: Дефолтный шрифт теперь Times New Roman
-let currentFont = 'Times New Roman'; 
+let currentFont = 'Arial'; 
 
 function createFontsGrid() {
     const fontsGrid = document.getElementById('fontsGrid');
@@ -198,8 +198,6 @@ function updateMathCustomStyles() {
     const style = document.createElement('style');
     style.id = 'mathCustomStyle';
     
-    // ВАЖНО: Добавлено font-style: normal !important для полного убийства курсива, 
-    // а также применены шрифты к физическим формулам на клавиатуре.
     style.textContent = `
         #scrollingText, 
         #scrollingText mjx-container, 
@@ -256,7 +254,6 @@ function clampHue(hue) {
 // ============================================
 function setScrollingFromRaw(raw) {
     const latex = parseToLaTeX(raw || '');
-    // СДЕЛАНО: Обернули в \mathrm{}, чтобы убить курсив и заставить MathJax использовать прямые буквы
     scrollingText.innerHTML = '\\(\\mathrm{' + latex + '}\\)';
     if (window.MathJax) {
         MathJax.typesetPromise([scrollingText]).then(() => {
@@ -270,7 +267,7 @@ function setScrollingFromRaw(raw) {
 }
 
 // ============================================
-// ФИЗИКА — ПРЕВЬЮ MATHJAX
+// ФИЗИКА — ПРЕВЬЮ MATHJAX + УКОРОЧЕНИЕ (ТОЛЬКО data-formula)
 // ============================================
 let physicsTypesetTimer = null;
 
@@ -319,7 +316,6 @@ function typesetPhysicsKeysIn(container) {
 
         const preview = document.createElement('span');
         preview.className = 'math-key-preview';
-        // Также оборачиваем формулы на клавиатуре в \mathrm{}
         preview.innerHTML = '\\(\\mathrm{' + latex + '}\\)';
         btn.appendChild(preview);
     });
@@ -435,6 +431,7 @@ function createUnifiedInterface() {
         if (keyboardVisible && !mathKeyboard.contains(e.target) && !mathButton.contains(e.target)) closeKeyboard();
     });
 
+    // Вкладка физики
     tabPhysics.addEventListener('click', () => {
         tabFunctions.classList.remove('active'); tabGreek.classList.remove('active'); tabSymbols.classList.remove('active'); tabPhysics.classList.add('active');
         functionsTab.classList.remove('active'); greekTab.classList.remove('active'); symbolsTab.classList.remove('active'); physicsTab.classList.add('active');
@@ -623,8 +620,7 @@ function handleReset() {
         currentColor = '#ffffff';
         currentHue = 0; currentSat = 0; currentLight = 100;
         currentSpeed = 15; currentSize = 15;
-        // СДЕЛАНО: Сброс теперь тоже кидает на Times New Roman
-        currentFont = 'Times New Roman';
+        currentFont = 'Arial';
         applyFont();
         if (hueSlider) hueSlider.value = 0;
         sizeSlider.value = 15; speedSlider.value = 15;
@@ -1081,4 +1077,4 @@ if (bannerArea) {
     bannerArea.addEventListener('pointercancel', releaseHold);
 }
 
-console.log('✅ LED BANNER - FONT & MATHJAX FULLY PATCHED');
+console.log('✅ LED BANNER - Arial Default + Font Grid Restored');
