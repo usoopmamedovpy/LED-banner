@@ -135,12 +135,12 @@ function hideResetBtnIfRunning() {
 // ШРИФТЫ
 // ============================================
 const availableFonts = [
-    'Arial', 'Helvetica', 'Times New Roman', 'Georgia', 'Courier New', 
+    'System-UI', 'Arial', 'Helvetica', 'Times New Roman', 'Georgia', 'Courier New', 
     'Verdana', 'Impact', 'Comic Sans MS', 'Trebuchet MS', 'Garamond', 
     'Palatino', 'Consolas', 'Monaco', 'Calibri', 'Candara', 
     'Futura', 'Didot', 'Optima', 'Baskerville', 'American Typewriter'
 ];
-let currentFont = 'Arial'; 
+let currentFont = 'System-UI';
 
 function createFontsGrid() {
     const fontsGrid = document.getElementById('fontsGrid');
@@ -150,9 +150,14 @@ function createFontsGrid() {
     availableFonts.forEach(font => {
         const btn = document.createElement('button');
         btn.className = 'font-btn';
-        btn.style.fontFamily = font;
+        
+        let fontStyleValue = font;
+        if (font === 'System-UI') {
+            fontStyleValue = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        }
+        btn.style.fontFamily = fontStyleValue;
         btn.setAttribute('data-font', font);
-        btn.textContent = 'Aa';
+        btn.textContent = font === 'System-UI' ? 'Sys' : 'Aa';
         
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
@@ -166,13 +171,21 @@ function createFontsGrid() {
 }
 
 function applyFont() {
-    scrollingText.style.fontFamily = currentFont;
+    let fontValue = currentFont;
+    if (currentFont === 'System-UI') {
+        fontValue = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+    }
     
+    // 1. Применяем к бегущей строке
+    scrollingText.style.fontFamily = fontValue;
+    
+    // 2. Применяем к главному инпуту в меню
     const mainInput = document.getElementById('mainInput');
     if (mainInput) {
-        mainInput.style.fontFamily = currentFont;
+        mainInput.style.fontFamily = fontValue;
     }
 
+    // 3. Обновляем активную кнопку в настройках
     const fontBtns = document.querySelectorAll('.font-btn');
     fontBtns.forEach(btn => {
         btn.classList.remove('active');
@@ -181,6 +194,7 @@ function applyFont() {
         }
     });
 
+    // 4. Форсируем шрифт для упрямого MathJax
     updateMathCustomStyles();
 }
 
@@ -190,7 +204,7 @@ function applyColorToMath() {
     updateMathCustomStyles();
 }
 
-// УНИВЕРСАЛЬНЫЙ ПАТЧ ДЛЯ MATHJAX И ШРИФТОВ
+// УНИВЕРСАЛЬНЫЙ ПАТЧ ДЛЯ MATHJAX (ИСПРАВЛЕН КУРСИВ И СМЕНА ШРИФТА)
 function updateMathCustomStyles() {
     const oldStyle = document.getElementById('mathCustomStyle');
     if (oldStyle) oldStyle.remove();
@@ -198,17 +212,26 @@ function updateMathCustomStyles() {
     const style = document.createElement('style');
     style.id = 'mathCustomStyle';
     
+    let fontValue = currentFont;
+    if (currentFont === 'System-UI') {
+        fontValue = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+    } else {
+        fontValue = `'${currentFont}', sans-serif`;
+    }
+    
+    // Перебиваем стили внутренних элементов MathJax, убираем дефолтный наклон переменных
     style.textContent = `
-        #scrollingText, 
-        #scrollingText mjx-container, 
-        #scrollingText mjx-container * { 
+        #scrollingText, #scrollingText * { 
             color: ${currentColor} !important; 
-            font-family: '${currentFont}', sans-serif !important; 
-            font-style: normal !important;
         }
-        .math-key-preview mjx-container,
-        .math-key-preview mjx-container * {
-            font-family: '${currentFont}', sans-serif !important;
+        #scrollingText {
+            font-family: ${fontValue} !important;
+        }
+        #scrollingText mjx-mi, 
+        #scrollingText mjx-mn, 
+        #scrollingText mjx-mtext, 
+        #scrollingText mjx-utext { 
+            font-family: ${fontValue} !important;
             font-style: normal !important;
         }
     `;
@@ -221,7 +244,7 @@ const defaultColors = [
     { name: 'black', hex: '#000000', shades: ['#000000', '#1a1a1a', '#333333', '#4d4d4d', '#666666'] },
     { name: 'red', hex: '#ff3b30', shades: ['#ff3b30', '#ff5e5e', '#ff8a8a', '#ffb5b5', '#ffd1d1'] },
     { name: 'orange', hex: '#ff9500', shades: ['#ff9500', '#ffaa33', '#ffbf66', '#ffd499', '#ffeacc'] },
-    { name: 'yellow', hex: '#ffcc00', shades: ['#ffcc00', '#ffd633', '#ffe066', '#ffeb99', '#fff5cc'] },
+    { name: 'yellow', hex: '#ffcc00', shades: ['#ffd633', '#ffe066', '#ffeb99', '#fff5cc'] },
     { name: 'green', hex: '#34c759', shades: ['#34c759', '#5ad37a', '#80de9b', '#a6e9bc', '#ccf4dd'] },
     { name: 'cyan', hex: '#5ac8fa', shades: ['#5ac8fa', '#7bd4fb', '#9ce0fc', '#bdecfe', '#def8ff'] },
     { name: 'blue', hex: '#007aff', shades: ['#007aff', '#3395ff', '#66b0ff', '#99cbff', '#cce5ff'] },
@@ -254,7 +277,7 @@ function clampHue(hue) {
 // ============================================
 function setScrollingFromRaw(raw) {
     const latex = parseToLaTeX(raw || '');
-    scrollingText.innerHTML = '\\(\\mathrm{' + latex + '}\\)';
+    scrollingText.innerHTML = '\\(' + latex + '\\)';
     if (window.MathJax) {
         MathJax.typesetPromise([scrollingText]).then(() => {
             applyColorToMath();
@@ -316,7 +339,7 @@ function typesetPhysicsKeysIn(container) {
 
         const preview = document.createElement('span');
         preview.className = 'math-key-preview';
-        preview.innerHTML = '\\(\\mathrm{' + latex + '}\\)';
+        preview.innerHTML = '\\(' + latex + '\\)';
         btn.appendChild(preview);
     });
 
@@ -433,8 +456,8 @@ function createUnifiedInterface() {
 
     // Вкладка физики
     tabPhysics.addEventListener('click', () => {
-        tabFunctions.classList.remove('active'); tabGreek.classList.remove('active'); tabSymbols.classList.remove('active'); tabPhysics.classList.add('active');
-        functionsTab.classList.remove('active'); greekTab.classList.remove('active'); symbolsTab.classList.remove('active'); physicsTab.classList.add('active');
+        tabFunctions.classList.remove('active'); tabGreek.classList.remove('active'); tabSymbols.classList.remove('active'); tabPhysics.add('active');
+        functionsTab.classList.remove('active'); greekTab.classList.remove('active'); symbolsTab.classList.remove('active'); physicsTab.add('active');
         physicsCategories.forEach(cat => cat.classList.remove('active'));
         physicsSubtabs.forEach(btn => btn.classList.remove('active'));
         document.getElementById('phys-mechanics').classList.add('active');
@@ -494,10 +517,10 @@ function parseToLaTeX(text) {
         'χ': '\\chi', 'ψ': '\\psi', 'ω': '\\omega',
         'Α': '\\Alpha', 'Β': '\\Beta', 'Γ': '\\Gamma', 'Δ': '\\Delta',
         'Ε': '\\Epsilon', 'Ζ': '\\Zeta', 'Η': '\\Eta', 'Θ': '\\Theta',
-        'Ι': '\\Iota', 'Κ': '\\Kappa', 'Λ': '\\Lambda', 'Μ': '\\Mu',
-        'Ν': '\\Nu', 'Ξ': '\\Xi', 'Π': '\\Pi', 'Ρ': '\\Rho',
-        'Σ': '\\Sigma', 'Τ': '\\Tau', 'Υ': '\\Upsilon', 'Φ': '\\Phi',
-        'Χ': '\\Chi', 'Ψ': '\\Psi', 'Ω': '\\Omega'
+        'Ι': '\\Iota', 'К': '\\Kappa', 'Λ': '\\Lambda', 'М': '\\Mu',
+        'Н': '\\Nu', 'Ξ': '\\Xi', 'П': '\\Pi', 'Р': '\\Rho',
+        'Σ': '\\Sigma', 'Т': '\\Tau', 'У': '\\Upsilon', 'Ф': '\\Phi',
+        'Х': '\\Chi', 'Ψ': '\\Psi', 'Ω': '\\Omega'
     };
     for (let [char, latex] of Object.entries(greekMap)) {
         result = result.replace(new RegExp(char, 'g'), latex);
@@ -620,7 +643,7 @@ function handleReset() {
         currentColor = '#ffffff';
         currentHue = 0; currentSat = 0; currentLight = 100;
         currentSpeed = 15; currentSize = 15;
-        currentFont = 'Arial';
+        currentFont = 'System-UI';
         applyFont();
         if (hueSlider) hueSlider.value = 0;
         sizeSlider.value = 15; speedSlider.value = 15;
@@ -1077,4 +1100,4 @@ if (bannerArea) {
     bannerArea.addEventListener('pointercancel', releaseHold);
 }
 
-console.log('✅ LED BANNER - Arial Default + Font Grid Restored');
+console.log('✅ LED BANNER - MATHJAX FONT PATCH APPLIED');
