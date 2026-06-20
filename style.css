@@ -204,8 +204,7 @@ body {
     top: 0;
     padding-right: 50px;
     font-size: 15vw;
-    /* СДЕЛАНО: Дефолтный резервный шрифт - Times New Roman */
-    font-family: 'Times New Roman', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Arial', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     transform: translateX(100vw);
     animation: scrollText linear infinite;
     animation-duration: 15s;
