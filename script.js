@@ -190,7 +190,7 @@ function applyColorToMath() {
     updateMathCustomStyles();
 }
 
-// УНИВЕРСАЛЬНЫЙ ПАТЧ ДЛЯ MATHJAX И ШРИФТОВ
+// УНИВЕРСАЛЬНЫЙ ПАТЧ ДЛЯ MATHJAX И ШРИФТОВ (ИСПРАВЛЕННЫЙ ВАРИАНТ)
 function updateMathCustomStyles() {
     const oldStyle = document.getElementById('mathCustomStyle');
     if (oldStyle) oldStyle.remove();
@@ -199,17 +199,18 @@ function updateMathCustomStyles() {
     style.id = 'mathCustomStyle';
     
     style.textContent = `
-        #scrollingText, 
-        #scrollingText mjx-container, 
-        #scrollingText mjx-container * { 
+        #scrollingText { 
             color: ${currentColor} !important; 
             font-family: '${currentFont}', sans-serif !important; 
-            font-style: normal !important;
         }
-        .math-key-preview mjx-container,
-        .math-key-preview mjx-container * {
+        /* Наследуем цвет для MathJax, не ломая внутренние шрифты и структуру знаков */
+        #scrollingText mjx-container,
+        .math-key-preview mjx-container { 
+            color: ${currentColor} !important; 
+        }
+        /* Применяем кастомный шрифт только к текстовым блокам внутри MathJax, если они есть */
+        #scrollingText mjx-utext {
             font-family: '${currentFont}', sans-serif !important;
-            font-style: normal !important;
         }
     `;
     document.head.appendChild(style);
@@ -267,7 +268,7 @@ function setScrollingFromRaw(raw) {
 }
 
 // ============================================
-// ФИЗИКА — ПРЕВЬЮ MATHJAX + УКОРОЧЕНИЕ (ТОЛЬКО data-formula)
+// ФИЗИКА — ПРЕВЬЮ MATHJAX + УКОРОЧЕНИЕ
 // ============================================
 let physicsTypesetTimer = null;
 
@@ -494,10 +495,10 @@ function parseToLaTeX(text) {
         'χ': '\\chi', 'ψ': '\\psi', 'ω': '\\omega',
         'Α': '\\Alpha', 'Β': '\\Beta', 'Γ': '\\Gamma', 'Δ': '\\Delta',
         'Ε': '\\Epsilon', 'Ζ': '\\Zeta', 'Η': '\\Eta', 'Θ': '\\Theta',
-        'Ι': '\\Iota', 'Κ': '\\Kappa', 'Λ': '\\Lambda', 'Μ': '\\Mu',
-        'Ν': '\\Nu', 'Ξ': '\\Xi', 'Π': '\\Pi', 'Ρ': '\\Rho',
-        'Σ': '\\Sigma', 'Τ': '\\Tau', 'Υ': '\\Upsilon', 'Φ': '\\Phi',
-        'Χ': '\\Chi', 'Ψ': '\\Psi', 'Ω': '\\Omega'
+        'Ι': '\\Iota', 'К': '\\Kappa', 'Λ': '\\Lambda', 'М': '\\Mu',
+        'Н': '\\Nu', 'Ξ': '\\Xi', 'П': '\\Pi', 'Р': '\\Rho',
+        'Σ': '\\Sigma', 'Т': '\\Tau', 'У': '\\Upsilon', 'Ф': '\\Phi',
+        'Х': '\\Chi', 'Ψ': '\\Psi', 'Ω': '\\Omega'
     };
     for (let [char, latex] of Object.entries(greekMap)) {
         result = result.replace(new RegExp(char, 'g'), latex);
@@ -915,7 +916,7 @@ function pickColorFromTouch(e) {
     const touch = e.touches[0];
     if (!touch) return;
     let xCss = touch.clientX - rect.left;
-    let yCss = touch.clientY - rect.top;
+    let yCss = touch.top - rect.top; // Поправил на относительное смещение пальца
     xCss = clamp(xCss, 0, rect.width);
     yCss = clamp(yCss, 0, rect.height);
     const saturation = (xCss / rect.width) * 100;
@@ -947,6 +948,7 @@ function updateColorFromHSL(h, s, l) {
     updateColorFromRGB(rgb.r, rgb.g, rgb.b);
 }
 
+// Перевод HSL в RGB
 function hslToRgb(h, s, l) {
     let r, g, b;
     if (s === 0) { r = g = b = l; }
@@ -975,7 +977,6 @@ function updateColorFromRGB(r, g, b) {
     currentColor = hex;
     
     updateMathCustomStyles();
-    
     updateActiveShade(hex);
     saveData({});
 }
@@ -1077,4 +1078,4 @@ if (bannerArea) {
     bannerArea.addEventListener('pointercancel', releaseHold);
 }
 
-console.log('✅ LED BANNER - Arial Default + Font Grid Restored');
+console.log('✅ LED BANNER - Arial Default + Font Grid Restored + Root Fix Integrated');
