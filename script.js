@@ -146,28 +146,28 @@ function createFontsGrid() {
     const fontsGrid = document.getElementById('fontsGrid');
     if (!fontsGrid) return;
     fontsGrid.innerHTML = '';
-    
+
     availableFonts.forEach(font => {
         const btn = document.createElement('button');
         btn.className = 'font-btn';
         btn.style.fontFamily = font;
         btn.setAttribute('data-font', font);
         btn.textContent = 'Aa';
-        
+
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
             currentFont = font;
             applyFont();
             saveData({});
         });
-        
+
         fontsGrid.appendChild(btn);
     });
 }
 
 function applyFont() {
     scrollingText.style.fontFamily = currentFont;
-    
+
     const mainInput = document.getElementById('mainInput');
     if (mainInput) {
         mainInput.style.fontFamily = currentFont;
@@ -194,21 +194,19 @@ function applyColorToMath() {
 function updateMathCustomStyles() {
     const oldStyle = document.getElementById('mathCustomStyle');
     if (oldStyle) oldStyle.remove();
-    
+
     const style = document.createElement('style');
     style.id = 'mathCustomStyle';
-    
+
     style.textContent = `
         #scrollingText { 
             color: ${currentColor} !important; 
             font-family: '${currentFont}', sans-serif !important; 
         }
-        /* Наследуем цвет для MathJax, не ломая внутренние шрифты и структуру знаков */
         #scrollingText mjx-container,
         .math-key-preview mjx-container { 
             color: ${currentColor} !important; 
         }
-        /* Применяем кастомный шрифт только к текстовым блокам внутри MathJax, если они есть */
         #scrollingText mjx-utext {
             font-family: '${currentFont}', sans-serif !important;
         }
@@ -495,10 +493,10 @@ function parseToLaTeX(text) {
         'χ': '\\chi', 'ψ': '\\psi', 'ω': '\\omega',
         'Α': '\\Alpha', 'Β': '\\Beta', 'Γ': '\\Gamma', 'Δ': '\\Delta',
         'Ε': '\\Epsilon', 'Ζ': '\\Zeta', 'Η': '\\Eta', 'Θ': '\\Theta',
-        'Ι': '\\Iota', 'К': '\\Kappa', 'Λ': '\\Lambda', 'М': '\\Mu',
-        'Н': '\\Nu', 'Ξ': '\\Xi', 'П': '\\Pi', 'Р': '\\Rho',
-        'Σ': '\\Sigma', 'Т': '\\Tau', 'У': '\\Upsilon', 'Ф': '\\Phi',
-        'Х': '\\Chi', 'Ψ': '\\Psi', 'Ω': '\\Omega'
+        'Ι': '\\Iota', 'Κ': '\\Kappa', 'Λ': '\\Lambda', 'Μ': '\\Mu',
+        'Ν': '\\Nu', 'Ξ': '\\Xi', 'Π': '\\Pi', 'Ρ': '\\Rho',
+        'Σ': '\\Sigma', 'Τ': '\\Tau', 'Υ': '\\Upsilon', 'Φ': '\\Phi',
+        'Χ': '\\Chi', 'Ψ': '\\Psi', 'Ω': '\\Omega'
     };
     for (let [char, latex] of Object.entries(greekMap)) {
         result = result.replace(new RegExp(char, 'g'), latex);
@@ -916,7 +914,7 @@ function pickColorFromTouch(e) {
     const touch = e.touches[0];
     if (!touch) return;
     let xCss = touch.clientX - rect.left;
-    let yCss = touch.top - rect.top; // Поправил на относительное смещение пальца
+    let yCss = touch.clientY - rect.top; // ИСПРАВЛЕНО: было touch.top
     xCss = clamp(xCss, 0, rect.width);
     yCss = clamp(yCss, 0, rect.height);
     const saturation = (xCss / rect.width) * 100;
@@ -975,7 +973,7 @@ function updateColorFromRGB(r, g, b) {
     if (colorPreview) colorPreview.style.backgroundColor = hex;
     scrollingText.style.color = hex;
     currentColor = hex;
-    
+
     updateMathCustomStyles();
     updateActiveShade(hex);
     saveData({});
@@ -1078,4 +1076,4 @@ if (bannerArea) {
     bannerArea.addEventListener('pointercancel', releaseHold);
 }
 
-console.log('✅ LED BANNER - Arial Default + Font Grid Restored + Root Fix Integrated');
+console.log('✅ LED BANNER - TOUCH PICKER FIXED + ALL FEATURES');
